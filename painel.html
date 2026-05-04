@@ -274,32 +274,57 @@ let allData = [];
 let filteredData = [];
 
 // ─── LOAD ────────────────────────────────────────────────────────────────
+const SHEET_CSV = 'https://docs.google.com/spreadsheets/d/1C8kfRIjc3caRCfCkIgFToudZJD6Ch_-_36JBW9Mr7ho/export?format=csv&gid=0';
+
 async function loadData(){
-  const url = document.getElementById('sheets-url').value.trim();
-  if(!url){
-    alert('Cole a URL do Google Sheets (exportação CSV) no campo acima.');
-    return;
-  }
+  const inputUrl = document.getElementById('sheets-url').value.trim();
+  const url = inputUrl || SHEET_CSV;
 
   document.getElementById('status-txt').textContent = 'Carregando...';
   document.getElementById('no-config').style.display = 'none';
 
+  // Try direct fetch first (works if sheet is public)
   try {
-    const res = await fetch(url);
+    const res = await fetch(url + (url.includes('?') ? '&' : '?') + 'cachebust=' + Date.now());
     if(!res.ok) throw new Error('HTTP '+res.status);
     const csv = await res.text();
+    if(!csv || csv.trim().length < 10) throw new Error('Planilha vazia');
     allData = parseCSV(csv);
     filteredData = [...allData];
     renderAll();
-    document.getElementById('status-txt').textContent = `✅ ${allData.length} respostas · atualizado às ${new Date().toLocaleTimeString('pt-BR')}`;
-
-    // populate turma filter
+    document.getElementById('status-txt').textContent = `✅ ${allData.length} resposta(s) · ${new Date().toLocaleTimeString('pt-BR')}`;
     const turmas = [...new Set(allData.map(r=>r.turma).filter(Boolean))];
     const sel = document.getElementById('filter-turma');
     sel.innerHTML = '<option value="">Todas as turmas</option>' + turmas.map(t=>`<option>${t}</option>`).join('');
+    return;
   } catch(e) {
-    document.getElementById('status-txt').textContent = '❌ Erro ao carregar — verifique a URL e o compartilhamento';
-    console.error(e);
+    console.warn('Fetch direto falhou, tentando via proxy...', e);
+  }
+
+  // Fallback: try via allorigins proxy (avoids CORS)
+  try {
+    const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+    const res2 = await fetch(proxyUrl);
+    if(!res2.ok) throw new Error('Proxy HTTP '+res2.status);
+    const csv2 = await res2.text();
+    allData = parseCSV(csv2);
+    filteredData = [...allData];
+    renderAll();
+    document.getElementById('status-txt').textContent = `✅ ${allData.length} resposta(s) via proxy · ${new Date().toLocaleTimeString('pt-BR')}`;
+    const turmas = [...new Set(allData.map(r=>r.turma).filter(Boolean))];
+    const sel = document.getElementById('filter-turma');
+    sel.innerHTML = '<option value="">Todas as turmas</option>' + turmas.map(t=>`<option>${t}</option>`).join('');
+  } catch(e2) {
+    document.getElementById('status-txt').textContent = '❌ Erro ao carregar — confirme que a planilha está pública';
+    document.getElementById('no-config').style.display = 'block';
+    document.getElementById('no-config').innerHTML = `
+      <strong>⚠️ Não foi possível carregar os dados.</strong><br><br>
+      Verifique se a planilha está compartilhada como pública:<br>
+      1. Abra a planilha → Compartilhar → Qualquer pessoa com o link → Leitor<br>
+      2. Clique em "↻ Atualizar" acima<br><br>
+      <a href="https://docs.google.com/spreadsheets/d/1C8kfRIjc3caRCfCkIgFToudZJD6Ch_-_36JBW9Mr7ho" target="_blank" style="color:var(--gold)">Abrir planilha →</a>
+    `;
+    console.error(e2);
   }
 }
 
@@ -554,11 +579,13 @@ function exportCSV(){
   a.click();
 }
 
-// ─── AUTO REFRESH ─────────────────────────────────────────────────────────
-// Atualiza automaticamente a cada 60 segundos se URL estiver configurada
-setInterval(()=>{
-  if(document.getElementById('sheets-url').value.trim()) loadData();
-}, 60000);
+// ─── AUTO REFRESH + INIT ──────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', ()=>{
+  // Auto-load on page open with the pre-configured sheet
+  setTimeout(loadData, 500);
+});
+
+setInterval(()=>{ loadData(); }, 60000);
 </script>
 </body>
 </html>
