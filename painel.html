@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel do Facilitador · Instituto da Liderança</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Syne:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0A0806;--parch:#FAF6EE;--gold:#C9A84C;--gold-lt:#E8D08A;--gold-dk:#8A6520;
+  --fire:#D4401A;--flame:#F07030;--water:#1A5CB4;--sky:#4A90D4;
+  --earth:#6B7C3A;--moss:#9AB050;--air:#7040B0;--mist:#A878E0;
+  --mid:#7A6E5A;--border:rgba(201,168,76,0.2);--r:12px;--r-sm:8px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Syne',sans-serif;background:var(--ink);color:var(--parch);min-height:100vh}
+.bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 60% 40% at 15% 20%,rgba(201,168,76,.06) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 85% 75%,rgba(26,92,180,.05) 0%,transparent 55%),var(--ink)}
+.wrap{position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:0 24px}
+
+/* HEADER */
+.site-header{padding:24px 0;border-bottom:1px solid var(--border);margin-bottom:32px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.site-logo{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;background:linear-gradient(135deg,var(--parch),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header-badge{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.15em;color:var(--gold);padding:4px 14px;border:1px solid var(--border);border-radius:100px;text-transform:uppercase}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.btn-sm{padding:8px 18px;border-radius:var(--r-sm);font-family:'Syne',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .25s;border:1px solid}
+.btn-gold{background:linear-gradient(135deg,var(--gold-dk),var(--gold));color:var(--ink);border-color:transparent}
+.btn-gold:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(201,168,76,.3)}
+.btn-outline{background:transparent;color:var(--mid);border-color:var(--border)}
+.btn-outline:hover{border-color:rgba(201,168,76,.4);color:var(--parch)}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#48C864;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* CONFIG PANEL */
+.config-panel{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin-bottom:28px}
+.config-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.config-grid{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end}
+.config-group{display:flex;flex-direction:column;gap:6px}
+.config-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--gold);letter-spacing:.1em;text-transform:uppercase}
+.config-input{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;color:var(--parch);font-family:'Syne',sans-serif;font-size:13px;outline:none;transition:border-color .25s;width:100%}
+.config-input:focus{border-color:var(--gold)}
+.config-hint{font-size:11px;color:var(--mid);margin-top:8px;line-height:1.6}
+.config-hint a{color:var(--gold-lt);text-decoration:none}
+.config-hint a:hover{text-decoration:underline}
+
+/* STATS BAR */
+.stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:28px}
+.stat-card{background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:var(--r);padding:16px;text-align:center}
+.stat-num{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:700;color:var(--gold)}
+.stat-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--mid);letter-spacing:.1em;text-transform:uppercase;margin-top:4px}
+
+/* CHARTS ROW */
+.charts-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:28px}
+.chart-card{background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:var(--r);padding:20px}
+.chart-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;margin-bottom:16px}
+.chart-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.chart-bar-label{font-size:12px;font-weight:600;width:100px;flex-shrink:0}
+.chart-bar-track{flex:1;height:10px;background:rgba(255,255,255,.06);border-radius:5px}
+.chart-bar-fill{height:100%;border-radius:5px;transition:width .8s ease}
+.chart-bar-val{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);width:28px;text-align:right}
+.chart-pill{display:flex;align-items:center;justify-content:space-between;padding:6px 12px;border-radius:var(--r-sm);margin-bottom:6px;font-size:13px}
+.chart-pill-count{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700}
+
+/* TABLE */
+.table-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.table-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700}
+.table-controls{display:flex;gap:8px;flex-wrap:wrap}
+.search-box{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 14px;color:var(--parch);font-family:'Syne',sans-serif;font-size:13px;outline:none;width:220px}
+.search-box:focus{border-color:var(--gold)}
+.filter-sel{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 14px;color:var(--parch);font-family:'Syne',sans-serif;font-size:13px;outline:none}
+.filter-sel option{background:var(--ink)}
+
+.table-wrap{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:40px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead{background:rgba(201,168,76,.08)}
+th{padding:12px 14px;text-align:left;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--gold);text-transform:uppercase;white-space:nowrap;border-bottom:1px solid var(--border)}
+td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.badge{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600;font-family:'JetBrains Mono',monospace}
+.td-name{font-weight:700;color:var(--parch)}
+.td-date{color:var(--mid);font-family:'JetBrains Mono',monospace;font-size:11px}
+.row-actions{display:flex;gap:6px}
+.act-btn{padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--mid);cursor:pointer;font-size:11px;transition:all .2s}
+.act-btn:hover{border-color:var(--gold);color:var(--gold)}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,8,6,.85);z-index:1000;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:#16120E;border:1px solid var(--border);border-radius:var(--r);max-width:760px;width:100%;max-height:90vh;overflow-y:auto;padding:32px}
+.modal-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.modal-name{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700}
+.modal-meta{font-size:12px;color:var(--mid);font-family:'JetBrains Mono',monospace;margin-top:4px}
+.modal-close{background:none;border:1px solid var(--border);color:var(--mid);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;flex-shrink:0}
+.modal-close:hover{border-color:var(--gold);color:var(--gold)}
+.modal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:24px}
+.modal-item{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px}
+.modal-item-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--gold);letter-spacing:.1em;margin-bottom:6px}
+.modal-item-value{font-size:15px;font-weight:700}
+.modal-section{margin-bottom:20px}
+.modal-section-title{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.modal-section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:60px 20px;color:var(--mid)}
+.empty-icon{font-size:48px;margin-bottom:16px}
+.empty-title{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;margin-bottom:8px;color:var(--parch)}
+.empty-desc{font-size:14px;line-height:1.7;max-width:440px;margin:0 auto}
+
+/* NO-DATA WARNING */
+.no-config{background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.3);border-radius:var(--r);padding:20px;margin-bottom:28px;font-size:14px;line-height:1.7}
+.no-config strong{color:var(--gold)}
+
+@media(max-width:768px){
+  .config-grid{grid-template-columns:1fr}
+  .charts-row{grid-template-columns:1fr}
+  table{font-size:12px}
+  th,td{padding:8px 10px}
+}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="site-header">
+    <div>
+      <div class="site-logo">Instituto da Liderança</div>
+      <div style="font-size:12px;color:var(--mid);margin-top:4px">Painel do Facilitador — Resultados em Tempo Real</div>
+    </div>
+    <div class="header-badge">Assessment Integrado</div>
+    <div class="header-right">
+      <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mid)"><div class="status-dot"></div><span id="status-txt">Aguardando configuração</span></span>
+      <button class="btn-sm btn-outline" onclick="loadData()">↻ Atualizar</button>
+      <button class="btn-sm btn-gold" onclick="exportCSV()">⬇ Exportar CSV</button>
+    </div>
+  </div>
+
+  <!-- CONFIG -->
+  <div class="config-panel">
+    <div class="config-title">⚙️ Configuração da Fonte de Dados</div>
+    <div class="config-grid">
+      <div class="config-group">
+        <div class="config-label">URL do Google Sheets (CSV público)</div>
+        <input class="config-input" id="sheets-url" placeholder="URL do Google Sheets CSV" value="https://docs.google.com/spreadsheets/d/1C8kfRIjc3caRCfCkIgFToudZJD6Ch_-_36JBW9Mr7ho/export?format=csv&gid=0">
+      </div>
+      <div class="config-group">
+        <div class="config-label">Filtrar por Turma</div>
+        <select class="config-input" id="filter-turma">
+          <option value="">Todas as turmas</option>
+        </select>
+      </div>
+      <button class="btn-sm btn-gold" onclick="loadData()" style="padding:10px 20px;white-space:nowrap">Carregar Dados</button>
+    </div>
+    <div class="config-hint">
+      <strong>Como configurar:</strong> Siga o guia <code>GUIA_CONFIGURACAO.md</code> incluído neste pacote.
+      O painel lê os dados diretamente de uma planilha Google Sheets publicada como CSV — sem necessidade de backend.
+      <br>⚠️ A planilha precisa estar com <strong>compartilhamento público (somente leitura)</strong> e o Apps Script configurado para receber os dados do assessment.
+    </div>
+  </div>
+
+  <!-- NO CONFIG WARNING -->
+  <div class="no-config" id="no-config">
+    <strong>📋 Painel não configurado.</strong> Configure a URL da planilha Google Sheets acima para visualizar os resultados.
+    Após configurar o Apps Script e a planilha, cole a URL pública de exportação CSV no campo acima e clique em "Carregar Dados".
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-bar" id="stats-bar" style="display:none">
+    <div class="stat-card"><div class="stat-num" id="stat-total">0</div><div class="stat-label">Respostas</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-hoje">0</div><div class="stat-label">Hoje</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-pre">0</div><div class="stat-label">Pré-Treinamento</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-durante">0</div><div class="stat-label">Durante</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-pos">0</div><div class="stat-label">Pós-Treinamento</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-turmas">0</div><div class="stat-label">Turmas</div></div>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="charts-row" id="charts-row" style="display:none">
+    <!-- DISC -->
+    <div class="chart-card">
+      <div class="chart-title">Distribuição DISC</div>
+      <div id="chart-disc"></div>
+    </div>
+    <!-- Elementos -->
+    <div class="chart-card">
+      <div class="chart-title">Elementos da Natureza</div>
+      <div id="chart-elem"></div>
+    </div>
+    <!-- Eneagrama -->
+    <div class="chart-card">
+      <div class="chart-title">Eneagrama — Tipos mais frequentes</div>
+      <div id="chart-ennea"></div>
+    </div>
+    <!-- Necessidades -->
+    <div class="chart-card">
+      <div class="chart-title">Necessidades Primárias</div>
+      <div id="chart-needs"></div>
+    </div>
+    <!-- Kolb -->
+    <div class="chart-card">
+      <div class="chart-title">Estilos Kolb</div>
+      <div id="chart-kolb"></div>
+    </div>
+    <!-- Temperamento -->
+    <div class="chart-card">
+      <div class="chart-title">Temperamentos</div>
+      <div id="chart-temp"></div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div id="table-section" style="display:none">
+    <div class="table-header">
+      <div class="table-title">Respostas Individuais</div>
+      <div class="table-controls">
+        <input class="search-box" id="search" placeholder="🔍 Buscar nome..." oninput="filterTable()">
+        <select class="filter-sel" id="filter-fase" onchange="filterTable()">
+          <option value="">Todas as fases</option>
+          <option>Pré-Treinamento</option>
+          <option>Durante o Treinamento</option>
+          <option>Pós-Treinamento</option>
+        </select>
+        <select class="filter-sel" id="filter-disc" onchange="filterTable()">
+          <option value="">Todo DISC</option>
+          <option>Dominante</option>
+          <option>Influente</option>
+          <option>Estável</option>
+          <option>Consciencioso</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table id="data-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nome</th>
+            <th>Turma</th>
+            <th>Fase</th>
+            <th>DISC</th>
+            <th>Elemento</th>
+            <th>Eneagrama</th>
+            <th>Arquétipo</th>
+            <th>Kolb</th>
+            <th>Necessidade 1ª</th>
+            <th>Temperamento</th>
+            <th>Roland</th>
+            <th>Data</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- EMPTY STATE -->
+  <div class="empty-state" id="empty-state" style="display:none">
+    <div class="empty-icon">📊</div>
+    <div class="empty-title">Nenhum resultado encontrado</div>
+    <div class="empty-desc">Nenhuma resposta corresponde aos filtros selecionados. Tente remover os filtros ou aguarde novas respostas.</div>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<script>
+let allData = [];
+let filteredData = [];
+
+// ─── LOAD ────────────────────────────────────────────────────────────────
+async function loadData(){
+  const url = document.getElementById('sheets-url').value.trim();
+  if(!url){
+    alert('Cole a URL do Google Sheets (exportação CSV) no campo acima.');
+    return;
+  }
+
+  document.getElementById('status-txt').textContent = 'Carregando...';
+  document.getElementById('no-config').style.display = 'none';
+
+  try {
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const csv = await res.text();
+    allData = parseCSV(csv);
+    filteredData = [...allData];
+    renderAll();
+    document.getElementById('status-txt').textContent = `✅ ${allData.length} respostas · atualizado às ${new Date().toLocaleTimeString('pt-BR')}`;
+
+    // populate turma filter
+    const turmas = [...new Set(allData.map(r=>r.turma).filter(Boolean))];
+    const sel = document.getElementById('filter-turma');
+    sel.innerHTML = '<option value="">Todas as turmas</option>' + turmas.map(t=>`<option>${t}</option>`).join('');
+  } catch(e) {
+    document.getElementById('status-txt').textContent = '❌ Erro ao carregar — verifique a URL e o compartilhamento';
+    console.error(e);
+  }
+}
+
+// ─── PARSE CSV ───────────────────────────────────────────────────────────
+function parseCSV(csv){
+  const lines = csv.trim().split('\n');
+  if(lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h=>h.replace(/"/g,'').trim().toLowerCase());
+  return lines.slice(1).map(line=>{
+    const vals = splitCSVLine(line);
+    const row = {};
+    headers.forEach((h,i) => { row[h] = (vals[i]||'').replace(/"/g,'').trim(); });
+    return row;
+  }).filter(r=>r.nome||r.name);
+}
+
+function splitCSVLine(line){
+  const result=[]; let cur=''; let inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(c==='"'){inQ=!inQ;}
+    else if(c===','&&!inQ){result.push(cur);cur='';}
+    else cur+=c;
+  }
+  result.push(cur);
+  return result;
+}
+
+// ─── RENDER ALL ──────────────────────────────────────────────────────────
+function renderAll(){
+  const show = allData.length > 0;
+  document.getElementById('stats-bar').style.display   = show ? 'grid' : 'none';
+  document.getElementById('charts-row').style.display  = show ? 'grid' : 'none';
+  document.getElementById('table-section').style.display = show ? 'block' : 'none';
+  document.getElementById('no-config').style.display   = show ? 'none' : 'block';
+
+  renderStats();
+  renderCharts();
+  renderTable();
+}
+
+// ─── STATS ───────────────────────────────────────────────────────────────
+function renderStats(){
+  const today = new Date().toISOString().slice(0,10);
+  const countFase = f => allData.filter(r=>(r.fase||'').includes(f)).length;
+  document.getElementById('stat-total').textContent  = filteredData.length;
+  document.getElementById('stat-hoje').textContent   = allData.filter(r=>(r.timestamp||'').startsWith(today)).length;
+  document.getElementById('stat-pre').textContent    = countFase('Pré');
+  document.getElementById('stat-durante').textContent= countFase('Durante');
+  document.getElementById('stat-pos').textContent    = countFase('Pós');
+  document.getElementById('stat-turmas').textContent = new Set(allData.map(r=>r.turma).filter(Boolean)).size;
+}
+
+// ─── CHARTS ──────────────────────────────────────────────────────────────
+const DISC_COLORS={Dominante:'var(--flame)',Influente:'#F0C030',Estável:'var(--sky)',Consciencioso:'var(--mist)'};
+const ELEM_COLORS={FOGO:'var(--flame)',AR:'var(--mist)',TERRA:'var(--moss)',ÁGUA:'var(--sky)'};
+const DISC_MAP={D:'Dominante',I:'Influente',S:'Estável',C:'Consciencioso'};
+const KOLB_MAP={CON:'Convergente',DIV:'Divergente',ASS:'Assimilador',ACO:'Acomodador'};
+const TEMP_MAP={C:'Colérico',S:'Sanguíneo',M:'Melancólico',F:'Fleumático'};
+
+function countField(field, map=null){
+  const c={};
+  filteredData.forEach(r=>{
+    let v = r[field]||'';
+    if(map) v = map[v]||v;
+    if(v) c[v]=(c[v]||0)+1;
+  });
+  return Object.entries(c).sort((a,b)=>b[1]-a[1]);
+}
+
+function barChart(entries, colorFn, container){
+  const max = Math.max(...entries.map(e=>e[1]),1);
+  document.getElementById(container).innerHTML = entries.map(([k,v])=>`
+    <div class="chart-bar-row">
+      <span class="chart-bar-label" style="color:${colorFn(k)||'var(--parch)'}">${k}</span>
+      <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${v/max*100}%;background:${colorFn(k)||'var(--gold)'}"></div></div>
+      <span class="chart-bar-val">${v}</span>
+    </div>`).join('');
+}
+
+function pillChart(entries, colorFn, container){
+  document.getElementById(container).innerHTML = entries.map(([k,v])=>`
+    <div class="chart-pill" style="background:rgba(255,255,255,.03);border:1px solid var(--border)">
+      <span style="color:${colorFn(k)||'var(--parch)'}">${k}</span>
+      <span class="chart-pill-count" style="color:${colorFn(k)||'var(--gold)'}">${v}</span>
+    </div>`).join('');
+}
+
+function renderCharts(){
+  const discEntries = countField('disc_primario', DISC_MAP);
+  barChart(discEntries, k=>DISC_COLORS[k], 'chart-disc');
+
+  const elemEntries = countField('elem_primario');
+  barChart(elemEntries, k=>ELEM_COLORS[k], 'chart-elem');
+
+  const enneaRaw = countField('ennea_tipo');
+  const enneaFmt = enneaRaw.slice(0,6).map(([k,v])=>[`Tipo ${k}`,v]);
+  pillChart(enneaFmt, ()=>'var(--mist)', 'chart-ennea');
+
+  const needsEntries = countField('need_1a');
+  pillChart(needsEntries, ()=>'#F0A050', 'chart-needs');
+
+  const kolbEntries = countField('kolb_estilo');
+  barChart(kolbEntries, ()=>'var(--sky)', 'chart-kolb');
+
+  const tempEntries = countField('temperamento');
+  const tempColors={Colérico:'var(--flame)',Sanguíneo:'#F0C030',Melancólico:'var(--mist)',Fleumático:'var(--sky)'};
+  barChart(tempEntries, k=>tempColors[k], 'chart-temp');
+}
+
+// ─── TABLE ───────────────────────────────────────────────────────────────
+function renderTable(){
+  const tbody = document.getElementById('table-body');
+  if(!filteredData.length){
+    tbody.innerHTML='';
+    document.getElementById('empty-state').style.display='block';
+    return;
+  }
+  document.getElementById('empty-state').style.display='none';
+
+  const discColorMap={D:'var(--flame)',I:'#F0C030',S:'var(--sky)',C:'var(--mist)'};
+
+  tbody.innerHTML = filteredData.map((r,i)=>{
+    const discPrim = r.disc_primario||'';
+    const discName = DISC_MAP[discPrim]||discPrim;
+    const discColor= discColorMap[discPrim]||'var(--gold)';
+    const elemColor= ELEM_COLORS[r.elem_primario]||'var(--gold)';
+    const dt = r.timestamp ? new Date(r.timestamp).toLocaleDateString('pt-BR') : '—';
+
+    return `<tr>
+      <td style="color:var(--mid);font-family:'JetBrains Mono',monospace">${i+1}</td>
+      <td class="td-name">${r.nome||r.name||'—'}</td>
+      <td style="color:var(--mid);max-width:160px;overflow:hidden;text-overflow:ellipsis">${r.turma||'—'}</td>
+      <td><span style="font-size:11px;color:var(--mid)">${r.fase||'—'}</span></td>
+      <td><span class="badge" style="background:rgba(255,255,255,.05);color:${discColor}">${discName}</span></td>
+      <td><span style="color:${elemColor}">${r.elem_primario||'—'}</span></td>
+      <td><span style="color:var(--mist)">Tipo ${r.ennea_tipo||'—'}</span></td>
+      <td style="color:var(--gold)">${r.arquetipos||'—'}</td>
+      <td style="color:var(--sky)">${r.kolb_estilo||'—'}</td>
+      <td style="color:#F0A050">${r.need_1a||'—'}</td>
+      <td style="color:var(--mid)">${r.temperamento||'—'}</td>
+      <td style="color:var(--mid)">${r.roland_nome||r.roland_estagio||'—'}</td>
+      <td class="td-date">${dt}</td>
+      <td>
+        <div class="row-actions">
+          <button class="act-btn" onclick="openModal(${i})">Ver perfil</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ─── FILTER ──────────────────────────────────────────────────────────────
+function filterTable(){
+  const search  = document.getElementById('search').value.toLowerCase();
+  const fase    = document.getElementById('filter-fase').value;
+  const disc    = document.getElementById('filter-disc').value;
+  const turma   = document.getElementById('filter-turma').value;
+
+  filteredData = allData.filter(r=>{
+    const name = (r.nome||r.name||'').toLowerCase();
+    const discName = DISC_MAP[r.disc_primario]||r.disc_primario||'';
+    if(search && !name.includes(search)) return false;
+    if(fase && !(r.fase||'').includes(fase)) return false;
+    if(disc && discName !== disc) return false;
+    if(turma && r.turma !== turma) return false;
+    return true;
+  });
+
+  renderStats();
+  renderCharts();
+  renderTable();
+}
+
+// ─── MODAL ───────────────────────────────────────────────────────────────
+function openModal(idx){
+  const r = filteredData[idx];
+  if(!r) return;
+  const discName = DISC_MAP[r.disc_primario]||r.disc_primario||'—';
+  const elemColor = ELEM_COLORS[r.elem_primario]||'var(--gold)';
+  const dt = r.timestamp ? new Date(r.timestamp).toLocaleString('pt-BR') : '—';
+
+  const needsRows = ['Certeza','Variedade','Significância','Conexão','Crescimento','Contribuição'].map(n=>{
+    const key = 'need_'+n.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace('ê','e').replace('ã','a').replace('ô','o').replace('ç','c');
+    const val = parseFloat(r[key]||0);
+    return `<div class="chart-bar-row" style="margin-bottom:6px">
+      <span class="chart-bar-label" style="color:var(--mid);font-size:12px">${n}</span>
+      <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${val/5*100}%;background:#F0A050"></div></div>
+      <span class="chart-bar-val">${val.toFixed(1)}</span>
+    </div>`;
+  }).join('');
+
+  document.getElementById('modal-content').innerHTML = `
+    <div class="modal-header">
+      <div>
+        <div class="modal-name">${r.nome||r.name||'—'}</div>
+        <div class="modal-meta">${r.turma||'—'} · ${r.fase||'—'} · ${dt}</div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+
+    <div class="modal-section-title">Resumo do Perfil</div>
+    <div class="modal-grid">
+      ${[
+        ['DISC Principal', discName],
+        ['Elemento', r.elem_primario||'—'],
+        ['Eneagrama', `Tipo ${r.ennea_tipo||'—'}`],
+        ['Arquétipo', r.arquetipos||'—'],
+        ['Kolb', r.kolb_estilo||'—'],
+        ['Temperamento', r.temperamento||'—'],
+        ['Roland', r.roland_nome||r.roland_estagio||'—'],
+        ['Necessidade 1ª', r.need_1a||'—'],
+        ['Necessidade 2ª', r.need_2a||'—'],
+      ].map(([l,v])=>`
+        <div class="modal-item">
+          <div class="modal-item-label">${l}</div>
+          <div class="modal-item-value">${v}</div>
+        </div>`).join('')}
+    </div>
+
+    <div class="modal-section-title">DISC Detalhado</div>
+    <div style="margin-bottom:20px">
+      ${[['D','Dominante','var(--flame)'],['I','Influente','#F0C030'],['S','Estável','var(--sky)'],['C','Consciencioso','var(--mist)']].map(([k,name,color])=>{
+        const v = parseInt(r[`disc_${k}`]||0);
+        const max = Math.max(parseInt(r.disc_D||0),parseInt(r.disc_I||0),parseInt(r.disc_S||0),parseInt(r.disc_C||0),1);
+        return `<div class="chart-bar-row"><span class="chart-bar-label" style="color:${color}">${name}</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:${v/max*100}%;background:${color}"></div></div><span class="chart-bar-val">${v}</span></div>`;
+      }).join('')}
+    </div>
+
+    <div class="modal-section-title">6 Necessidades</div>
+    ${needsRows}
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
+      <button class="btn-sm btn-outline" onclick="closeModal()">Fechar</button>
+    </div>`;
+
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal(){
+  document.getElementById('modal').classList.remove('open');
+}
+
+// ─── EXPORT CSV ──────────────────────────────────────────────────────────
+function exportCSV(){
+  if(!filteredData.length){ alert('Sem dados para exportar.'); return; }
+  const keys = Object.keys(filteredData[0]);
+  const lines = [keys.join(','), ...filteredData.map(r=>keys.map(k=>`"${(r[k]||'').replace(/"/g,'""')}"`).join(','))];
+  const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `assessment-resultados-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+// ─── AUTO REFRESH ─────────────────────────────────────────────────────────
+// Atualiza automaticamente a cada 60 segundos se URL estiver configurada
+setInterval(()=>{
+  if(document.getElementById('sheets-url').value.trim()) loadData();
+}, 60000);
+</script>
+</body>
+</html>

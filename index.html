@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assessment de Liderança · Instituto da Liderança</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0A0806;--parch:#FAF6EE;--cream:#F3EDD8;
+  --gold:#C9A84C;--gold-lt:#E8D08A;--gold-dk:#8A6520;
+  --fire:#D4401A;--flame:#F07030;
+  --water:#1A5CB4;--sky:#4A90D4;
+  --earth:#6B7C3A;--moss:#9AB050;
+  --air:#7040B0;--mist:#A878E0;
+  --mid:#7A6E5A;--border:rgba(201,168,76,0.22);
+  --r:14px;--r-sm:8px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Syne',sans-serif;background:var(--ink);color:var(--parch);min-height:100vh;overflow-x:hidden}
+.bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 60% 40% at 15% 20%,rgba(201,168,76,.07) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 85% 75%,rgba(26,92,180,.06) 0%,transparent 55%),var(--ink)}
+.bg-grid{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(201,168,76,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,.03) 1px,transparent 1px);background-size:48px 48px}
+.wrap{position:relative;z-index:1;max-width:820px;margin:0 auto;padding:0 20px}
+.screen{display:none;animation:fadeUp .4s ease}
+.screen.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+/* COVER */
+#cover{padding:72px 0 56px;text-align:center}
+.logo-mark{display:inline-flex;align-items:center;gap:8px;padding:7px 18px;border:1px solid var(--border);border-radius:100px;margin-bottom:32px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;color:var(--gold);background:rgba(201,168,76,.07);text-transform:uppercase}
+.logo-mark::before{content:'◆';font-size:7px}
+h1.hero{font-family:'Cormorant Garamond',serif;font-size:clamp(42px,8vw,84px);font-weight:700;line-height:1;letter-spacing:-.02em;margin-bottom:18px}
+h1.hero span{display:block;background:linear-gradient(135deg,var(--parch) 0%,var(--gold) 45%,var(--parch) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:15px;color:var(--mid);line-height:1.7;max-width:500px;margin:0 auto 40px}
+.theories-row{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:40px}
+.theory-pill{padding:5px 14px;border-radius:100px;border:1px solid var(--border);font-size:11px;font-weight:600;letter-spacing:.05em}
+.pill-d{color:var(--flame);border-color:rgba(212,64,26,.3);background:rgba(212,64,26,.06)}
+.pill-el{color:#48C8A8;border-color:rgba(72,200,168,.3);background:rgba(72,200,168,.06)}
+.pill-e{color:var(--mist);border-color:rgba(112,64,176,.3);background:rgba(112,64,176,.06)}
+.pill-a{color:#E8708A;border-color:rgba(232,112,138,.3);background:rgba(232,112,138,.06)}
+.pill-k{color:var(--sky);border-color:rgba(26,92,180,.3);background:rgba(26,92,180,.06)}
+.pill-n{color:#F0A050;border-color:rgba(240,160,80,.3);background:rgba(240,160,80,.06)}
+.pill-h{color:#E8A840;border-color:rgba(232,168,64,.3);background:rgba(232,168,64,.06)}
+.name-form{display:flex;flex-direction:column;align-items:center;gap:14px;max-width:440px;margin:0 auto}
+.name-form label{font-size:12px;font-weight:600;color:var(--parch);letter-spacing:.06em;text-transform:uppercase;align-self:flex-start}
+.name-form input,.name-form select{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-sm);padding:13px 16px;color:var(--parch);font-family:'Syne',sans-serif;font-size:14px;outline:none;transition:border-color .25s}
+.name-form input:focus,.name-form select:focus{border-color:var(--gold)}
+.name-form select option{background:var(--ink);color:var(--parch)}
+.est-time{font-size:11px;color:var(--mid);font-family:'JetBrains Mono',monospace;letter-spacing:.05em}
+/* PROGRESS */
+.progress-bar-wrap{position:sticky;top:0;z-index:100;background:rgba(10,8,6,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:12px 20px}
+.progress-inner{max-width:820px;margin:0 auto;display:flex;align-items:center;gap:14px}
+.progress-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--gold);letter-spacing:.1em;white-space:nowrap;text-transform:uppercase}
+.progress-track{flex:1;height:3px;background:rgba(255,255,255,.08);border-radius:2px}
+.progress-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--gold-dk),var(--gold));transition:width .5s ease}
+.progress-pct{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--gold);white-space:nowrap}
+/* SECTIONS */
+.section-wrap{padding:40px 0 60px}
+.section-header{margin-bottom:32px;text-align:center}
+.section-badge{display:inline-flex;align-items:center;gap:8px;padding:5px 16px;border-radius:100px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.13em;color:var(--gold);background:rgba(201,168,76,.08);border:1px solid var(--border);text-transform:uppercase;margin-bottom:14px}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:clamp(26px,5vw,42px);font-weight:700;margin-bottom:10px;letter-spacing:-.01em}
+.section-desc{font-size:14px;color:var(--mid);line-height:1.7;max-width:560px;margin:0 auto}
+/* DISC */
+.disc-group{background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:var(--r);margin-bottom:12px;overflow:hidden;transition:border-color .25s}
+.disc-group.complete{border-color:rgba(201,168,76,.45)}
+.disc-group.locked{opacity:.75;pointer-events:none}
+.disc-group-header{display:flex;align-items:center;gap:10px;padding:9px 16px;background:rgba(255,255,255,.02);border-bottom:1px solid rgba(255,255,255,.05)}
+.disc-group-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:.1em}
+.disc-group-status{margin-left:auto;width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.12);transition:background .3s}
+.disc-group.complete .disc-group-status{background:var(--gold)}
+.disc-word-row{display:flex;align-items:center;padding:0 16px;min-height:44px;border-bottom:1px solid rgba(255,255,255,.04)}
+.disc-word-row:last-child{border-bottom:none}
+.disc-word-label{flex:1;font-size:14px;color:var(--parch)}
+.disc-btns{display:flex;gap:6px;flex-shrink:0}
+.disc-btn{width:32px;height:26px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:transparent;cursor:pointer;font-size:13px;transition:all .2s;color:var(--mid);display:flex;align-items:center;justify-content:center}
+.disc-btn:hover:not(:disabled){border-color:var(--gold);color:var(--parch)}
+.disc-btn.plus-on{background:rgba(72,200,100,.2);border-color:#48C864;color:#48C864}
+.disc-btn.minus-on{background:rgba(220,80,60,.2);border-color:#DC503C;color:#DC503C}
+.disc-btn.dimmed{opacity:.25;pointer-events:none}
+.disc-btn:disabled{opacity:.3;cursor:not-allowed}
+.disc-live{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:20px}
+.disc-score-card{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px;text-align:center}
+.disc-score-letter{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;line-height:1}
+.disc-score-name{font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--mid);letter-spacing:.08em;margin:3px 0}
+.disc-score-val{font-size:18px;font-weight:800;font-family:'Cormorant Garamond',serif}
+.disc-score-bar-track{height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:6px}
+.disc-score-bar-fill{height:100%;border-radius:2px;transition:width .5s ease}
+/* ELEMENTOS */
+.elem-progress{display:flex;gap:4px;justify-content:center;margin-bottom:18px;flex-wrap:wrap}
+.elem-dot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.1);transition:background .3s}
+.elem-dot.done{background:var(--gold)}
+.elem-word-card{background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin-bottom:14px;text-align:center}
+.elem-round-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:.14em;margin-bottom:14px}
+.elem-opts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.elem-opt{padding:13px 10px;border-radius:var(--r-sm);border:1px solid var(--border);background:rgba(255,255,255,.025);cursor:pointer;font-size:13px;font-weight:600;color:var(--mid);transition:all .22s;letter-spacing:.03em}
+.elem-opt:hover:not(:disabled){border-color:rgba(201,168,76,.4);color:var(--parch)}
+.elem-opt.selected{border-color:var(--gold);background:rgba(201,168,76,.12);color:var(--gold)}
+.elem-opt:disabled{cursor:not-allowed}
+.elem-live{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:20px}
+.elem-score-card{border-radius:var(--r-sm);padding:12px;text-align:center;border:1px solid}
+/* GENERIC Q */
+.q-block{margin-bottom:24px}
+.q-text{font-size:14px;font-weight:600;color:var(--parch);margin-bottom:10px;line-height:1.6}
+.q-text span{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:.1em;margin-right:8px}
+.q-opts{display:flex;flex-direction:column;gap:7px}
+.q-opt{padding:11px 16px;border-radius:var(--r-sm);border:1px solid var(--border);background:rgba(255,255,255,.025);cursor:pointer;font-size:13px;color:var(--mid);transition:all .22s;text-align:left;line-height:1.5;font-family:'Syne',sans-serif}
+.q-opt:hover:not(:disabled){border-color:rgba(201,168,76,.4);color:var(--parch);background:rgba(255,255,255,.04)}
+.q-opt.selected{border-color:var(--gold);background:rgba(201,168,76,.1);color:var(--parch)}
+.q-opt:disabled{cursor:not-allowed;opacity:.7}
+.q-likert-wrap{margin-top:8px}
+.q-likert-scale{display:flex;gap:5px}
+.q-likert-btn{flex:1;padding:9px 2px;border-radius:var(--r-sm);border:1px solid var(--border);background:rgba(255,255,255,.025);cursor:pointer;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--mid);text-align:center;transition:all .2s}
+.q-likert-btn:hover:not(:disabled){border-color:rgba(201,168,76,.4);color:var(--parch)}
+.q-likert-btn.selected{border-color:var(--gold);background:rgba(201,168,76,.1);color:var(--gold)}
+.q-likert-btn:disabled{cursor:not-allowed;opacity:.7}
+.q-likert-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--mid);margin-top:4px;font-family:'JetBrains Mono',monospace}
+.ennea-type-block{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:14px}
+.ennea-type-header{display:flex;align-items:baseline;gap:12px;margin-bottom:14px}
+.ennea-num{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:700;color:var(--gold);opacity:.3;line-height:1}
+.ennea-type-name{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:700}
+/* LOCK OVERLAY */
+.screen-locked-notice{display:none;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.3);border-radius:var(--r-sm);padding:12px 16px;font-size:13px;color:var(--gold);margin-top:16px;text-align:center}
+.screen-locked-notice.show{display:block}
+/* BUTTONS */
+.btn-primary{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--gold-dk),var(--gold));color:var(--ink);border:none;border-radius:var(--r-sm);padding:15px 32px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.04em;transition:all .3s}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(201,168,76,.35)}
+.btn-secondary{display:inline-flex;align-items:center;gap:8px;background:transparent;color:var(--mid);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 22px;font-family:'Syne',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .25s}
+.btn-secondary:hover{border-color:rgba(201,168,76,.4);color:var(--parch)}
+.btn-secondary:disabled{opacity:.4;cursor:not-allowed}
+.nav-buttons{display:flex;justify-content:space-between;align-items:center;padding:28px 0;gap:16px;flex-wrap:wrap}
+.val-warning{display:none;background:rgba(220,80,60,.1);border:1px solid rgba(220,80,60,.3);border-radius:var(--r-sm);padding:11px 15px;font-size:13px;color:#F07060;margin-top:14px}
+.val-warning.show{display:block}
+/* REPORT */
+#report{padding:40px 0 80px}
+.report-hero{text-align:center;padding:44px 0 32px;border-bottom:1px solid var(--border);margin-bottom:36px}
+.report-avatar{width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,var(--gold-dk),var(--gold));display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 18px}
+.report-name{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;margin-bottom:6px}
+.report-turma{font-size:12px;color:var(--mid);font-family:'JetBrains Mono',monospace;letter-spacing:.08em}
+.report-date{font-size:11px;color:var(--mid);margin-top:5px;font-family:'JetBrains Mono',monospace}
+.rmod{background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:var(--r);margin-bottom:18px;overflow:hidden}
+.rmod-header{display:flex;align-items:center;gap:14px;padding:16px 22px;border-bottom:1px solid rgba(255,255,255,.05)}
+.rmod-icon{font-size:20px;flex-shrink:0}
+.rmod-theory{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:.12em;text-transform:uppercase}
+.rmod-title{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:700}
+.rmod-badge{margin-left:auto;padding:4px 12px;border-radius:100px;font-size:11px;font-weight:700;font-family:'Syne',sans-serif;letter-spacing:.04em;white-space:nowrap}
+.rmod-body{padding:18px 22px}
+.rmod-desc{font-size:14px;color:var(--mid);line-height:1.7;margin-bottom:14px}
+.rmod-insight{padding:11px 15px;border-radius:var(--r-sm);background:rgba(201,168,76,.07);border-left:3px solid var(--gold);font-size:13px;line-height:1.7;color:var(--parch);margin-bottom:10px}
+.rmod-insight strong{color:var(--gold)}
+.rmod-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:12px 0}
+.rmod-cell{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px}
+.rmod-cell-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+.rmod-cell-value{font-size:13px;color:var(--mid);line-height:1.6}
+.rbar-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.rbar-label{font-size:12px;color:var(--parch);width:150px;flex-shrink:0;font-weight:600}
+.rbar-track{flex:1;height:7px;background:rgba(255,255,255,.08);border-radius:4px}
+.rbar-fill{height:100%;border-radius:4px;transition:width .8s ease}
+.rbar-val{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);width:28px;text-align:right}
+.section-sep{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:16px;margin-top:24px;display:flex;align-items:center;gap:10px}
+.section-sep::after{content:'';flex:1;height:1px;background:var(--border)}
+.divider{height:1px;background:var(--border);margin:28px 0}
+/* NEEDS suggestion box */
+.needs-suggestion{margin-top:14px;background:rgba(26,92,180,.07);border:1px solid rgba(26,92,180,.25);border-radius:var(--r-sm);padding:14px}
+.needs-suggestion-title{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--sky);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+/* DISC profile detail */
+.disc-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+@media(max-width:640px){.disc-live,.elem-live{grid-template-columns:repeat(2,1fr)}.disc-detail-grid{grid-template-columns:1fr}.rbar-label{width:100px;font-size:11px}}
+/* HOLLAND */
+.h-score-10{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.h-score-btn{flex:1;min-width:34px;padding:8px 2px;border-radius:var(--r-sm);border:1px solid var(--border);background:rgba(255,255,255,.025);cursor:pointer;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--mid);text-align:center;transition:all .2s}
+.h-score-btn:hover:not(:disabled){border-color:rgba(201,168,76,.4);color:var(--parch)}
+.h-score-btn:disabled{cursor:not-allowed;opacity:.7}
+/* PRINT */
+@media print{
+  .bg,.bg-grid,.progress-bar-wrap,.nav-buttons,.btn-primary,.btn-secondary,#s-cover,#s-disc,#s-elem,#s-ennea,#s-arch,#s-kolb,#s-needs,#s-holland{display:none!important}
+  #s-report{display:block!important}
+  body{background:#fff;color:#111;font-size:12px}
+  .report-avatar{background:#C9A84C!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .report-name{font-size:26px}
+  #report{padding:20px}
+  .rmod{border:1px solid #ccc;break-inside:avoid;background:#fff;margin-bottom:14px}
+  .rmod-header{background:#f8f5ee;border-bottom:1px solid #ddd}
+  .rmod-title{font-size:16px}
+  .rmod-insight{background:#f5f5f5;border-left:3px solid #999;color:#333}
+  .rmod-insight strong{color:#555}
+  .report-hero{border-bottom:2px solid #C9A84C;margin-bottom:20px}
+  .rbar-track{background:#eee}
+  .rmod-cell{border:1px solid #ddd;background:#fafafa}
+  .disc-detail-grid{grid-template-columns:1fr 1fr}
+  .needs-suggestion{background:#eef4ff;border:1px solid #aac}
+  .section-sep::after{background:#ccc}
+}
+</style>
+</head>
+<body>
+<div class="bg"></div><div class="bg-grid"></div>
+
+<!-- ░ COVER ░ -->
+<div id="s-cover" class="screen active">
+  <div class="wrap" id="cover">
+    <div class="logo-mark">Instituto da Liderança · Assessment Integrado</div>
+    <h1 class="hero"><span>Mapa do</span><span>Líder</span></h1>
+    <p class="hero-sub">7 instrumentos de autoconhecimento integrados. Responda uma vez e receba seu relatório completo de perfil de liderança.</p>
+    <div class="theories-row">
+      <span class="theory-pill pill-d">DISC · 24 blocos</span>
+      <span class="theory-pill pill-el">Temperamento — Elementos</span>
+      <span class="theory-pill pill-e">Eneagrama</span>
+      <span class="theory-pill pill-a">Arquétipos</span>
+      <span class="theory-pill pill-k">Kolb</span>
+      <span class="theory-pill pill-n">6 Necessidades</span>
+      <span class="theory-pill pill-h">Holland RIASEC</span>
+    </div>
+    <div class="name-form">
+      <label>Nome completo</label>
+      <input type="text" id="inp-name" placeholder="Digite seu nome completo...">
+      <label>E-mail</label>
+      <input type="email" id="inp-email" placeholder="seu@email.com">
+      <label>Empresa / Organização</label>
+      <input type="text" id="inp-empresa" placeholder="Nome da sua empresa...">
+      <label>Turma / Programa</label>
+      <select id="inp-turma"></select>
+      <label>Fase do Diagnóstico</label>
+      <select id="inp-fase">
+        <option value="Pré-Treinamento">📋 Pré-Treinamento</option>
+        <option value="Durante o Treinamento">🔄 Durante o Treinamento</option>
+        <option value="Pós-Treinamento">✅ Pós-Treinamento</option>
+      </select>
+      <div class="est-time">⏱ Estimativa: 30–40 minutos · 7 instrumentos</div>
+      <button class="btn-primary" onclick="startAssessment()" style="margin-top:8px">Iniciar Assessment →</button>
+    </div>
+    <div id="val-name" class="val-warning" style="max-width:440px;margin:0 auto">Por favor, preencha seu nome completo (nome e sobrenome) e selecione a turma.</div>
+  </div>
+</div>
+
+<!-- PROGRESS BAR -->
+<div class="progress-bar-wrap" id="prog-wrap" style="display:none">
+  <div class="progress-inner">
+    <span class="progress-label" id="prog-label">DISC</span>
+    <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    <span class="progress-pct" id="prog-pct">0%</span>
+  </div>
+</div>
+
+<!-- ░ S1: DISC ░ -->
+<div id="s-disc" class="screen">
+  <div class="wrap section-wrap">
+    <div class="section-header">
+      <div class="section-badge">Instrumento 1 de 7 · Comportamento</div>
+      <h2 class="section-title">Assessment DISC</h2>
+      <p class="section-desc">Em cada grupo de 4 frases, marque <strong style="color:#48C864">+</strong> na que <strong>MAIS</strong> te define e <strong style="color:#DC503C">−</strong> na que <strong>MENOS</strong> te define. Responda com base no seu comportamento <strong>no trabalho</strong>. Seja espontâneo.</p>
+    </div>
+    <div id="disc-container"></div>
+    <div class="disc-live">
+      <div class="disc-score-card"><div class="disc-score-letter" style="color:var(--flame)">D</div><div class="disc-score-name">DOMINANTE</div><div class="disc-score-val" style="color:var(--flame)" id="val-D">0</div><div class="disc-score-bar-track"><div class="disc-score-bar-fill" id="bar-D" style="width:0%;background:var(--flame)"></div></div></div>
+      <div class="disc-score-card"><div class="disc-score-letter" style="color:#F0C030">I</div><div class="disc-score-name">INFLUENTE</div><div class="disc-score-val" style="color:#F0C030" id="val-I">0</div><div class="disc-score-bar-track"><div class="disc-score-bar-fill" id="bar-I" style="width:0%;background:#F0C030"></div></div></div>
+      <div class="disc-score-card"><div class="disc-score-letter" style="color:var(--sky)">S</div><div class="disc-score-name">ESTÁVEL</div><div class="disc-score-val" style="color:var(--sky)" id="val-S">0</div><div class="disc-score-bar-track"><div class="disc-score-bar-fill" id="bar-S" style="width:0%;background:var(--sky)"></div></div></div>
+      <div class="disc-score-card"><div class="disc-score-letter" style="color:var(--mist)">C</div><div class="disc-score-name">CONFORMIDADE</div><div class="disc-score-val" style="color:var(--mist)" id="val-C">0</div><div class="disc-score-bar-track"><div class="disc-score-bar-fill" id="bar-C" style="width:0%;background:var(--mist)"></div></div></div>
+    </div>
+    <div id="disc-warning" class="val-warning">Complete pelo menos 20 dos 24 grupos antes de continuar.</div>
+    <div class="nav-buttons">
+      <button class="btn-secondary" id="btn-disc-back" onclick="goTo('s-cover')">← Voltar</button>
+      <button class="btn-primary" onclick="nextDisc()">Próximo: Temperamento →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ░ S2: TEMPERAMENTO — ELEMENTOS ░ -->
+<div id="s-elem" class="screen">
+  <div class="wrap section-wrap">
+    <div class="section-header">
+      <div class="section-badge">Instrumento 2 de 7 · Temperamento</div>
+      <h2 class="section-title">Temperamento com base nos Elementos da Natureza</h2>
+      <p class="section-desc">Em cada rodada você verá 4 palavras. Escolha <strong>apenas a que mais chamar sua atenção</strong> — de forma instintiva, sem pensar muito. São 27 rodadas.</p>
+    </div>
+    <div class="elem-progress" id="elem-progress"></div>
+    <div id="elem-round-container"></div>
+    <div class="elem-live" id="elem-live">
+      <div class="elem-score-card" style="background:rgba(212,64,26,.08);border-color:rgba(212,64,26,.3)"><div style="font-size:20px">🔥</div><div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--flame);letter-spacing:.1em;margin:3px 0">FOGO</div><div style="font-size:22px;font-weight:800;color:var(--flame);font-family:'Cormorant Garamond',serif" id="val-FOGO">0</div></div>
+      <div class="elem-score-card" style="background:rgba(107,124,58,.08);border-color:rgba(107,124,58,.3)"><div style="font-size:20px">🌿</div><div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--moss);letter-spacing:.1em;margin:3px 0">TERRA</div><div style="font-size:22px;font-weight:800;color:var(--moss);font-family:'Cormorant Garamond',serif" id="val-TERRA">0</div></div>
+      <div class="elem-score-card" style="background:rgba(26,92,180,.08);border-color:rgba(26,92,180,.3)"><div style="font-size:20px">💧</div><div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--sky);letter-spacing:.1em;margin:3px 0">ÁGUA</div><div style="font-size:22px;font-weight:800;color:var(--sky);font-family:'Cormorant Garamond',serif" id="val-ÁGUA">0</div></div>
+      <div class="elem-score-card" style="background:rgba(112,64,176,.08);border-color:rgba(112,64,176,.3)"><div style="font-size:20px">💨</div><div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--mist);letter-spacing:.1em;margin:3px 0">AR</div><div style="font-size:22px;font-weight:800;color:var(--mist);font-family:'Cormorant Garamond',serif" id="val-AR">0</div></div>
+    </div>
+    <div id="elem-warning" class="val-warning">Responda pelo menos 20 rodadas antes de continuar.</div>
+    <div class="nav-buttons">
+      <button class="btn-secondary" onclick="goTo('s-disc')">← Voltar</button>
+      <button class="btn-primary" onclick="nextElem()">Próximo: Eneagrama →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ░ S3: ENEAGRAMA ░ -->
+<div id="s-ennea" class="screen">
+  <div class="wrap section-wrap">
+    <div class="section-header">
+      <div class="section-badge">Instrumento 3 de 7 · Motivação Profunda</div>
+      <h2 class="section-title">Eneagrama</h2>
+      <p class="section-desc">Avalie de 1 a 5 o quanto cada afirmação te descreve ao longo da vida — não apenas hoje. Responda pelo que você <em>é</em>, não pelo que gostaria de ser.</p>
+    </div>
+    <div id="ennea-container"></div>
+    <div id="ennea-warning" class="val-warning">Avalie pelo menos 5 grupos antes de continuar.</div>
+    <div class="nav-buttons">
+      <button class="btn-secondary" onclick="goTo('s-elem')">← Voltar</button>
+      <button class="btn-primary" onclick="nextEnnea()">Próximo: Arquétipos →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ░ S4: ARQUÉTIPOS ░ -->
+<div id="s-arch" class="screen">
+  <div class="wrap section-wrap">
+    <div class="section-header">
+      <div class="section-badge">Instrumento 4 de 7 · Identidade</div>
+      <h2 class="section-title">Arquétipos de Liderança</h2>
+      <p class="section-desc">Escolha a opção que mais ressoa com você em cada situação. Responda pelo instinto.</p>
+    </div>
+    <div id="arch-container"></div>
+    <div id="arch-warning" class="val-warning">Responda pelo menos 5 perguntas antes de continuar.</div>
+    <div class="nav-buttons">
+      <button class="btn-secondary" onclick="goTo('s-ennea')">← Voltar</button>
+      <button class="btn-primary" onclick="nextArch()">Próximo: Kolb →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ░ S5: KOLB ░ -->
+<div id="s-kolb" class="screen">
+  <div class="wrap section-wrap">
+    <div class="section-header">
+      <div class="section-badge">Instrumento 5 de 7 · Aprendizagem</div>
+      <h2 class="section-title">Estilos de Aprendizagem — Kolb</h2>
+      <p class="section-desc">Como você aprende e processa experiências? Escolha a alternativa que mais te representa.</p>
+    </div>
+    <div id="kolb-container"></div>
+    <div id="kolb-warning" class="val-warning">Responda pelo menos 6 perguntas antes de continuar.</div>
+    <div class="nav-buttons">
+      <button class="btn-secondary" onclick="goTo('s-arch')">← Voltar</button>
+      <button class="btn-primary" onclick="nextKolb()">Próximo: 6 Necessidades →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ░ S6: NECESSIDADES ░ -->
+<div id="s-needs" class="screen">
+  <div class="wrap section-wrap">
+    <div class="section-header">
+      <div class="section-badge">Instrumento 6 de 7 · Motivação</div>
+      <h2 class="section-title">As 6 Necessidades Humanas</h2>
+      <p class="section-desc">Avalie de 1 (quase nunca) a 5 (sempre) o quanto cada afirmação representa você como padrão de vida.</p>
+    </div>
+    <div id="needs-container"></div>
+    <div id="needs-warning" class="val-warning">Avalie pelo menos 4 necessidades antes de continuar.</div>
+    <div class="nav-buttons">
+      <button class="btn-secondary" onclick="goTo('s-kolb')">← Voltar</button>
+      <button class="btn-primary" onclick="nextNeeds()">Próximo: Holland RIASEC →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ░ S7: HOLLAND ░ -->
+<div id="s-holland" class="screen">
+  <div class="wrap section-wrap">
+    <div class="section-header">
+      <div class="section-badge">Instrumento 7 de 7 · Vocação e Carreira</div>
+      <h2 class="section-title">Holland RIASEC</h2>
+      <p class="section-desc">Para cada bloco, avalie de <strong>1 a 10</strong> o quanto você se identifica. Os 3 maiores valores formarão seu <strong>Código de Holland</strong>.</p>
+    </div>
+    <div id="holland-container"></div>
+    <div id="holland-warning" class="val-warning">Avalie pelo menos 4 dos 6 tipos antes de gerar o relatório.</div>
+    <div class="nav-buttons">
+      <button class="btn-secondary" onclick="goTo('s-needs')">← Voltar</button>
+      <button class="btn-primary" onclick="generateReport()">✦ Gerar Meu Relatório</button>
+    </div>
+  </div>
+</div>
+
+<!-- ░ RELATÓRIO ░ -->
+<div id="s-report" class="screen">
+  <div class="wrap" id="report">
+    <div class="report-hero">
+      <div class="report-avatar" id="rep-avatar">👤</div>
+      <div class="report-name" id="rep-name">—</div>
+      <div class="report-turma" id="rep-turma">—</div>
+      <div id="rep-empresa" style="font-size:12px;color:var(--mid);margin-top:4px;font-family:'JetBrains Mono',monospace"></div>
+      <div id="rep-email" style="font-size:11px;color:var(--mid);margin-top:3px;font-family:'JetBrains Mono',monospace"></div>
+      <div class="report-date" id="rep-date">—</div>
+    </div>
+    <div id="report-body"></div>
+    <div style="text-align:center;padding:28px 0;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn-primary" onclick="exportPDF()">📄 Exportar PDF</button>
+      <button class="btn-secondary" onclick="window.print()">🖨️ Imprimir</button>
+      <button class="btn-secondary" onclick="location.reload()">Novo Assessment</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════
+// TURMAS — carregadas do localStorage (Admin pode editar)
+// ════════════════════════════════════════════════════
+const DEFAULT_TURMAS = [
+  'Impact Leader · Turma 2025/1',
+  'Impact Leader · Turma 2025/2',
+  'Formação de Líderes · 2025',
+  'Programa Executivo · 2025',
+];
+
+function getTurmas(){
+  try{
+    const t=JSON.parse(localStorage.getItem('il_turmas'));
+    return Array.isArray(t)&&t.length?t:DEFAULT_TURMAS;
+  }catch(e){ return DEFAULT_TURMAS; }
+}
+
+function populateTurmaSelect(){
+  const sel=document.getElementById('inp-turma');
+  if(!sel)return;
+  const current=sel.value;
+  sel.innerHTML='<option value="">Selecione sua turma</option>'+
+    getTurmas().map(t=>`<option value="${t}"${t===current?' selected':''}>${t}</option>`).join('');
+}
+
+// Sync turmas in real time if admin updates them in another tab
+window.addEventListener('storage', function(e){
+  if(e.key==='il_turmas') populateTurmaSelect();
+});
+
+// ════════════════════════════════════════════════════
+// DATA
+// ════════════════════════════════════════════════════
+const DISC_GROUPS=[
+[["Despreocupado, positivo","I"],["Flexível, ceder","S"],["Argumentativo, fala abertamente","D"],["Estável, relaxado","S"]],
+[["Otimista, atitude positiva perante a vida","I"],["Ajusta-se, concorda facilmente","S"],["Respeitoso, obediente","C"],["Demonstra iniciativa, quer mudanças","D"]],
+[["Sociável, adora companhia","I"],["Consistente, equilibrado","S"],["Independente, iniciativa própria","D"],["Saber ouvir, reservado","C"]],
+[["Bem intencionado, agradável","I"],["Cuidadoso, cauteloso","C"],["Decidido, não se deixa abalar facilmente","D"],["Convincente, inspirador","I"]],
+[["Amável, pronto a ajudar","S"],["Distante, tendência a ficar indiferente","C"],["Procura atenção, admirável","I"],["Força de vontade, firme","D"]],
+[["Cordial, faz amigos com facilidade","I"],["Retraído, contido","C"],["Exato, preciso","C"],["Direto, franco","D"]],
+[["Valoriza a informação, especialista","C"],["Orientado para equipe, integra-se em grupo","S"],["Temperamental, energético","D"],["Fácil de levar, tolerante para com os outros","S"]],
+[["Corajoso, força de vontade","D"],["Considerado, de boas maneiras","S"],["Contente, feliz","I"],["Fala mansa, bom locutor","I"]],
+[["Evita extremos, sensível","S"],["Facilmente conduzido, abnegado","S"],["Centro do grupo, vivaz","I"],["Dominante, agressivo","D"]],
+[["Inquisitivo, observador","C"],["Atento, diligente","C"],["Força de vontade, orientado para os objetivos","D"],["Alegre, bem humorado","I"]],
+[["Humilde, seguidor","S"],["Consciente de si mesmo, tímido","C"],["Confiante, corajoso","D"],["Entusiasta, dá apoio","I"]],
+[["Assertivo, direto","D"],["Confia nas pessoas, bom locutor","I"],["Compreensivo, complacente","S"],["Tolerante, que aceita","S"]],
+[["Divertido, engenhoso","I"],["Cumpridor, pontual","C"],["Duro, imprudente","D"],["Tranquilo, calmo","S"]],
+[["Disciplinado, com autocontrole","C"],["Vivaz, energético","D"],["Pronto para ajudar, bem intencionado","S"],["Não se rende, forte","D"]],
+[["Confia e acredita nas pessoas","I"],["Pacífico, satisfeito","S"],["Confiante, não deixa espaço para dúvidas","D"],["Conciso, quieto","C"]],
+[["Quer vencer, competitivo","D"],["Sensível, empático","S"],["Sociável, gosta de companhia","I"],["Adaptável, cumpridor","C"]],
+[["Disposto, útil","S"],["Ajustável, adaptável","C"],["Entusiasta, partidário","I"],["Imaginativo, seguro de si","D"]],
+[["Seguidor, obedece as instruções","C"],["Atrevido, duro","D"],["Deleitável, animador","I"],["Fiel, responsável","S"]],
+[["Enfrenta riscos, confiante","D"],["Amigável, aberto","I"],["Ajustável, flexível","S"],["Moderado, cuidadoso","C"]],
+[["Conversador, extrovertido","I"],["Retraído, moderado","C"],["Organizado, segue as tradições","C"],["Inflexível, firme","D"]],
+[["Rápido, procura mudanças","D"],["Confiável, previsível","S"],["Popular, agrada a todos","I"],["Bem organizado, completo","C"]],
+[["Persuasivo, convincente","I"],["Reservado, silencioso","C"],["Gentil, bondoso","S"],["Individual, uma 'figura'","D"]],
+[["Alinhado, conforme","C"],["Obstinado, inabalável","D"],["Deleitável, atraente","I"],["Inspira simpatia, meigo","S"]],
+[["Senso de responsabilidade, obediente","C"],["Atento, retraído","C"],["Adora diversão, não coopera","I"],["Decisivo, teimoso","D"]],
+];
+
+// ELEMENTOS — 27 rodadas × 4 palavras [palavra, elemento]
+// A=Ar(Visionário) B=Terra(Analítico) C=Água(Participativo) D=Fogo(Assertivo)
+const ELEM_ROUNDS=[
+[["INOVAÇÃO","AR"],["ORGANIZAÇÃO","TERRA"],["INTEGRAÇÃO","ÁGUA"],["EXECUÇÃO","FOGO"]],
+[["ANTECIPAÇÃO","AR"],["REGRAS","TERRA"],["ACORDO","ÁGUA"],["PERSISTÊNCIA","FOGO"]],
+[["COMPLEXIDADE","AR"],["SISTEMATIZAÇÃO","TERRA"],["INTERATIVIDADE","ÁGUA"],["OBJETIVIDADE","FOGO"]],
+[["CURIOSIDADE","AR"],["PLANEJAMENTO","TERRA"],["RELACIONAMENTO","ÁGUA"],["DIREÇÃO","FOGO"]],
+[["QUESTIONAMENTO","AR"],["DETALHAMENTO","TERRA"],["PARTICIPAÇÃO","ÁGUA"],["IMPULSIVIDADE","FOGO"]],
+[["DESCOBERTAS","AR"],["PREVISÃO","TERRA"],["NATURALIDADE","ÁGUA"],["DETERMINAÇÃO","FOGO"]],
+[["IRRELEVÂNCIA","AR"],["INEVITABILIDADE","TERRA"],["SOCIALIZAÇÃO","ÁGUA"],["FACILIDADE","FOGO"]],
+[["LIBERDADE","AR"],["CONTROLE","TERRA"],["COMPREENSÃO","ÁGUA"],["PACIÊNCIA","FOGO"]],
+[["REVOLUÇÃO","AR"],["LÓGICA","TERRA"],["TRADIÇÃO","ÁGUA"],["QUANTIDADE","FOGO"]],
+[["ESCOLHA","AR"],["MELHORIA","TERRA"],["LAZER","ÁGUA"],["AUTONOMIA","FOGO"]],
+[["INDEPENDÊNCIA","AR"],["ACÚMULO","TERRA"],["ASSISTÊNCIA","ÁGUA"],["EMPREENDIMENTO","FOGO"]],
+[["AVENTURA","AR"],["ORDEM","TERRA"],["COOPERAÇÃO","ÁGUA"],["EXECUÇÃO","FOGO"]],
+[["CRIATIVIDADE","AR"],["PONTUALIDADE","TERRA"],["PARCERIA","ÁGUA"],["VANTAGEM","FOGO"]],
+[["ADAPTAÇÃO","AR"],["CONSISTÊNCIA","TERRA"],["EQUIPE","ÁGUA"],["LÍDER","FOGO"]],
+[["DESAFIO","AR"],["ESTRATÉGIA","TERRA"],["PERCURSO","ÁGUA"],["CHEGADA","FOGO"]],
+[["NOVIDADE","AR"],["CONTROLE","TERRA"],["SOLIDARIEDADE","ÁGUA"],["ATUAÇÃO","FOGO"]],
+[["DESCONFIANÇA","AR"],["PREVENÇÃO","TERRA"],["UNIÃO","ÁGUA"],["ATAQUE","FOGO"]],
+[["MUDANÇA","AR"],["ROTINA","TERRA"],["AMIZADE","ÁGUA"],["PRODUTIVIDADE","FOGO"]],
+[["MISTÉRIO","AR"],["COMPENSAÇÃO","TERRA"],["REENCONTRO","ÁGUA"],["PRESSA","FOGO"]],
+[["ESTRANHEZA","AR"],["PERFEIÇÃO","TERRA"],["ENVOLVIMENTO","ÁGUA"],["FOCO","FOGO"]],
+[["EFICÁCIA","AR"],["PERÍCIA","TERRA"],["EXPERIÊNCIA","ÁGUA"],["SUCESSO","FOGO"]],
+[["DESLIGADO","AR"],["GRADATIVO","TERRA"],["JUSTIÇA","ÁGUA"],["FIRMEZA","FOGO"]],
+[["POLÊMICA","AR"],["PRUDÊNCIA","TERRA"],["COLETIVIDADE","ÁGUA"],["INSISTÊNCIA","FOGO"]],
+[["MULTIPLICIDADE","AR"],["CAUTELA","TERRA"],["CONJUNTO","ÁGUA"],["COMPETIÇÃO","FOGO"]],
+[["IDEALISMO","AR"],["METICULOSIDADE","TERRA"],["DIVERSÃO","ÁGUA"],["PERSISTÊNCIA","FOGO"]],
+[["DESCOBERTA","AR"],["ESTRUTURA","TERRA"],["HARMONIA","ÁGUA"],["RESULTADO","FOGO"]],
+[["VISÃO","AR"],["ANÁLISE","TERRA"],["EMPATIA","ÁGUA"],["AÇÃO","FOGO"]],
+];
+
+// ENEAGRAMA — 9 tipos × 4 afirmações (SEM nome do tipo visível)
+
+const ELEM_ROUNDS=[
+[["INOVAÇÃO","AR"],["ORGANIZAÇÃO","TERRA"],["INTEGRAÇÃO","ÁGUA"],["EXECUÇÃO","FOGO"]],
+[["ANTECIPAÇÃO","AR"],["REGRAS","TERRA"],["ACORDO","ÁGUA"],["PERSISTÊNCIA","FOGO"]],
+[["COMPLEXIDADE","AR"],["SISTEMATIZAÇÃO","TERRA"],["INTERATIVIDADE","ÁGUA"],["OBJETIVIDADE","FOGO"]],
+[["CURIOSIDADE","AR"],["PLANEJAMENTO","TERRA"],["RELACIONAMENTO","ÁGUA"],["DIREÇÃO","FOGO"]],
+[["QUESTIONAMENTO","AR"],["DETALHAMENTO","TERRA"],["PARTICIPAÇÃO","ÁGUA"],["IMPULSIVIDADE","FOGO"]],
+[["DESCOBERTAS","AR"],["PREVISÃO","TERRA"],["NATURALIDADE","ÁGUA"],["DETERMINAÇÃO","FOGO"]],
+[["IRRELEVÂNCIA","AR"],["INEVITABILIDADE","TERRA"],["SOCIALIZAÇÃO","ÁGUA"],["FACILIDADE","FOGO"]],
+[["LIBERDADE","AR"],["CONTROLE","TERRA"],["COMPREENSÃO","ÁGUA"],["PACIÊNCIA","FOGO"]],
+[["REVOLUÇÃO","AR"],["LÓGICA","TERRA"],["TRADIÇÃO","ÁGUA"],["QUANTIDADE","FOGO"]],
+[["ESCOLHA","AR"],["MELHORIA","TERRA"],["LAZER","ÁGUA"],["AUTONOMIA","FOGO"]],
+[["INDEPENDÊNCIA","AR"],["ACÚMULO","TERRA"],["ASSISTÊNCIA","ÁGUA"],["EMPREENDIMENTO","FOGO"]],
+[["AVENTURA","AR"],["ORDEM","TERRA"],["COOPERAÇÃO","ÁGUA"],["EXECUÇÃO","FOGO"]],
+[["CRIATIVIDADE","AR"],["PONTUALIDADE","TERRA"],["PARCERIA","ÁGUA"],["VANTAGEM","FOGO"]],
+[["ADAPTAÇÃO","AR"],["CONSISTÊNCIA","TERRA"],["EQUIPE","ÁGUA"],["LÍDER","FOGO"]],
+[["DESAFIO","AR"],["ESTRATÉGIA","TERRA"],["PERCURSO","ÁGUA"],["CHEGADA","FOGO"]],
+[["NOVIDADE","AR"],["CONTROLE","TERRA"],["SOLIDARIEDADE","ÁGUA"],["ATUAÇÃO","FOGO"]],
+[["DESCONFIANÇA","AR"],["PREVENÇÃO","TERRA"],["UNIÃO","ÁGUA"],["ATAQUE","FOGO"]],
+[["MUDANÇA","AR"],["ROTINA","TERRA"],["AMIZADE","ÁGUA"],["PRODUTIVIDADE","FOGO"]],
+[["MISTÉRIO","AR"],["COMPENSAÇÃO","TERRA"],["REENCONTRO","ÁGUA"],["PRESSA","FOGO"]],
+[["ESTRANHEZA","AR"],["PERFEIÇÃO","TERRA"],["ENVOLVIMENTO","ÁGUA"],["FOCO","FOGO"]],
+[["EFICÁCIA","AR"],["PERÍCIA","TERRA"],["EXPERIÊNCIA","ÁGUA"],["SUCESSO","FOGO"]],
+[["DESLIGADO","AR"],["GRADATIVO","TERRA"],["JUSTIÇA","ÁGUA"],["FIRMEZA","FOGO"]],
+[["POLÊMICA","AR"],["PRUDÊNCIA","TERRA"],["COLETIVIDADE","ÁGUA"],["INSISTÊNCIA","FOGO"]],
+[["MULTIPLICIDADE","AR"],["CAUTELA","TERRA"],["CONJUNTO","ÁGUA"],["COMPETIÇÃO","FOGO"]],
+[["IDEALISMO","AR"],["METICULOSIDADE","TERRA"],["DIVERSÃO","ÁGUA"],["PERSISTÊNCIA","FOGO"]],
+[["DESCOBERTA","AR"],["ESTRUTURA","TERRA"],["HARMONIA","ÁGUA"],["RESULTADO","FOGO"]],
+[["VISÃO","AR"],["ANÁLISE","TERRA"],["EMPATIA","ÁGUA"],["AÇÃO","FOGO"]],
+];
+
+// ENEAGRAMA — 9 tipos × 4 afirmações (SEM nome do tipo visível)
+
+const ENNEA_TYPES=[
+{num:1,stmts:["Tenho padrões elevados e percebo facilmente o que poderia ser melhorado","Sinto um crítico interno que me cobra com frequência","Tenho um forte senso de certo e errado que guia minhas decisões","É difícil relaxar quando há imperfeições ao redor"]},
+{num:2,stmts:["Fico atento às necessidades das pessoas antes das minhas próprias","Tenho dificuldade de dizer não quando alguém precisa de mim","Me realizo quando consigo ajudar alguém a crescer","Percebo as emoções dos outros com muita facilidade"]},
+{num:3,stmts:["Sou muito orientado a metas e resultados concretos","Me adapto ao que o ambiente espera de mim com naturalidade","Preocupo-me com minha imagem e como sou percebido pelos outros","Há sempre algo a conquistar — fico inquieto quando parado"]},
+{num:4,stmts:["Me sinto diferente das outras pessoas — tenho uma perspectiva única","Vivo com muita intensidade emocional","Autenticidade e profundidade valem mais do que praticidade","Tenho forte senso estético e me expresso de forma singular"]},
+{num:5,stmts:["Prefiro observar e entender antes de participar ativamente","Minha energia é limitada — protejo meu espaço e tempo","Me sinto mais confortável com ideias do que com emoções intensas","Preciso de privacidade e solitude para recarregar e pensar"]},
+{num:6,stmts:["Costumo antecipar problemas e me preparar para cenários difíceis","Lealdade e confiança são valores absolutamente centrais para mim","Tenho dúvidas frequentes antes de tomar decisões importantes","Me sinto mais seguro com clareza sobre regras e expectativas"]},
+{num:7,stmts:["Tenho muitos projetos e ideias acontecendo ao mesmo tempo","Evito situações de sofrimento ou limitação sempre que posso","Me energizo com novas possibilidades e experiências","Tenho dificuldade em me comprometer com uma coisa por muito tempo"]},
+{num:8,stmts:["Prefiro ter controle das situações a depender dos outros","Confronto injustiças diretamente — não tolero manipulação","Protejo com força as pessoas que me são importantes","Tenho dificuldade genuína em mostrar vulnerabilidade"]},
+{num:9,stmts:["Evito conflitos e prefiro manter a harmonia do grupo","Tenho dificuldade em saber claramente o que eu realmente quero","Adapto minha opinião com facilidade ao grupo","Quando há tensão no ambiente, sinto desconforto profundo"]},
+];
+
+// ARQUÉTIPOS — 6 perguntas situacionais
+
+const ARCH_QS=[
+{q:"Diante de um grande desafio organizacional, você:",opts:[["Parte para a ação imediatamente e mobiliza a equipe","Herói"],["Cria uma visão transformadora que inspira a todos","Mago"],["Garante que todos tenham recursos e apoio para avançar","Cuidador"],["Analisa o problema com profundidade antes de agir","Sábio"]]},
+{q:"Seu maior presente natural para a equipe é:",opts:[["Coragem e determinação para superar obstáculos","Guerreiro"],["A capacidade de ver possibilidades onde outros veem barreiras","Mago"],["O cuidado genuíno com o desenvolvimento de cada pessoa","Cuidador"],["Conhecimento profundo e capacidade de orientar","Sábio"]]},
+{q:"Como você lidera naturalmente em tempos de crise:",opts:[["Assumo o controle e dou direção clara e firme","Rei/Rainha"],["Mantenho a equipe unida com calma e sabedoria","Sábio"],["Inspiro com energia e crio um senso de missão coletiva","Herói"],["Facilito o diálogo e crio consenso entre as partes","Cuidador"]]},
+{q:"O que mais te motiva como líder:",opts:[["Conquistar resultados que pareciam impossíveis","Herói"],["Transformar realidades e criar algo novo e significativo","Mago"],["Ver as pessoas da equipe crescerem e se desenvolverem","Cuidador"],["Construir estruturas e legado que perdurem","Rei/Rainha"]]},
+{q:"Em decisões difíceis que envolvem pessoas, você:",opts:[["Decide com firmeza — a missão precisa avançar","Guerreiro"],["Busca a solução que preserve os relacionamentos","Cuidador"],["Consulta dados e princípios antes de qualquer decisão","Sábio"],["Usa intuição e visão de longo prazo como guia","Mago"]]},
+{q:"Como você lida com regras e processos estabelecidos:",opts:[["Sigo quando fazem sentido — questiono quando não fazem","Guerreiro"],["Crio novas formas de fazer que superam as anteriores","Criador"],["Respeito estruturas — elas dão segurança ao time","Rei/Rainha"],["Analiso cada regra à luz do propósito maior","Sábio"]]},
+];
+
+// KOLB — 8 perguntas (baseado na aula original do Instituto)
+// Estilos: CON=Convergente DIV=Divergente ASS=Assimilador ACO=Acomodador
+
+const KOLB_QS=[
+{q:"Em uma nova situação de aprendizado, o que você costuma fazer primeiro?",opts:[["Penso em como aplicar o conteúdo na prática de forma concreta","CON"],["Observo e reflito sobre o que está acontecendo","DIV"],["Tento entender a teoria ou ler mais sobre o assunto","ASS"],["Gosto de testar logo e ver o que acontece na prática","ACO"]]},
+{q:"Quando estou estudando ou me desenvolvendo, eu prefiro:",opts:[["Resolver problemas e encontrar soluções objetivas","CON"],["Explorar ideias diferentes e trocar experiências com os outros","DIV"],["Organizar as informações em esquemas, modelos e frameworks","ASS"],["Aprender na prática, errando e ajustando no caminho","ACO"]]},
+{q:"Em uma equipe de desenvolvimento, qual papel você mais assume?",opts:[["O que toma decisões e aponta caminhos técnicos","CON"],["O que ouve, propõe ideias e conecta perspectivas diferentes","DIV"],["O que organiza os dados e apresenta análises estruturadas","ASS"],["O que coloca as ideias em ação e lidera a execução","ACO"]]},
+{q:"Quando enfrento um desafio profissional, minha primeira reação é:",opts:[["Pensar em como resolver de forma eficiente e prática","CON"],["Refletir sobre o contexto e buscar diferentes perspectivas","DIV"],["Buscar informações, dados e fundamentos teóricos primeiro","ASS"],["Agir, experimentar soluções e ajustar conforme avanço","ACO"]]},
+{q:"Para mim, o aprendizado é mais eficaz quando:",opts:[["Existe um problema real para resolver ou uma decisão a tomar","CON"],["Posso me envolver emocionalmente e escutar diferentes visões","DIV"],["Há uma estrutura conceitual clara e bem fundamentada","ASS"],["Posso aplicar imediatamente o que aprendi no mundo real","ACO"]]},
+{q:"Nas reuniões e dinâmicas de desenvolvimento, eu normalmente:",opts:[["Proponho soluções práticas e objetivas para os problemas","CON"],["Contribuo com reflexões, conexões entre ideias e escuta ativa","DIV"],["Apresento modelos, análises e estruturas bem organizadas","ASS"],["Prefiro atividades práticas, simulações e experimentação","ACO"]]},
+{q:"Minha forma natural de tomar decisões importantes é:",opts:[["Lógica e técnica — baseio-me em dados e raciocínio estruturado","CON"],["Reflexiva — analiso com calma e considero múltiplas perspectivas","DIV"],["Baseada em teoria — busco modelos e referenciais antes de decidir","ASS"],["Intuitiva e prática — testo e ajusto com base no resultado","ACO"]]},
+{q:"Meu estilo natural de liderança no dia a dia é:",opts:[["Pragmático — foco em resultados, eficiência e solução de problemas","CON"],["Reflexivo e empático — observo antes de agir, escuto muito","DIV"],["Analítico — planejo, estruturo e busco embasamento antes de agir","ASS"],["Ativo e adaptável — prefiro a ação e ajusto no caminho","ACO"]]},
+];
+
+// 6 NECESSIDADES
+
+const NEEDS_DATA=[
+{name:"Certeza",icon:"🏰",stmts:["Preciso de previsibilidade e controle para me sentir bem","Planejamento e organização são fundamentais para mim","Quando há muita incerteza, sinto ansiedade elevada"]},
+{name:"Variedade",icon:"⚡",stmts:["Fico entediado com rotinas repetitivas rapidamente","Me energizo com mudanças, novidades e imprevistos","Prefiro múltiplos projetos a focar em um só por muito tempo"]},
+{name:"Significância",icon:"🏆",stmts:["É importante ser reconhecido pelo meu trabalho e impacto","Me importo com meu status e reputação profissional","Preciso sentir que faço diferença e deixo minha marca"]},
+{name:"Conexão",icon:"🤗",stmts:["Relacionamentos próximos são fundamentais para mim","Me sinto incompleto quando estou isolado por muito tempo","Me preocupo genuinamente com o bem-estar dos outros"]},
+{name:"Crescimento",icon:"🌱",stmts:["Estou sempre buscando aprender algo novo","Me sinto estagnado quando não estou evoluindo","Aceito desafios que me tiram da zona de conforto por isso"]},
+{name:"Contribuição",icon:"🌍",stmts:["Quero que meu trabalho gere impacto positivo no mundo","Me movo mais por missão do que por recompensa financeira","Penso regularmente no legado que estou deixando"]},
+];
+
+
+
+// HOLLAND DATA
+const HOLLAND_TYPES=[
+  {code:'R',name:'Realista',alias:'O Executor',icon:'🔧',color:'#E8763A',
+   desc:'Prefere trabalhar com objetos, máquinas, ferramentas e tecnologia tangível. Prático, direto e focado em resultados concretos.',
+   perguntas:['Você prefere consertar algo quebrado a projetar um plano no papel?','Gosta de trabalhar com ferramentas, máquinas ou tecnologia concreta?','Você se considera uma pessoa prática, direta e focada em resultados tangíveis?','Em um projeto, prefere ser quem coloca a mão na massa e constrói o protótipo?'],
+   lideranca:'Lidera pela ação e pelo exemplo prático. Excelente em ambientes operacionais e de implementação. Entrega resultados concretos e mensuráveis.',
+   careers:'Engenharia, operações, manufatura, construção, tecnologia aplicada, gestão industrial.',disc:'D — Dominante',ennea:'Tipo 8 ou 3'},
+  {code:'I',name:'Investigativo',alias:'O Pensador',icon:'🔬',color:'#4A90D4',
+   desc:'Movido pela curiosidade intelectual. Prefere analisar, pesquisar e resolver problemas complexos de forma independente.',
+   perguntas:['Você sente satisfação ao resolver problemas complexos ou enigmas intelectuais?','Prefere trabalhar de forma independente para pesquisar e analisar dados?','Você é movido pela curiosidade de entender "como" e "por que" as coisas funcionam?','Gosta de tarefas que envolvem observação, teoria e uso da lógica científica?'],
+   lideranca:'Lidera pelo conhecimento e pela visão analítica. Excelente em estratégia e resolução de problemas. Pode ser visto como distante.',
+   careers:'Ciência, pesquisa, tecnologia, análise de dados, consultoria estratégica, medicina.',disc:'C — Conformidade',ennea:'Tipo 5 ou 6'},
+  {code:'A',name:'Artístico',alias:'O Criador',icon:'🎨',color:'#A878E0',
+   desc:'Valoriza a autoexpressão, a originalidade e a criatividade. Resiste a ambientes com regras rígidas e rotinas repetitivas.',
+   perguntas:['Você se sente limitado em ambientes com regras muito rígidas ou rotinas repetitivas?','Valoriza a autoexpressão e a originalidade acima da eficiência pura?','Gosta de criar algo novo — escrita, artes visuais, design, música, inovação?','Prefere resolver problemas usando intuição e imaginação em vez de manuais?'],
+   lideranca:'Lidera pela visão criativa e pela capacidade de inspirar com ideias novas. Cria culturas inovadoras.',
+   careers:'Design, marketing criativo, publicidade, artes, inovação, desenvolvimento de produtos.',disc:'I — Influente',ennea:'Tipo 4 ou 7'},
+  {code:'S',name:'Social',alias:'O Ajudador',icon:'🤝',color:'#48C864',
+   desc:'Energizado por ajudar, ensinar e dar suporte. Focado em colaboração, bem-estar e impacto humano.',
+   perguntas:['Você se sente energizado ao ensinar, treinar ou dar suporte a outras pessoas?','Prefere trabalhar em equipe em ambientes onde a colaboração é o foco?','Você é a pessoa que as outras procuram para desabafar ou pedir conselhos?','Sente que seu trabalho deve ter impacto direto no bem-estar social ou humano?'],
+   lideranca:'Lidera pelo cuidado e pelo desenvolvimento das pessoas. Cria times coesos e culturas de pertencimento.',
+   careers:'RH, educação, psicologia, coaching, serviço social, saúde, liderança servidora.',disc:'S — Estável',ennea:'Tipo 2 ou 9'},
+  {code:'E',name:'Empreendedor',alias:'O Persuasor',icon:'🚀',color:'#F0C030',
+   desc:'Motivado por liderança, influência e conquista. Gosta de persuadir, negociar e assumir responsabilidade por decisões.',
+   perguntas:['Você gosta de liderar projetos e assumir a responsabilidade pelas decisões finais?','Sente facilidade em convencer pessoas a adotarem uma ideia ou comprarem um produto?','Você é motivado por metas ambiciosas, reconhecimento e progresso na carreira?','Prefere ambientes dinâmicos onde negociação e influência são fundamentais?'],
+   lideranca:'Lidera pela visão, pelo carisma e pela capacidade de mobilizar. Excelente em expansão e gestão de mudanças.',
+   careers:'Vendas, empreendedorismo, direito, gestão executiva, política, desenvolvimento de negócios.',disc:'D+I',ennea:'Tipo 3 ou 8'},
+  {code:'C',name:'Convencional',alias:'O Organizador',icon:'📋',color:'#9AB050',
+   desc:'Confortável com sistemas, dados estruturados e procedimentos claros. Metódico, eficiente e atento a normas.',
+   perguntas:['Você se sente confortável trabalhando com sistemas, dados estruturados e detalhes precisos?','Prefere saber exatamente o que é esperado através de instruções claras?','Gosta de organizar informações, manter registros e garantir que tudo esteja em ordem?','Você se considera uma pessoa metódica, eficiente e atenta a normas e procedimentos?'],
+   lideranca:'Lidera pela organização, pelos processos e pela garantia de qualidade. Excelente em compliance, finanças e gestão.',
+   careers:'Contabilidade, finanças, administração, compliance, gestão de qualidade, análise.',disc:'C — Conformidade',ennea:'Tipo 1 ou 6'},
+];
+
+const HOLLAND_HEX={R:{adj:['I','C'],opp:'S'},I:{adj:['R','A'],opp:'E'},A:{adj:['I','S'],opp:'C'},S:{adj:['A','E'],opp:'R'},E:{adj:['S','C'],opp:'I'},C:{adj:['E','R'],opp:'A'}};
+
+// META
+const ENNEA_NAMES={1:{name:'O Perfeccionista',alias:'O Reformador',desc:'Ético, íntegro, orientado a princípios. Medo central: ser imperfeito. Lidera com padrões elevados — desenvolva autocompaixão e flexibilidade.'},2:{name:'O Ajudador',alias:'O Prestativo',desc:'Generoso, empático, orientado a cuidar. Medo central: não ser amado. Lidera pelo serviço — aprenda a colocar seus próprios limites.'},3:{name:'O Realizador',alias:'O Alcançador',desc:'Ambicioso, adaptável, orientado a sucesso. Medo central: fracassar. Lidera com eficiência — cultive autenticidade além da imagem.'},4:{name:'O Individualista',alias:'O Romântico',desc:'Criativo, autêntico, profundo. Medo central: não ter identidade. Lidera pela singularidade — desenvolva estabilidade emocional e ação sustentada.'},5:{name:'O Investigador',alias:'O Observador',desc:'Analítico, perspicaz, autossuficiente. Medo central: incompetência. Lidera pelo conhecimento — desenvolva conexão humana e presença.'},6:{name:'O Lealista',alias:'O Questionador',desc:'Leal, responsável, preparado. Medo central: abandono. Lidera com comprometimento — supere a ansiedade e aja com mais confiança.'},7:{name:'O Entusiasta',alias:'O Otimista',desc:'Espontâneo, versátil, alegre. Medo central: privação. Lidera com energia — desenvolva consistência, foco e presença no desconforto.'},8:{name:'O Desafiador',alias:'O Protetor',desc:'Poderoso, protetor, decidido. Medo central: ser controlado. Lidera com autoridade — mostre vulnerabilidade e cultive suavidade.'},9:{name:'O Pacificador',alias:'O Mediador',desc:'Receptivo, harmonioso, estável. Medo central: conflito e perda. Lidera pelo consenso — tome posição e sustente conflito necessário.'}};
+
+const ELEM_DATA={
+  FOGO:{icon:'🔥',name:'Fogo / Assertivo',color:'var(--flame)',disc:'D — Dominante',
+        desc:'Decidido, dominador, independente, impaciente. Toma decisões rápidas e focadas em resultados.',
+        postura:'Quer resultados — atenda-o com presteza e objetividade.',
+        palavras:'Rapidez, benefícios, concreto, resultados, desempenho, competitivo.',
+        dificuldades:'Impaciência, confronto, excesso de independência, agressividade.'},
+  AR:{icon:'💨',name:'Ar / Visionário',color:'var(--mist)',disc:'I — Influente',
+      desc:'Gosta de pensar em coisas novas, valoriza liberdade de expressão e quebra de paradigmas.',
+      postura:'Quer liberdade — dê mais autonomia e espaço para criar.',
+      palavras:'Inovação, criatividade, novo, desafio, solução, futuro, flexibilidade.',
+      dificuldades:'Falta de atenção ao presente, rebeldia, defender o novo pelo novo.'},
+  TERRA:{icon:'🌿',name:'Terra / Analítico',color:'var(--moss)',disc:'C — Conformidade',
+         desc:'Detalhista, prudente, disciplinado. Toma decisões baseado em normas e no máximo de informações.',
+         postura:'Quer provas — ajude-o a comparar e fundamentar com dados.',
+         palavras:'Organização, prudência, verificação, método, precisão, informação.',
+         dificuldades:'Análise excessiva, normas rígidas, senso muito crítico, lentidão.'},
+  ÁGUA:{icon:'💧',name:'Água / Participativo',color:'var(--sky)',disc:'S — Estável',
+        desc:'Otimista, confiante, afetivo, entusiasmado. Toma decisões com base na motivação e nos relacionamentos.',
+        postura:'Quer satisfação — entusiasme-o e valorize os relacionamentos.',
+        palavras:'Confiança, equipe, satisfação, participação, prazer, motivação.',
+        dificuldades:'Entusiasmo exagerado, otimismo excessivo, necessidade de elogios.'}
+};
+
+const DISC_NAMES={D:'Dominante',I:'Influente',S:'Estável',C:'Conformidade'};
+const DISC_COLORS={D:'var(--flame)',I:'#F0C030',S:'var(--sky)',C:'var(--mist)'};
+const DISC_DESC={
+  D:'Orientado a resultados, direto e decisivo. Age com rapidez, assume riscos e lidera pela força de vontade.',
+  I:'Carismático, entusiasta e orientado a pessoas. Inspira equipes e cria ambientes de colaboração.',
+  S:'Confiável, paciente e empático. Cria segurança psicológica e mantém a coesão da equipe.',
+  C:'Analítico, preciso e orientado à qualidade. Garante padrões elevados e pensa com profundidade antes de agir.'
+};
+
+// Perfil DISC expandido
+const DISC_PROFILE={
+  D:{
+    fortes:'Orientação a resultados, assertividade, autonomia, tomada de decisão rápida, coragem, iniciativa, capacidade de mobilizar em crises.',
+    atencao:'Pode ser impaciente, autoritário e criar cultura de pressão. Dificuldade em ouvir e delegar. Tende a atropelar processos.',
+    delegacao:'Delega por resultado — dê a meta, liberdade de método e prazo curto. Não microgerencie. Cobre entregas, não processos.',
+    motivacao:'Desafios, metas ambiciosas, autonomia, reconhecimento por conquistas, poder de decisão, competição e avanço de carreira.',
+    desmotivacao:'Microgestão, burocracia excessiva, falta de autonomia, ambientes lentos, decisões em comitê sem prazo, tarefas repetitivas.',
+    comunicacao:'Seja direto, objetivo e vá ao ponto. Foque em resultados e benefícios. Evite rodeios. Prefere comunicação escrita curta e reuniões rápidas.',
+    gestao:'Estimule com metas desafiadoras. Dê liberdade com prestação de contas clara. Ofereça espaço para liderança e protagonismo. Feedback direto e sem rodeios.'
+  },
+  I:{
+    fortes:'Carisma, comunicação, engajamento, entusiasmo, criação de conexões, otimismo, inspiração de equipes, persuasão.',
+    atencao:'Pode ser disperso, superficial e evitar conflitos necessários. Dificuldade em manter foco e cumprir prazos. Pode prometer mais do que entrega.',
+    delegacao:'Delega com entusiasmo — apresente a visão, mostre como ele será reconhecido e crie rituais de acompanhamento energizantes. Precisa de check-ins frequentes.',
+    motivacao:'Reconhecimento público, visibilidade, relações pessoais, projetos novos e criativos, eventos e dinâmicas de grupo, feedback positivo.',
+    desmotivacao:'Trabalho solitário, rotina repetitiva, falta de reconhecimento, ambientes frios e formais, excesso de processos e burocracia.',
+    comunicacao:'Use entusiasmo, histórias e exemplos. Valorize as ideias dele antes de corrigir. Prefere conversas e reuniões dinâmicas a documentos extensos.',
+    gestao:'Crie rituais de reconhecimento. Varie as atividades. Conecte o trabalho a um propósito maior. Ofereça palco e visibilidade. Ajude a priorizar e concluir.'
+  },
+  S:{
+    fortes:'Lealdade, paciência, empatia, consistência, criação de segurança psicológica, mediação, escuta ativa, confiabilidade.',
+    atencao:'Pode evitar conflitos necessários, ser passivo-resistente e demorar para tomar posição. Resistência a mudanças bruscas.',
+    delegacao:'Delega com segurança — explique o contexto, dê tempo para perguntas e ofereça suporte próximo. Prefere responsabilidades claras e estáveis.',
+    motivacao:'Ambientes harmoniosos, relacionamentos sólidos, trabalho em equipe, consistência, reconhecimento pela lealdade e pela qualidade do cuidado.',
+    desmotivacao:'Conflitos frequentes, mudanças bruscas sem explicação, pressão excessiva, ambientes instáveis e falta de pertencimento.',
+    comunicacao:'Seja gentil, paciente e contextual. Dê tempo para processar. Prefere conversas individuais. Evite decisões impostas sem explicação.',
+    gestao:'Crie estabilidade e previsibilidade. Valorize a lealdade. Inclua-o nas decisões antes de implementar mudanças. Apoie seu desenvolvimento de assertividade.'
+  },
+  C:{
+    fortes:'Análise crítica, precisão, planejamento, rigor técnico, atenção a detalhes, garantia de qualidade, conformidade e gestão de riscos.',
+    atencao:'Pode entrar em paralisia analítica, ser excessivamente crítico e resistir à inovação. Tende a demandar mais dados do que o necessário.',
+    delegacao:'Delega por processo — forneça critérios claros, dados suficientes, padrões e prazos bem definidos. Não espere velocidade; espere qualidade.',
+    motivacao:'Precisão, reconhecimento pela competência técnica, clareza de expectativas, dados concretos, tempo para análise e ambientes organizados.',
+    desmotivacao:'Improvisação, falta de dados, padrões baixos, mudanças sem fundamento, pressão para decidir sem informação suficiente.',
+    comunicacao:'Seja preciso, fundamentado e lógico. Envie dados e relatórios com antecedência. Prefere comunicação escrita e estruturada. Evite ambiguidades.',
+    gestao:'Defina expectativas com clareza. Forneça dados e ferramentas adequadas. Reconheça pela qualidade e precisão. Desafie a sair da zona de conforto com estrutura.'
+  }
+};
+
+// Sugestões de necessidades para mudança de padrão
+const NEEDS_SUGGESTIONS={
+  'Certeza':{
+    gap:'Você prioriza segurança e previsibilidade. Para alcançar novos resultados, é essencial desenvolver tolerância à incerteza.',
+    sugestao:['Variedade','Crescimento'],
+    razao:'Incorporar Variedade treina sua capacidade de se adaptar e inovar. Crescimento expande os limites do que você considera seguro — criando novos padrões de conforto em níveis mais elevados.'
+  },
+  'Variedade':{
+    gap:'Você é energizado por novidade e mudança. Para consolidar resultados duradouros, precisa desenvolver consistência.',
+    sugestao:['Certeza','Contribuição'],
+    razao:'Certeza aplicada estrategicamente cria a disciplina de terminar o que começa. Contribuição ancora o propósito e sustenta a energia além do entusiasmo inicial.'
+  },
+  'Significância':{
+    gap:'Você é movido pelo impacto e pelo reconhecimento. Para liderança sustentável, é preciso transcender o ego.',
+    sugestao:['Conexão','Contribuição'],
+    razao:'Conexão genuína constrói influência que independe do status. Contribuição muda o foco de "ser visto" para "gerar impacto real" — uma fonte de motivação muito mais duradoura.'
+  },
+  'Conexão':{
+    gap:'Você se energiza pelo pertencimento e pelos relacionamentos. Para crescer como líder, precisa equilibrar cuidado com resultados.',
+    sugestao:['Crescimento','Significância'],
+    razao:'Crescimento individual torna você mais valioso para quem ama. Significância desenvolve a capacidade de inspirar pelo impacto, não apenas pelo afeto.'
+  },
+  'Crescimento':{
+    gap:'Você é impulsionado pelo aprendizado e pela evolução. Para transformar conhecimento em legado, precisa ancorar na prática.',
+    sugestao:['Contribuição','Conexão'],
+    razao:'Contribuição conecta seu crescimento a resultados reais no mundo. Conexão garante que seu desenvolvimento não se torne isolamento intelectual — mas force multiplicadora de impacto.'
+  },
+  'Contribuição':{
+    gap:'Você é movido por propósito e impacto. Para sustentar a missão a longo prazo, precisa cuidar da sua própria base.',
+    sugestao:['Crescimento','Certeza'],
+    razao:'Crescimento pessoal sustenta sua capacidade de servir sem esgotamento. Certeza estratégica cria a estabilidade estrutural que permite contribuição consistente e duradoura.'
+  }
+};
+
+// ════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════
+const state={
+  name:'',email:'',empresa:'',turma:'',fase:'',locked:{},
+  disc:Array(24).fill(null).map(()=>({plus:null,minus:null})),
+  elem:Array(27).fill(null),
+  ennea:{},arch:{},kolb:{},needs:{},holland:{},
+};
+
+// ════════════════════════════════════════════════════
+// NAV
+// ════════════════════════════════════════════════════
+const SCREENS=['s-cover','s-disc','s-elem','s-ennea','s-arch','s-kolb','s-needs','s-holland','s-report'];
+const SLABELS=['Início','DISC','Temperamento','Eneagrama','Arquétipos','Kolb','Necessidades','Holland','Relatório'];
+
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+  const idx=SCREENS.indexOf(id);
+  const show=idx>0&&idx<8;
+  document.getElementById('prog-wrap').style.display=show?'block':'none';
+  if(show){
+    const pct=Math.round(((idx-1)/7)*100);
+    document.getElementById('prog-fill').style.width=pct+'%';
+    document.getElementById('prog-pct').textContent=pct+'%';
+    document.getElementById('prog-label').textContent=SLABELS[idx].toUpperCase();
+  }
+}
+
+function startAssessment(){
+  const n=document.getElementById('inp-name').value.trim();
+  const t=document.getElementById('inp-turma').value;
+  const warn=document.getElementById('val-name');
+  if(!n||!t){warn.textContent='Por favor, preencha seu nome e selecione a turma.';warn.classList.add('show');return}
+  if(n.split(' ').filter(w=>w.length>0).length<2){warn.textContent='Por favor, informe seu nome completo (nome e sobrenome).';warn.classList.add('show');return}
+  warn.classList.remove('show');
+  state.name=n;
+  state.email=document.getElementById('inp-email').value.trim();
+  state.empresa=document.getElementById('inp-empresa').value.trim();
+  state.turma=t;
+  state.fase=document.getElementById('inp-fase').value;
+  goTo('s-disc');
+}
+
+// ════════════════════════════════════════════════════
+// LOCK — bloqueia respostas após avançar
+// ════════════════════════════════════════════════════
+function lockScreen(screen){
+  state.locked[screen]=true;
+  if(screen==='disc'){
+    document.querySelectorAll('.disc-btn').forEach(b=>{b.disabled=true;b.style.cursor='not-allowed'});
+    document.querySelectorAll('.disc-group').forEach(g=>g.classList.add('locked'));
+  } else if(screen==='elem'){
+    document.querySelectorAll('.elem-opt').forEach(b=>{b.disabled=true;b.style.cursor='not-allowed'});
+  } else {
+    document.querySelectorAll(`#${screen==='ennea'?'ennea-container':screen==='arch'?'arch-container':screen==='kolb'?'kolb-container':screen==='needs'?'needs-container':'holland-container'} button`).forEach(b=>{b.disabled=true;b.style.cursor='not-allowed'});
+  }
+  // Hide back button on nav
+  const navBtns=document.querySelector(`#s-${screen} .nav-buttons .btn-secondary`);
+  if(navBtns){navBtns.disabled=true;navBtns.style.opacity='.3';}
+}
+
+// ════════════════════════════════════════════════════
+// DISC
+// ════════════════════════════════════════════════════
+function renderDisc(){
+  const c=document.getElementById('disc-container');
+  c.innerHTML=DISC_GROUPS.map((grp,gi)=>`
+    <div class="disc-group" id="dg-${gi}">
+      <div class="disc-group-header">
+        <span class="disc-group-num">GRUPO ${gi+1} / 24</span>
+        <span style="font-size:11px;color:var(--mid)"><strong style="color:#48C864">+</strong> MAIS me define &nbsp;|&nbsp; <strong style="color:#DC503C">−</strong> MENOS me define</span>
+        <div class="disc-group-status" id="dgs-${gi}"></div>
+      </div>
+      ${grp.map((w,wi)=>`
+        <div class="disc-word-row">
+          <span class="disc-word-label">${w[0]}</span>
+          <div class="disc-btns">
+            <button class="disc-btn" id="dp-${gi}-${wi}" onclick="discMark(${gi},${wi},'+')">+</button>
+            <button class="disc-btn" id="dm-${gi}-${wi}" onclick="discMark(${gi},${wi},'-')">−</button>
+          </div>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+function discMark(gi,wi,type){
+  if(state.locked.disc)return;
+  const s=state.disc[gi];
+  if(type==='+'){if(s.plus===wi)s.plus=null;else{if(s.minus===wi)return;s.plus=wi;}}
+  else{if(s.minus===wi)s.minus=null;else{if(s.plus===wi)return;s.minus=wi;}}
+  refreshDiscGroup(gi);updateDiscScores();
+}
+
+function refreshDiscGroup(gi){
+  const s=state.disc[gi];
+  DISC_GROUPS[gi].forEach((_,wi)=>{
+    const pb=document.getElementById(`dp-${gi}-${wi}`);
+    const mb=document.getElementById(`dm-${gi}-${wi}`);
+    if(!pb||!mb)return;
+    pb.className='disc-btn';mb.className='disc-btn';
+    if(s.plus===wi)pb.classList.add('plus-on');
+    if(s.minus===wi)mb.classList.add('minus-on');
+    if(s.plus!==null&&s.plus!==wi)pb.classList.add('dimmed');
+    if(s.minus!==null&&s.minus!==wi)mb.classList.add('dimmed');
+  });
+  const done=s.plus!==null&&s.minus!==null;
+  const dg=document.getElementById(`dg-${gi}`);
+  done?dg.classList.add('complete'):dg.classList.remove('complete');
+  document.getElementById(`dgs-${gi}`).style.background=done?'var(--gold)':'rgba(255,255,255,.12)';
+}
+
+function updateDiscScores(){
+  const sc={D:0,I:0,S:0,C:0};
+  state.disc.forEach((s,gi)=>{
+    if(s.plus!==null)sc[DISC_GROUPS[gi][s.plus][1]]+=2;
+    if(s.minus!==null)sc[DISC_GROUPS[gi][s.minus][1]]-=1;
+  });
+  const mx=Math.max(...Object.values(sc),1);
+  ['D','I','S','C'].forEach(k=>{
+    const el=document.getElementById(`val-${k}`);
+    const bar=document.getElementById(`bar-${k}`);
+    if(el)el.textContent=sc[k];
+    if(bar)bar.style.width=Math.max(0,(sc[k]/mx)*100)+'%';
+  });
+}
+
+function nextDisc(){
+  const done=state.disc.filter(s=>s.plus!==null&&s.minus!==null).length;
+  if(done<20){document.getElementById('disc-warning').classList.add('show');return}
+  document.getElementById('disc-warning').classList.remove('show');
+  lockScreen('disc');
+  goTo('s-elem');
+}
+
+// ════════════════════════════════════════════════════
+// ELEMENTOS
+// ════════════════════════════════════════════════════
+let elemCurrent=0;
+function renderElemProgress(){
+  const p=document.getElementById('elem-progress');
+  p.innerHTML=ELEM_ROUNDS.map((_,i)=>`<div class="elem-dot ${state.elem[i]?'done':''}" id="edot-${i}"></div>`).join('');
+}
+
+function renderElemRound(idx){
+  elemCurrent=idx;
+  const round=ELEM_ROUNDS[idx];
+  const locked=!!state.locked.elem;
+  const c=document.getElementById('elem-round-container');
+  c.innerHTML=`
+    <div class="elem-word-card">
+      <div class="elem-round-num">RODADA ${idx+1} DE ${ELEM_ROUNDS.length}</div>
+      <div class="elem-opts">
+        ${round.map((w,wi)=>`
+          <button class="elem-opt ${state.elem[idx]===w[1]?'selected':''}" id="eo-${wi}"
+            onclick="elemMark(${idx},${wi})" ${locked?'disabled':''}>
+            <span style="display:block;font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;margin-bottom:3px">${['A','B','C','D'][wi]}</span>
+            ${w[0]}
+          </button>`).join('')}
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:8px">
+      <button class="btn-secondary" onclick="renderElemRound(Math.max(0,${idx}-1))" ${idx===0||locked?'disabled style="opacity:.4"':''}>← Anterior</button>
+      <button class="btn-secondary" onclick="renderElemRound(Math.min(${ELEM_ROUNDS.length-1},${idx}+1))" ${idx===ELEM_ROUNDS.length-1||locked?'disabled style="opacity:.4"':''}>Próxima →</button>
+    </div>`;
+}
+
+function elemMark(roundIdx,wi){
+  if(state.locked.elem)return;
+  const elem=ELEM_ROUNDS[roundIdx][wi][1];
+  state.elem[roundIdx]=elem;
+  const dot=document.getElementById(`edot-${roundIdx}`);
+  if(dot)dot.classList.add('done');
+  updateElemScores();
+  if(roundIdx<ELEM_ROUNDS.length-1)setTimeout(()=>renderElemRound(roundIdx+1),280);
+  else renderElemRound(roundIdx);
+}
+
+function updateElemScores(){
+  const sc={FOGO:0,TERRA:0,ÁGUA:0,AR:0};
+  state.elem.forEach(e=>{if(e)sc[e]=(sc[e]||0)+1;});
+  Object.keys(sc).forEach(k=>{const el=document.getElementById(`val-${k}`);if(el)el.textContent=sc[k];});
+}
+
+function nextElem(){
+  const done=state.elem.filter(Boolean).length;
+  if(done<20){document.getElementById('elem-warning').classList.add('show');return}
+  document.getElementById('elem-warning').classList.remove('show');
+  lockScreen('elem');
+  goTo('s-ennea');
+}
+
+// ════════════════════════════════════════════════════
+// ENEAGRAMA
+// ════════════════════════════════════════════════════
+function renderEnnea(){
+  const c=document.getElementById('ennea-container');
+  c.innerHTML=ENNEA_TYPES.map((t,ti)=>`
+    <div class="ennea-type-block">
+      <div class="ennea-type-header">
+        <div class="ennea-num">${ti+1}</div>
+        <div style="font-size:11px;color:var(--mid);font-family:'JetBrains Mono',monospace;letter-spacing:.08em">Grupo ${ti+1} de 9</div>
+      </div>
+      ${t.stmts.map((s,si)=>`
+        <div class="q-block">
+          <div class="q-text">${s}</div>
+          <div class="q-likert-wrap">
+            <div class="q-likert-scale">
+              ${[1,2,3,4,5].map(v=>`<button class="q-likert-btn" id="en-${t.num}-${si}-${v}" onclick="enneaMark(${t.num},${si},${v})">${v}</button>`).join('')}
+            </div>
+            <div class="q-likert-labels"><span>Nada a ver</span><span>Sou exatamente assim</span></div>
+          </div>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+function enneaMark(num,si,val){
+  if(state.locked.ennea)return;
+  if(!state.ennea[num])state.ennea[num]={};
+  state.ennea[num][si]=val;
+  for(let v=1;v<=5;v++){const b=document.getElementById(`en-${num}-${si}-${v}`);if(b){b.className='q-likert-btn';if(v===val)b.classList.add('selected')}}
+}
+
+function nextEnnea(){
+  const covered=ENNEA_TYPES.filter(t=>state.ennea[t.num]&&Object.keys(state.ennea[t.num]).length>0).length;
+  if(covered<5){document.getElementById('ennea-warning').classList.add('show');return}
+  document.getElementById('ennea-warning').classList.remove('show');
+  lockScreen('ennea');
+  goTo('s-arch');
+}
+
+// ════════════════════════════════════════════════════
+// ARQUÉTIPOS
+// ════════════════════════════════════════════════════
+function renderArch(){
+  const c=document.getElementById('arch-container');
+  c.innerHTML=ARCH_QS.map((q,qi)=>`
+    <div class="q-block">
+      <div class="q-text"><span>${qi+1}.</span>${q.q}</div>
+      <div class="q-opts">${q.opts.map((o,oi)=>`<button class="q-opt" id="ar-${qi}-${oi}" onclick="archMark(${qi},${oi},'${o[1]}')">${o[0]}</button>`).join('')}</div>
+    </div>`).join('');
+}
+
+function archMark(qi,oi,arch){
+  if(state.locked.arch)return;
+  state.arch[qi]=arch;
+  document.querySelectorAll(`[id^="ar-${qi}-"]`).forEach(b=>b.classList.remove('selected'));
+  document.getElementById(`ar-${qi}-${oi}`).classList.add('selected');
+}
+
+function nextArch(){
+  if(Object.keys(state.arch).length<5){document.getElementById('arch-warning').classList.add('show');return}
+  document.getElementById('arch-warning').classList.remove('show');
+  lockScreen('arch');
+  goTo('s-kolb');
+}
+
+// ════════════════════════════════════════════════════
+// KOLB
+// ════════════════════════════════════════════════════
+function renderKolb(){
+  const c=document.getElementById('kolb-container');
+  c.innerHTML=KOLB_QS.map((q,qi)=>`
+    <div class="q-block">
+      <div class="q-text"><span>${qi+1}.</span>${q.q}</div>
+      <div class="q-opts">${q.opts.map((o,oi)=>`<button class="q-opt" id="kb-${qi}-${oi}" onclick="kolbMark(${qi},${oi},'${o[1]}')">${o[0]}</button>`).join('')}</div>
+    </div>`).join('');
+}
+
+function kolbMark(qi,oi,dim){
+  if(state.locked.kolb)return;
+  state.kolb[qi]=dim;
+  document.querySelectorAll(`[id^="kb-${qi}-"]`).forEach(b=>b.classList.remove('selected'));
+  document.getElementById(`kb-${qi}-${oi}`).classList.add('selected');
+}
+
+function nextKolb(){
+  if(Object.keys(state.kolb).length<6){document.getElementById('kolb-warning').classList.add('show');return}
+  document.getElementById('kolb-warning').classList.remove('show');
+  lockScreen('kolb');
+  goTo('s-needs');
+}
+
+// ════════════════════════════════════════════════════
+// 6 NECESSIDADES
+// ════════════════════════════════════════════════════
+function renderNeeds(){
+  const c=document.getElementById('needs-container');
+  c.innerHTML=NEEDS_DATA.map((nd,ni)=>`
+    <div class="ennea-type-block">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+        <span style="font-size:26px">${nd.icon}</span>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:700">${nd.name}</div>
+      </div>
+      ${nd.stmts.map((s,si)=>`
+        <div class="q-block">
+          <div class="q-text">${s}</div>
+          <div class="q-likert-wrap">
+            <div class="q-likert-scale">${[1,2,3,4,5].map(v=>`<button class="q-likert-btn" id="nd-${ni}-${si}-${v}" onclick="needsMark(${ni},${si},${v})">${v}</button>`).join('')}</div>
+            <div class="q-likert-labels"><span>Quase nunca</span><span>Sempre</span></div>
+          </div>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+function needsMark(ni,si,val){
+  if(state.locked.needs)return;
+  if(!state.needs[ni])state.needs[ni]={};
+  state.needs[ni][si]=val;
+  for(let v=1;v<=5;v++){const b=document.getElementById(`nd-${ni}-${si}-${v}`);if(b){b.className='q-likert-btn';if(v===val)b.classList.add('selected')}}
+}
+
+function nextNeeds(){
+  const covered=NEEDS_DATA.filter((_,ni)=>state.needs[ni]&&Object.keys(state.needs[ni]).length>0).length;
+  if(covered<4){document.getElementById('needs-warning').classList.add('show');return}
+  document.getElementById('needs-warning').classList.remove('show');
+  lockScreen('needs');
+  goTo('s-holland');
+}
+
+// ════════════════════════════════════════════════════
+// HOLLAND
+// ════════════════════════════════════════════════════
+function renderHolland(){
+  const c=document.getElementById('holland-container');
+  c.innerHTML=HOLLAND_TYPES.map((t,ti)=>`
+    <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:14px" id="hblock-${ti}">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <span style="font-size:26px">${t.icon}</span>
+        <div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:${t.color};letter-spacing:.13em;margin-bottom:2px">${t.code} · ${t.name.toUpperCase()}</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700">${t.alias}</div>
+          <div style="font-size:12px;color:var(--mid);margin-top:2px">${t.desc}</div>
+        </div>
+      </div>
+      <div style="margin-bottom:12px">${t.perguntas.map(p=>`<div style="font-size:13px;color:var(--mid);padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);line-height:1.5">• ${p}</div>`).join('')}</div>
+      <div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:${t.color};letter-spacing:.1em;margin-bottom:7px">PONTUAÇÃO (1 = nada a ver · 10 = sou exatamente assim)</div>
+      <div class="h-score-10">
+        ${[1,2,3,4,5,6,7,8,9,10].map(v=>`<button class="h-score-btn" id="hl-${ti}-${v}" onclick="hollandMark(${ti},${v})">${v}</button>`).join('')}
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--mid);margin-top:4px;font-family:'JetBrains Mono',monospace"><span>Nada a ver</span><span>Sou exatamente assim</span></div>
+    </div>`).join('');
+}
+
+function hexToRgb(hex){const r=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);return r?`${parseInt(r[1],16)},${parseInt(r[2],16)},${parseInt(r[3],16)}`:'201,168,76';}
+
+function hollandMark(ti,val){
+  if(state.locked.holland)return;
+  state.holland[ti]=val;
+  for(let v=1;v<=10;v++){
+    const b=document.getElementById(`hl-${ti}-${v}`);
+    if(b){
+      const c=HOLLAND_TYPES[ti].color;
+      b.style.background=v===val?`rgba(${hexToRgb(c)},.2)`:'rgba(255,255,255,.025)';
+      b.style.borderColor=v===val?c:'var(--border)';
+      b.style.color=v===val?c:'var(--mid)';
+      b.style.fontWeight=v===val?'700':'400';
+    }
+  }
+  const bl=document.getElementById(`hblock-${ti}`);
+  if(bl)bl.style.borderColor=val>=7?HOLLAND_TYPES[ti].color:'var(--border)';
+}
+
+// ════════════════════════════════════════════════════
+// CALCS
+// ════════════════════════════════════════════════════
+function calcDisc(){
+  const sc={D:0,I:0,S:0,C:0};
+  state.disc.forEach((s,gi)=>{
+    if(s.plus!==null)sc[DISC_GROUPS[gi][s.plus][1]]+=2;
+    if(s.minus!==null)sc[DISC_GROUPS[gi][s.minus][1]]-=1;
+  });
+  const sorted=Object.entries(sc).sort((a,b)=>b[1]-a[1]);
+  return{scores:sc,primary:sorted[0][0],secondary:sorted[1][0],sorted};
+}
+
+function calcElem(){
+  const sc={FOGO:0,TERRA:0,ÁGUA:0,AR:0};
+  state.elem.forEach(e=>{if(e)sc[e]=(sc[e]||0)+1;});
+  const sorted=Object.entries(sc).sort((a,b)=>b[1]-a[1]);
+  return{scores:sc,primary:sorted[0][0],secondary:sorted[1][0],sorted};
+}
+
+function calcEnnea(){
+  const avgs=ENNEA_TYPES.map(t=>{
+    const a=state.ennea[t.num]||{};
+    const tot=Object.values(a).reduce((s,v)=>s+v,0);
+    const cnt=Object.keys(a).length;
+    return{num:t.num,avg:cnt?tot/cnt:0};
+  }).sort((a,b)=>b.avg-a.avg);
+  return{top:avgs[0],second:avgs[1],all:avgs};
+}
+
+function calcArch(){
+  const sc={};
+  Object.values(state.arch).forEach(a=>{sc[a]=(sc[a]||0)+1;});
+  const sorted=Object.entries(sc).sort((a,b)=>b[1]-a[1]);
+  return{primary:sorted[0]?sorted[0][0]:'Herói',scores:sc,sorted};
+}
+
+function calcKolb(){
+  const sc={CON:0,DIV:0,ASS:0,ACO:0};
+  Object.values(state.kolb).forEach(d=>sc[d]=(sc[d]||0)+1);
+  const sorted=Object.entries(sc).sort((a,b)=>b[1]-a[1]);
+  const map={
+    CON:{name:'Convergente',desc:'Aprende resolvendo problemas práticos. Forte em tomada de decisão técnica e implementação.'},
+    DIV:{name:'Divergente',desc:'Aprende pela experiência e reflexão. Forte em empatia, geração de ideias e perspectiva humana.'},
+    ASS:{name:'Assimilador',desc:'Aprende pela observação e modelos teóricos. Forte em raciocínio lógico e planejamento estratégico.'},
+    ACO:{name:'Acomodador',desc:'Aprende na ação e adaptação. Forte em execução, intuição e flexibilidade prática.'}
+  };
+  return{primary:sorted[0][0],name:map[sorted[0][0]].name,desc:map[sorted[0][0]].desc,scores:sc,sorted,map};
+}
+
+function calcNeeds(){
+  const avgs=NEEDS_DATA.map((nd,ni)=>{
+    const a=state.needs[ni]||{};
+    const tot=Object.values(a).reduce((s,v)=>s+v,0);
+    const cnt=Object.keys(a).length;
+    return{name:nd.name,icon:nd.icon,avg:cnt?tot/cnt:0};
+  }).sort((a,b)=>b.avg-a.avg);
+  return{primary:avgs[0],secondary:avgs[1],all:avgs};
+}
+
+function calcHolland(){
+  const scores=HOLLAND_TYPES.map((t,ti)=>({
+    code:t.code,name:t.name,alias:t.alias,icon:t.icon,color:t.color,score:state.holland[ti]||0,type:t,
+  })).sort((a,b)=>b.score-a.score);
+  const top3=scores.slice(0,3);
+  const code=top3.map(t=>t.code).join('');
+  const adj=HOLLAND_HEX[top3[0].code]?.adj||[];
+  const consistent=adj.includes(top3[1].code);
+  const opp=HOLLAND_HEX[top3[0].code]?.opp;
+  const incongruent=top3[1].code===opp||top3[2].code===opp;
+  const differentiated=top3[0].score-scores[scores.length-1].score>=4;
+  return{scores,top3,code,consistent,incongruent,differentiated};
+}
+
+// ════════════════════════════════════════════════════
+// GENERATE REPORT
+// ════════════════════════════════════════════════════
+function generateReport(){
+  const answered=Object.values(state.holland).filter(v=>v>0).length;
+  if(answered<4){document.getElementById('holland-warning').classList.add('show');return}
+  document.getElementById('holland-warning').classList.remove('show');
+  lockScreen('holland');
+
+  const disc=calcDisc(),elem=calcElem(),ennea=calcEnnea(),arch=calcArch(),kolb=calcKolb(),needs=calcNeeds(),holland=calcHolland();
+  const enneaTop=ENNEA_NAMES[ennea.top.num];
+  const elemD=ELEM_DATA[elem.primary];
+  const dp=DISC_PROFILE[disc.primary];
+
+  document.getElementById('rep-avatar').textContent=state.name.charAt(0).toUpperCase();
+  document.getElementById('rep-name').textContent=state.name;
+  document.getElementById('rep-turma').textContent=state.turma+' · '+state.fase;
+  const empEl=document.getElementById('rep-empresa');
+  if(empEl)empEl.textContent=state.empresa?'🏢 '+state.empresa:'';
+  const emailEl=document.getElementById('rep-email');
+  if(emailEl)emailEl.textContent=state.email?'✉️ '+state.email:'';
+  document.getElementById('rep-date').textContent='Realizado em '+new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+
+  const maxDisc=Math.max(...Object.values(disc.scores),1);
+  const maxElem=Math.max(...Object.values(elem.scores),1);
+  const maxNeeds=Math.max(...needs.all.map(n=>n.avg),1);
+
+  const needSug=NEEDS_SUGGESTIONS[needs.primary.name]||{gap:'',sugestao:[],razao:''};
+
+  const ARCH_DESC={
+    'Herói':'Supera obstáculos e inspira coragem coletiva. Liderança pelo exemplo e pela ação persistente.',
+    'Mago':'Transforma realidades e cria visões inspiradoras. Liderança pela transformação e possibilidade.',
+    'Sábio':'Lidera pelo conhecimento e sabedoria. Liderança pelo discernimento e orientação.',
+    'Cuidador':'Nutre e protege a equipe. Liderança pelo serviço genuíno e desenvolvimento humano.',
+    'Guerreiro':'Foco em missão e disciplina. Liderança pela integridade e comprometimento.',
+    'Rei/Rainha':'Governa com autoridade e cuidado. Liderança pela ordem, estrutura e prosperidade.',
+    'Criador':'Inovador e visionário. Liderança pela criação de novas possibilidades e culturas.'
+  };
+
+  document.getElementById('report-body').innerHTML=`
+
+  <div class="section-sep">Resumo do Perfil</div>
+  <div class="rmod" style="background:linear-gradient(135deg,rgba(201,168,76,.07),rgba(201,168,76,.02))">
+    <div class="rmod-body">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
+        ${[
+          ['DISC',`<span style="color:${DISC_COLORS[disc.primary]};font-size:16px;font-weight:800">${DISC_NAMES[disc.primary]}</span><div style="font-size:11px;color:var(--mid);margin-top:2px">2º: ${DISC_NAMES[disc.secondary]}</div>`],
+          ['Temperamento',`<span style="color:${elemD.color}">${elemD.icon} ${elem.primary}</span>`],
+          ['Eneagrama',`<span style="color:var(--mist)">Tipo ${ennea.top.num} · ${enneaTop.alias}</span>`],
+          ['Arquétipo',`<span style="color:var(--gold)">${arch.primary}</span>`],
+          ['Kolb',`<span style="color:var(--sky)">${kolb.name}</span>`],
+          ['Necessidade 1ª',`<span style="color:#F0A050">${needs.primary.icon} ${needs.primary.name}</span>`],
+          ['Holland RIASEC',`<span style="color:#E8A840;font-size:17px;font-weight:800">${holland.code}</span>`],
+        ].map(([l,v])=>`<div class="rmod-cell"><div class="rmod-cell-label">${l}</div><div style="font-size:15px;font-weight:700">${v}</div></div>`).join('')}
+      </div>
+    </div>
+  </div>
+
+  <div class="section-sep">Perfis Detalhados</div>
+
+  <!-- DISC EXPANDIDO -->
+  <div class="rmod">
+    <div class="rmod-header">
+      <div class="rmod-icon">🎯</div>
+      <div><div class="rmod-theory">Instrumento 1 · Comportamento</div><div class="rmod-title">Perfil DISC — ${DISC_NAMES[disc.primary]}</div></div>
+      <span class="rmod-badge" style="background:rgba(255,255,255,.06);color:${DISC_COLORS[disc.primary]}">${DISC_NAMES[disc.primary]}</span>
+    </div>
+    <div class="rmod-body">
+      <p class="rmod-desc">${DISC_DESC[disc.primary]}</p>
+      <div style="margin-bottom:18px">
+        ${disc.sorted.map(([k,v])=>`<div class="rbar-row"><span class="rbar-label" style="color:${DISC_COLORS[k]}">${DISC_NAMES[k]}</span><div class="rbar-track"><div class="rbar-fill" style="width:${Math.max(0,v/maxDisc*100)}%;background:${DISC_COLORS[k]}"></div></div><span class="rbar-val">${v}</span></div>`).join('')}
+      </div>
+      <div class="disc-detail-grid">
+        <div class="rmod-cell"><div class="rmod-cell-label">✅ Pontos Fortes</div><div class="rmod-cell-value">${dp.fortes}</div></div>
+        <div class="rmod-cell"><div class="rmod-cell-label">⚠️ Pontos de Atenção</div><div class="rmod-cell-value">${dp.atencao}</div></div>
+        <div class="rmod-cell"><div class="rmod-cell-label">📤 Forma de Delegação</div><div class="rmod-cell-value">${dp.delegacao}</div></div>
+        <div class="rmod-cell"><div class="rmod-cell-label">🗣️ Forma de Comunicação</div><div class="rmod-cell-value">${dp.comunicacao}</div></div>
+        <div class="rmod-cell"><div class="rmod-cell-label">⚡ O que Motiva</div><div class="rmod-cell-value">${dp.motivacao}</div></div>
+        <div class="rmod-cell"><div class="rmod-cell-label">🚫 O que Desmotiva</div><div class="rmod-cell-value">${dp.desmotivacao}</div></div>
+      </div>
+      <div class="rmod-insight" style="margin-top:14px"><strong>Gestão de Pessoas:</strong> ${dp.gestao}</div>
+      <div class="rmod-insight"><strong>Palavra de Ordem:</strong> ${{D:'CALMA — Vá mais devagar com as pessoas. Ouça antes de decidir.',I:'ACABATIVA — Termine o que começou. Consistência é sua prioridade.',S:'VAI — Inicie mais. Depois que você começa, vai até o fim.',C:'FLEXIBILIDADE — Não busque 110% de informação. Comece e ajuste no caminho.'}[disc.primary]}</div>
+    </div>
+  </div>
+
+  <!-- TEMPERAMENTO — ELEMENTOS -->
+  <div class="rmod">
+    <div class="rmod-header">
+      <div class="rmod-icon">${elemD.icon}</div>
+      <div><div class="rmod-theory">Instrumento 2 · Temperamento</div><div class="rmod-title">Temperamento — Elemento ${elem.primary}</div></div>
+      <span class="rmod-badge" style="background:rgba(255,255,255,.05);color:${elemD.color}">${elem.primary}</span>
+    </div>
+    <div class="rmod-body">
+      <p class="rmod-desc">${elemD.desc}</p>
+      <div style="margin-bottom:16px">
+        ${elem.sorted.map(([k,v])=>`<div class="rbar-row"><span class="rbar-label" style="color:${ELEM_DATA[k].color}">${ELEM_DATA[k].icon} ${k}</span><div class="rbar-track"><div class="rbar-fill" style="width:${v/maxElem*100}%;background:${ELEM_DATA[k].color}"></div></div><span class="rbar-val">${v}</span></div>`).join('')}
+      </div>
+      <div class="disc-detail-grid">
+        <div class="rmod-cell"><div class="rmod-cell-label">Como se Comunicar</div><div class="rmod-cell-value">${elemD.palavras}</div></div>
+        <div class="rmod-cell"><div class="rmod-cell-label">Pontos que Viram Dificuldade</div><div class="rmod-cell-value">${elemD.dificuldades}</div></div>
+      </div>
+      <div class="rmod-insight" style="margin-top:14px"><strong>Postura de liderança para este temperamento:</strong> ${elemD.postura}</div>
+    </div>
+  </div>
+
+  <!-- ENEAGRAMA -->
+  <div class="rmod">
+    <div class="rmod-header">
+      <div class="rmod-icon">⬡</div>
+      <div><div class="rmod-theory">Instrumento 3 · Motivação Profunda</div><div class="rmod-title">Eneagrama — Tipo ${ennea.top.num} · ${enneaTop.name}</div></div>
+      <span class="rmod-badge" style="background:rgba(112,64,176,.15);color:var(--mist)">Tipo ${ennea.top.num}</span>
+    </div>
+    <div class="rmod-body">
+      <div style="margin-bottom:14px">
+        ${ennea.all.slice(0,5).map(t=>{const n=ENNEA_NAMES[t.num];return`<div class="rbar-row"><span class="rbar-label">Tipo ${t.num} · ${n.alias}</span><div class="rbar-track"><div class="rbar-fill" style="width:${t.avg/5*100}%;background:var(--mist)"></div></div><span class="rbar-val">${t.avg.toFixed(1)}</span></div>`;}).join('')}
+      </div>
+      <div class="rmod-insight"><strong>Tipo ${ennea.top.num} — ${enneaTop.name}:</strong> ${enneaTop.desc}</div>
+      <div class="rmod-insight"><strong>2º tipo:</strong> Tipo ${ennea.second.num} — ${ENNEA_NAMES[ennea.second.num].name} (${ennea.second.avg.toFixed(1)}/5). Pode ser uma asa ou influência secundária significativa.</div>
+    </div>
+  </div>
+
+  <!-- ARQUÉTIPOS -->
+  <div class="rmod">
+    <div class="rmod-header">
+      <div class="rmod-icon">⚔️</div>
+      <div><div class="rmod-theory">Instrumento 4 · Identidade</div><div class="rmod-title">Arquétipo — ${arch.primary}</div></div>
+      <span class="rmod-badge" style="background:rgba(201,168,76,.12);color:var(--gold)">${arch.primary}</span>
+    </div>
+    <div class="rmod-body">
+      <p class="rmod-desc">${ARCH_DESC[arch.primary]||'Arquétipo identificado pelas escolhas instintivas nas situações apresentadas.'}</p>
+      <div class="rmod-insight"><strong>Sombra do Arquétipo ${arch.primary}:</strong> Todo arquétipo tem uma sombra — o que ele exagera ou esconde. Trabalhar conscientemente esse lado é fundamental para a liderança sustentável.</div>
+      ${arch.sorted.length>1?`<div class="rmod-insight"><strong>Arquétipo secundário:</strong> ${arch.sorted[1][0]} — ${ARCH_DESC[arch.sorted[1][0]]||''}</div>`:''}
+    </div>
+  </div>
+
+  <!-- KOLB -->
+  <div class="rmod">
+    <div class="rmod-header">
+      <div class="rmod-icon">🔄</div>
+      <div><div class="rmod-theory">Instrumento 5 · Aprendizagem</div><div class="rmod-title">Kolb — ${kolb.name}</div></div>
+      <span class="rmod-badge" style="background:rgba(26,92,180,.15);color:var(--sky)">${kolb.name}</span>
+    </div>
+    <div class="rmod-body">
+      <p class="rmod-desc">${kolb.desc}</p>
+      <div class="disc-detail-grid">
+        <div class="rmod-cell"><div class="rmod-cell-label">Como aprender com você</div><div class="rmod-cell-value">${{CON:'Problemas práticos para resolver, simulações e aplicação imediata. Mínimo de teoria pura.',DIV:'Debates em grupo, troca de experiências e exploração de perspectivas diferentes.',ASS:'Frameworks, modelos conceituais, materiais estruturados e tempo para reflexão.',ACO:'Experimentação, autonomia para testar e feedbacks rápidos de resultado.'}[kolb.primary]}</div></div>
+        <div class="rmod-cell"><div class="rmod-cell-label">Ponto cego de aprendizagem</div><div class="rmod-cell-value">${{CON:'Pode perder a dimensão humana e o impacto emocional das decisões.',DIV:'Pode ficar em análise reflexiva e não chegar à ação concreta.',ASS:'Pode perder o contato com a realidade prática e o fator humano.',ACO:'Pode agir sem reflexão suficiente e repetir erros por falta de análise.'}[kolb.primary]}</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6 NECESSIDADES -->
+  <div class="rmod">
+    <div class="rmod-header">
+      <div class="rmod-icon">💫</div>
+      <div><div class="rmod-theory">Instrumento 6 · Motivação</div><div class="rmod-title">6 Necessidades — ${needs.primary.icon} ${needs.primary.name}</div></div>
+      <span class="rmod-badge" style="background:rgba(240,160,80,.12);color:#F0A050">${needs.primary.name}</span>
+    </div>
+    <div class="rmod-body">
+      <div style="margin-bottom:16px">
+        ${needs.all.map(n=>`<div class="rbar-row"><span class="rbar-label">${n.icon} ${n.name}</span><div class="rbar-track"><div class="rbar-fill" style="width:${n.avg/maxNeeds*100}%;background:#F0A050"></div></div><span class="rbar-val">${n.avg.toFixed(1)}</span></div>`).join('')}
+      </div>
+      <div class="rmod-insight"><strong>${needs.primary.icon} Necessidade primária: ${needs.primary.name}</strong> — Principal driver das suas decisões como líder. Define o que te motiva profundamente e o que te frustra quando ausente.</div>
+      <div class="rmod-insight"><strong>2ª Necessidade: ${needs.secondary.icon} ${needs.secondary.name}</strong> — Fortemente presente. Juntas, ${needs.primary.name} e ${needs.secondary.name} formam o motor comportamental mais influente do seu estilo.</div>
+      ${needSug.gap?`
+      <div class="needs-suggestion">
+        <div class="needs-suggestion-title">💡 Sugestão para Mudança de Padrão e Novos Resultados</div>
+        <p style="font-size:13px;color:var(--mid);line-height:1.7;margin-bottom:10px">${needSug.gap}</p>
+        <p style="font-size:13px;color:var(--parch);line-height:1.7;margin-bottom:8px"><strong style="color:var(--sky)">Necessidades a desenvolver:</strong> ${needSug.sugestao.map(n=>{const d=NEEDS_DATA.find(x=>x.name===n);return d?`${d.icon} <strong>${n}</strong>`:n}).join(' + ')}</p>
+        <p style="font-size:13px;color:var(--mid);line-height:1.7">${needSug.razao}</p>
+      </div>`:''}
+    </div>
+  </div>
+
+  <!-- HOLLAND -->
+  <div class="rmod">
+    <div class="rmod-header">
+      <div class="rmod-icon">🧭</div>
+      <div><div class="rmod-theory">Instrumento 7 · Vocação e Carreira</div><div class="rmod-title">Holland RIASEC — Código <span style="color:#E8A840;font-weight:800">${holland.code}</span></div></div>
+      <span class="rmod-badge" style="background:rgba(232,168,64,.12);color:#E8A840;font-size:15px;font-weight:800">${holland.code}</span>
+    </div>
+    <div class="rmod-body">
+      <p class="rmod-desc">O Código Holland identifica as inclinações vocacionais naturais — o tipo de ambiente e atividade onde você naturalmente prospera.</p>
+      <div style="margin-bottom:16px">
+        ${holland.scores.map(t=>`<div class="rbar-row"><span class="rbar-label" style="color:${t.color}">${t.icon} ${t.code} · ${t.name}</span><div class="rbar-track"><div class="rbar-fill" style="width:${t.score*10}%;background:${t.color}"></div></div><span class="rbar-val">${t.score}</span></div>`).join('')}
+      </div>
+      <div class="rmod-grid">
+        ${holland.top3.map((t,i)=>`<div class="rmod-cell" style="${i===0?'border-color:'+t.color:''}"><div class="rmod-cell-label" style="${i===0?'color:'+t.color:''}">${['1º','2º','3º'][i]} · ${t.code} — ${t.name}</div><div style="font-size:13px;font-weight:700;margin-bottom:5px">${t.alias}</div><div class="rmod-cell-value">${t.type.lideranca}</div></div>`).join('')}
+      </div>
+      <div class="rmod-insight" style="margin-top:14px">
+        <strong>Consistência:</strong> ${holland.consistent?`Os tipos dominantes (${holland.top3[0].code} e ${holland.top3[1].code}) são adjacentes no hexágono — perfil consistente com interesses próximos.`:`Os tipos dominantes (${holland.top3[0].code} e ${holland.top3[1].code}) não são adjacentes — perfil versátil que pode precisar de ambiente diversificado.`}
+      </div>
+      ${holland.incongruent?`<div class="rmod-insight" style="border-color:var(--fire)"><strong>⚠ Incongruência:</strong> O tipo oposto ao seu perfil dominante aparece entre os 3 maiores — pode indicar interesses em tensão. Vale explorar em sessão de carreira.</div>`:''}
+      <div class="rmod-insight"><strong>Diferenciação:</strong> ${holland.differentiated?'Perfil bem definido — preferências vocacionais claras e foco natural bem estabelecido.':'Perfil diversificado — você tem aptidão em múltiplas dimensões ou está em processo de autodescoberta vocacional.'}</div>
+      <div class="disc-detail-grid">
+        <div class="rmod-cell"><div class="rmod-cell-label">Ambientes que Energizam</div><div class="rmod-cell-value">${holland.top3.map(t=>t.type.careers).join(' · ')}</div></div>
+        <div class="rmod-cell"><div class="rmod-cell-label">Alinhamento DISC × Holland</div><div class="rmod-cell-value">DISC ${DISC_NAMES[disc.primary]} × Holland ${holland.code} — ${holland.top3[0].type.disc.includes(disc.primary)?'Alta congruência — vocação e comportamento alinhados.':'Possível tensão entre vocação e comportamento. Explorar em sessão de carreira.'}</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PDI -->
+  <div class="rmod" style="border-color:rgba(201,168,76,.4)">
+    <div class="rmod-header"><div class="rmod-icon">🎯</div><div><div class="rmod-theory">Plano de Desenvolvimento Individual</div><div class="rmod-title">3 Prioridades de Crescimento</div></div></div>
+    <div class="rmod-body">
+      <div class="rmod-insight"><strong>1. DISC ${DISC_NAMES[disc.primary]} — ampliando o perfil:</strong> Desenvolva competências do quadrante secundário (${DISC_NAMES[disc.secondary]}) para uma liderança mais completa. Foco na Palavra de Ordem: ${{D:'CALMA',I:'ACABATIVA',S:'VAI',C:'FLEXIBILIDADE'}[disc.primary]}.</div>
+      <div class="rmod-insight"><strong>2. Eneagrama Tipo ${ennea.top.num} — trabalhando a sombra:</strong> Reconheça quando você está reagindo a partir do medo central (${['','imperfeição','não ser amado','fracasso','não ter identidade','incompetência','abandono','privação','ser controlado','conflito'][ennea.top.num]}) — e não dos seus pontos fortes. Esta é a maior alavanca de crescimento interior disponível.</div>
+      <div class="rmod-insight"><strong>3. Holland ${holland.code} — alinhamento vocacional:</strong> Seu código indica naturalidade em ambientes de perfil ${holland.top3[0].name} (${holland.top3[0].alias}). Verifique se sua atuação atual permite expressar essas inclinações — incongruência vocacional é uma das principais causas de esgotamento em líderes.</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <p style="text-align:center;font-size:11px;color:var(--mid);font-family:'JetBrains Mono',monospace">Instituto da Liderança · CNPJ 22.233.124/0001-50 · Diagnóstico de Liderança ${new Date().getFullYear()}</p>`;
+
+  saveToSheets(disc,elem,ennea,arch,kolb,needs,holland);
+  goTo('s-report');
+}
+
+// ════════════════════════════════════════════════════
+// GOOGLE SHEETS
+// ════════════════════════════════════════════════════
+const SHEETS_URL='SEU_APPS_SCRIPT_URL_AQUI';
+
+function saveToSheets(disc,elem,ennea,arch,kolb,needs,holland){
+  if(SHEETS_URL==='SEU_APPS_SCRIPT_URL_AQUI')return;
+  const enneaTop=ENNEA_NAMES[ennea.top.num];
+  const kolbMap={CON:'Convergente',DIV:'Divergente',ASS:'Assimilador',ACO:'Acomodador'};
+  const payload={
+    timestamp:new Date().toISOString(),
+    nome:state.name,email:state.email||'',empresa:state.empresa||'',turma:state.turma,fase:state.fase,
+    disc_D:disc.scores.D,disc_I:disc.scores.I,disc_S:disc.scores.S,disc_C:disc.scores.C,
+    disc_primario:disc.primary,disc_secundario:disc.secondary,
+    elem_FOGO:elem.scores.FOGO,elem_AR:elem.scores.AR,elem_TERRA:elem.scores.TERRA,elem_AGUA:elem.scores['ÁGUA'],elem_primario:elem.primary,
+    ennea_tipo:ennea.top.num,ennea_nome:enneaTop?enneaTop.name:'',ennea_score:ennea.top.avg.toFixed(2),
+    arquetipos:arch.primary,
+    kolb_estilo:kolbMap[kolb.primary]||kolb.primary,
+    need_1a:needs.primary.name,need_2a:needs.secondary.name,
+    need_certeza:(needs.all.find(n=>n.name==='Certeza')||{avg:0}).avg.toFixed(2),
+    need_variedade:(needs.all.find(n=>n.name==='Variedade')||{avg:0}).avg.toFixed(2),
+    need_significancia:(needs.all.find(n=>n.name==='Significância')||{avg:0}).avg.toFixed(2),
+    need_conexao:(needs.all.find(n=>n.name==='Conexão')||{avg:0}).avg.toFixed(2),
+    need_crescimento:(needs.all.find(n=>n.name==='Crescimento')||{avg:0}).avg.toFixed(2),
+    need_contribuicao:(needs.all.find(n=>n.name==='Contribuição')||{avg:0}).avg.toFixed(2),
+    holland_codigo:holland.code,
+    holland_tipo1:holland.top3[0]?.name||'',holland_tipo2:holland.top3[1]?.name||'',holland_tipo3:holland.top3[2]?.name||'',
+    holland_R:state.holland[0]||0,holland_I:state.holland[1]||0,holland_A:state.holland[2]||0,
+    holland_S:state.holland[3]||0,holland_E:state.holland[4]||0,holland_C:state.holland[5]||0,
+  };
+  fetch(SHEETS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+    .then(()=>showToast('✅ Resultado salvo com sucesso!'))
+    .catch(()=>showToast('⚠️ Erro ao salvar — verifique a conexão.'));
+}
+
+function showToast(msg){
+  let t=document.getElementById('toast');
+  if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:rgba(10,8,6,.96);border:1px solid var(--gold);color:var(--parch);padding:12px 24px;border-radius:100px;font-size:13px;font-family:Syne,sans-serif;z-index:9999;animation:fadeUp .4s ease';document.body.appendChild(t);}
+  t.textContent=msg;t.style.display='block';
+  setTimeout(()=>{t.style.display='none';},4000);
+}
+
+
+// ════════════════════════════════════════════════════
+// EXPORT PDF — abre relatório limpo em nova aba
+// ════════════════════════════════════════════════════
+function exportPDF(){
+  const reportEl=document.getElementById('report');
+  if(!reportEl){alert('Gere o relatório primeiro.');return;}
+
+  const nome=state.name||'Líder';
+  const empresa=state.empresa?` · ${state.empresa}`:'';
+  const email=state.email?`<div style="font-size:12px;color:#888;margin-top:3px">✉️ ${state.email}</div>`:'';
+  const turma=state.turma||'—';
+  const fase=state.fase||'—';
+  const data=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+
+  // Clone report body HTML (already rendered)
+  const bodyHTML=document.getElementById('report-body').innerHTML;
+
+  const w=window.open('','_blank');
+  if(!w){showToast('⚠️ Permita pop-ups para exportar o PDF');return;}
+
+  w.document.write(`<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Relatório de Liderança — ${nome}</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Syne:wght@400;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Syne',sans-serif;background:#FAF6EE;color:#1A1612;font-size:13px;line-height:1.6}
+.page{max-width:820px;margin:0 auto;padding:40px 36px 60px}
+/* CAPA */
+.capa{background:#0A0806;color:#FAF6EE;padding:44px 40px;border-radius:12px;margin-bottom:32px}
+.capa-badge{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.18em;color:#C9A84C;text-transform:uppercase;border:1px solid rgba(201,168,76,.3);padding:4px 12px;border-radius:100px;display:inline-block;margin-bottom:16px}
+.capa-title{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;margin-bottom:6px;color:#FAF6EE}
+.capa-sub{font-size:13px;color:#B0A090;margin-bottom:28px}
+.capa-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;border-top:1px solid rgba(201,168,76,.2);padding-top:20px}
+.capa-meta .label{font-family:'JetBrains Mono',monospace;font-size:9px;color:#8A7A5A;letter-spacing:.1em;margin-bottom:3px}
+.capa-meta .value{font-size:14px;font-weight:700;color:#FAF6EE}
+/* MODULES */
+.rmod{background:#fff;border:1px solid #E0D8C8;border-radius:10px;margin-bottom:16px;overflow:hidden;break-inside:avoid}
+.rmod-header{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid #EDE8DC;background:#FAF6EE}
+.rmod-icon{font-size:18px;flex-shrink:0}
+.rmod-theory{font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase}
+.rmod-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:#0A0806}
+.rmod-badge{margin-left:auto;padding:3px 12px;border-radius:100px;font-size:11px;font-weight:700}
+.rmod-body{padding:18px 20px}
+.rmod-desc{font-size:13px;color:#6A5A48;line-height:1.7;margin-bottom:12px}
+.rmod-insight{padding:10px 14px;border-radius:0 6px 6px 0;background:#F5F0E8;border-left:3px solid #C9A84C;font-size:12px;line-height:1.7;color:#2A2018;margin-bottom:8px}
+.rmod-insight strong{color:#8A6520}
+.rmod-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:10px 0}
+.rmod-cell{background:#FAF6EE;border:1px solid #E0D8C8;border-radius:8px;padding:12px}
+.rmod-cell-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px}
+.rmod-cell-value{font-size:12px;color:#4A3A28;line-height:1.5}
+/* BARS */
+.rbar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.rbar-label{font-size:12px;font-weight:600;width:140px;flex-shrink:0;color:#1A1612}
+.rbar-track{flex:1;height:7px;background:#EDE8DC;border-radius:4px;overflow:hidden}
+.rbar-fill{height:100%;border-radius:4px}
+.rbar-val{font-family:'JetBrains Mono',monospace;font-size:11px;color:#C9A84C;width:28px;text-align:right}
+/* GRIDS */
+.disc-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+/* SECTION SEP */
+.section-sep{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:#C9A84C;margin:20px 0 12px;display:flex;align-items:center;gap:8px}
+.section-sep::after{content:'';flex:1;height:1px;background:#E0D8C8}
+.divider{height:1px;background:#E0D8C8;margin:20px 0}
+/* NEEDS */
+.needs-suggestion{margin-top:12px;background:#EEF4FF;border:1px solid #B0C4E8;border-radius:8px;padding:12px}
+.needs-suggestion-title{font-size:9px;font-family:'JetBrains Mono',monospace;color:#4A70B0;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+/* TOOLBAR (screen only) */
+.toolbar{position:fixed;top:16px;right:16px;z-index:100;display:flex;gap:8px}
+.tb-btn{padding:9px 18px;border-radius:8px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none}
+.tb-primary{background:#C9A84C;color:#0A0806}
+.tb-outline{background:#fff;color:#555;border:1px solid #ddd!important}
+/* FOOTER */
+.footer{text-align:center;padding:24px 0 0;border-top:1px solid #E0D8C8;margin-top:32px;font-family:'JetBrains Mono',monospace;font-size:10px;color:#B0A090;letter-spacing:.06em}
+@media print{
+  body{background:#fff}
+  .toolbar{display:none!important}
+  .capa{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .rmod{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <button class="tb-btn tb-primary" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+  <button class="tb-btn tb-outline" onclick="window.close()">✕ Fechar</button>
+</div>
+<div class="page">
+  <div class="capa">
+    <div class="capa-badge">Instituto da Liderança · Diagnóstico de Liderança</div>
+    <div class="capa-title">Relatório de Liderança Ativacional</div>
+    <div class="capa-sub">Diagnóstico integrado com 7 instrumentos de autoconhecimento</div>
+    <div class="capa-meta">
+      <div><div class="label">Líder</div><div class="value">${nome}</div>${email}</div>
+      <div><div class="label">Programa${empresa}</div><div class="value">${turma}</div><div style="font-size:11px;color:#8A7A5A;margin-top:2px">${fase}</div></div>
+      <div><div class="label">Data de Emissão</div><div class="value">${data}</div></div>
+    </div>
+  </div>
+  ${bodyHTML}
+  <div class="footer">Instituto da Liderança · CNPJ 22.233.124/0001-50 · @institutodaideranca · ${data}</div>
+</div>
+</body>
+</html>`);
+  w.document.close();
+}
+
+// ════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+  populateTurmaSelect();
+  renderDisc();
+  renderElemProgress();
+  renderElemRound(0);
+  renderEnnea();
+  renderArch();
+  renderKolb();
+  renderNeeds();
+  renderHolland();
+});
+</script>
+</body>
+</html>

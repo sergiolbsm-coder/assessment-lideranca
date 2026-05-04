@@ -1,0 +1,1685 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Admin · Instituto da Liderança</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Syne:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0A0806;--parch:#FAF6EE;--gold:#C9A84C;--gold-lt:#E8D08A;--gold-dk:#8A6520;
+  --fire:#D4401A;--flame:#F07030;--water:#1A5CB4;--sky:#4A90D4;
+  --earth:#6B7C3A;--moss:#9AB050;--air:#7040B0;--mist:#A878E0;
+  --mid:#7A6E5A;--border:rgba(201,168,76,0.2);--r:12px;--r-sm:8px;
+  --success:#22C55E;--warn:#F0A050;--danger:#EF4444;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Syne',sans-serif;background:var(--ink);color:var(--parch);min-height:100vh}
+.bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 60% 40% at 15% 20%,rgba(201,168,76,.06) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 85% 75%,rgba(26,92,180,.05) 0%,transparent 55%),var(--ink)}
+.wrap{position:relative;z-index:1;max-width:1440px;margin:0 auto;padding:0 24px}
+
+/* SIDEBAR + MAIN */
+.layout{display:flex;min-height:100vh}
+.sidebar{width:220px;flex-shrink:0;background:rgba(255,255,255,.02);border-right:1px solid var(--border);padding:24px 0;position:sticky;top:0;height:100vh;overflow-y:auto;z-index:10}
+.main{flex:1;padding:28px 28px 60px;overflow-x:hidden}
+.sidebar-logo{padding:0 20px 24px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.sidebar-logo-title{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700;color:var(--gold)}
+.sidebar-logo-sub{font-size:10px;color:var(--mid);font-family:'JetBrains Mono',monospace;letter-spacing:.08em;margin-top:2px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;font-size:13px;font-weight:600;color:var(--mid);transition:all .2s;border-left:2px solid transparent}
+.nav-item:hover{color:var(--parch);background:rgba(255,255,255,.03)}
+.nav-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(201,168,76,.06)}
+.nav-item .ni{font-size:16px;width:20px;text-align:center}
+.nav-section{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;color:var(--mid);text-transform:uppercase;padding:14px 20px 6px}
+
+/* TABS */
+.tab-panel{display:none}
+.tab-panel.active{display:block;animation:fadeUp .3s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* PAGE HEADER */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.page-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700}
+.page-sub{font-size:13px;color:var(--mid);margin-top:3px}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:7px;border-radius:var(--r-sm);padding:9px 18px;font-family:'Syne',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .25s;border:1px solid}
+.btn-gold{background:linear-gradient(135deg,var(--gold-dk),var(--gold));color:var(--ink);border-color:transparent}
+.btn-gold:hover{transform:translateY(-1px);box-shadow:0 4px 18px rgba(201,168,76,.3)}
+.btn-outline{background:transparent;color:var(--mid);border-color:var(--border)}
+.btn-outline:hover{border-color:rgba(201,168,76,.4);color:var(--parch)}
+.btn-danger{background:rgba(239,68,68,.12);color:var(--danger);border-color:rgba(239,68,68,.3)}
+.btn-danger:hover{background:rgba(239,68,68,.2)}
+.btn-success{background:rgba(34,197,94,.12);color:var(--success);border-color:rgba(34,197,94,.3)}
+.btn-sm{padding:6px 12px;font-size:12px}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px}
+.stat-card{background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:var(--r);padding:16px;text-align:center}
+.stat-num{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;color:var(--gold)}
+.stat-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--mid);letter-spacing:.1em;text-transform:uppercase;margin-top:3px}
+
+/* CHARTS */
+.charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:24px}
+.chart-card{background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:var(--r);padding:18px}
+.chart-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;margin-bottom:14px}
+.cbar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.cbar-name{font-size:12px;font-weight:600;width:110px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cbar-track{flex:1;height:8px;background:rgba(255,255,255,.06);border-radius:4px}
+.cbar-fill{height:100%;border-radius:4px;transition:width .7s ease}
+.cbar-val{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);width:24px;text-align:right}
+
+/* CONTROLS */
+.controls-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.search-input{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-sm);padding:9px 14px;color:var(--parch);font-family:'Syne',sans-serif;font-size:13px;outline:none;transition:border-color .25s;min-width:200px}
+.search-input:focus{border-color:var(--gold)}
+.filter-sel{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-sm);padding:9px 12px;color:var(--parch);font-family:'Syne',sans-serif;font-size:13px;outline:none;cursor:pointer}
+.filter-sel option{background:var(--ink)}
+
+/* TABLE */
+.table-wrap{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:900px}
+thead{background:rgba(201,168,76,.07)}
+th{padding:11px 12px;text-align:left;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--gold);text-transform:uppercase;white-space:nowrap;border-bottom:1px solid var(--border)}
+td{padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.td-name{font-weight:700;color:var(--parch)}
+.td-date{color:var(--mid);font-family:'JetBrains Mono',monospace;font-size:10px}
+.badge{display:inline-block;padding:3px 9px;border-radius:100px;font-size:10px;font-weight:600;font-family:'JetBrains Mono',monospace}
+.check-col{width:36px}
+.row-check{width:16px;height:16px;accent-color:var(--gold);cursor:pointer}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,8,6,.88);z-index:1000;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:#16120E;border:1px solid var(--border);border-radius:var(--r);max-width:780px;width:100%;max-height:92vh;overflow-y:auto}
+.modal-header{display:flex;align-items:flex-start;justify-content:space-between;padding:24px 28px;border-bottom:1px solid var(--border)}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700}
+.modal-sub{font-size:12px;color:var(--mid);font-family:'JetBrains Mono',monospace;margin-top:3px}
+.modal-close{background:none;border:1px solid var(--border);color:var(--mid);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:15px;flex-shrink:0}
+.modal-close:hover{border-color:var(--gold);color:var(--gold)}
+.modal-body{padding:24px 28px}
+.modal-section-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px;margin-top:20px;display:flex;align-items:center;gap:8px}
+.modal-section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.modal-section-title:first-child{margin-top:0}
+.profile-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.profile-cell{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px}
+.profile-cell-label{font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--gold);letter-spacing:.1em;margin-bottom:5px}
+.profile-cell-value{font-size:14px;font-weight:700}
+.insight-box{background:rgba(201,168,76,.07);border-left:3px solid var(--gold);border-radius:0 var(--r-sm) var(--r-sm) 0;padding:11px 14px;font-size:13px;line-height:1.7;margin-bottom:10px}
+.insight-box strong{color:var(--gold)}
+.modal-disc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.disc-detail-cell{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px}
+.disc-detail-cell-label{font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--gold);letter-spacing:.1em;margin-bottom:6px}
+.disc-detail-cell-value{font-size:12px;color:var(--mid);line-height:1.6}
+
+/* TURMAS */
+.turma-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.turma-item{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 16px}
+.turma-name{flex:1;font-size:14px}
+.turma-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mid)}
+.turma-actions{display:flex;gap:6px}
+.add-turma-row{display:flex;gap:10px}
+.add-turma-row input{flex:1;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;color:var(--parch);font-family:'Syne',sans-serif;font-size:13px;outline:none}
+.add-turma-row input:focus{border-color:var(--gold)}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(10,8,6,.96);border:1px solid var(--gold);color:var(--parch);padding:11px 22px;border-radius:100px;font-size:13px;font-family:'Syne',sans-serif;z-index:9999;display:none}
+
+/* CONFIG */
+.config-block{background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px}
+.config-block-title{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;margin-bottom:14px}
+.config-row{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.config-label{font-size:12px;font-weight:600;color:var(--parch);letter-spacing:.05em}
+.config-hint{font-size:11px;color:var(--mid);line-height:1.6}
+.config-input{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 14px;color:var(--parch);font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;width:100%;transition:border-color .25s}
+.config-input:focus{border-color:var(--gold)}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+.dot-green{background:#22C55E;box-shadow:0 0 6px #22C55E}
+.dot-gray{background:var(--mid)}
+
+/* NO DATA */
+.empty-state{text-align:center;padding:50px 20px;color:var(--mid)}
+.empty-icon{font-size:40px;margin-bottom:14px}
+.empty-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;margin-bottom:6px;color:var(--parch)}
+
+@media(max-width:900px){.sidebar{display:none}.main{padding:20px}}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-title">Instituto da Liderança</div>
+      <div class="sidebar-logo-sub">PAINEL ADMIN</div>
+    </div>
+    <div class="nav-section">Dados</div>
+    <div class="nav-item active" data-tab="respondentes" onclick="showTab('respondentes')"><span class="ni">👥</span> Respondentes</div>
+    <div class="nav-item" data-tab="dashboard" onclick="showTab('dashboard')"><span class="ni">📊</span> Dashboard</div>
+    <div class="nav-section">Exportação</div>
+    <div class="nav-item" data-tab="exportar" onclick="showTab('exportar')"><span class="ni">⬇️</span> Exportar</div>
+    <div class="nav-section">Configurações</div>
+    <div class="nav-item" data-tab="turmas" onclick="showTab('turmas')"><span class="ni">🎓</span> Turmas</div>
+    <div class="nav-item" data-tab="config" onclick="showTab('config')"><span class="ni">⚙️</span> Configuração</div>
+    <div style="margin-top:auto;padding:16px 20px;border-top:1px solid var(--border)">
+      <a href="assessment-lideranca.html" style="font-size:12px;color:var(--mid);text-decoration:none;display:flex;align-items:center;gap:6px">← Voltar ao Assessment</a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ░ RESPONDENTES ░ -->
+    <div id="tab-respondentes" class="tab-panel active">
+      <div class="page-header">
+        <div><div class="page-title">Respondentes</div><div class="page-sub">Todos os participantes que completaram o assessment</div></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline btn-sm" onclick="loadData()">↻ Atualizar</button>
+          <button class="btn btn-gold btn-sm" onclick="exportSelected()">⬇ Exportar Selecionados</button>
+        </div>
+      </div>
+
+      <div class="controls-row">
+        <input class="search-input" id="search" placeholder="🔍 Buscar por nome..." oninput="filterTable()">
+        <select class="filter-sel" id="f-turma" onchange="filterTable()"><option value="">Todas as turmas</option></select>
+        <select class="filter-sel" id="f-fase" onchange="filterTable()">
+          <option value="">Todas as fases</option>
+          <option>Pré-Treinamento</option>
+          <option>Durante o Treinamento</option>
+          <option>Pós-Treinamento</option>
+        </select>
+        <select class="filter-sel" id="f-disc" onchange="filterTable()">
+          <option value="">Todo DISC</option>
+          <option>Dominante</option><option>Influente</option><option>Estável</option><option>Conformidade</option>
+        </select>
+        <span id="sel-count" style="font-size:12px;color:var(--mid);font-family:'JetBrains Mono',monospace"></span>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <button class="btn btn-outline btn-sm" onclick="selectAll()">Selecionar todos</button>
+        <button class="btn btn-outline btn-sm" onclick="clearSelection()">Limpar seleção</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="check-col"><input type="checkbox" id="chk-all" onchange="toggleAll(this)"></th>
+              <th>#</th><th>Nome</th><th>Turma</th><th>Fase</th>
+              <th>DISC</th><th>Temp.</th><th>Eneagrama</th><th>Arquétipo</th>
+              <th>Kolb</th><th>Need. 1ª</th><th>Holland</th><th>Data</th><th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="empty-resp" style="display:none">
+        <div class="empty-icon">👥</div>
+        <div class="empty-title">Nenhum respondente encontrado</div>
+        <div>Configure a URL do Google Sheets na aba Configuração ou aguarde novas respostas.</div>
+      </div>
+    </div>
+
+    <!-- ░ DASHBOARD ░ -->
+    <div id="tab-dashboard" class="tab-panel">
+      <div class="page-header">
+        <div><div class="page-title">Dashboard</div><div class="page-sub">Visão consolidada dos perfis da turma</div></div>
+        <select class="filter-sel" id="dash-turma" onchange="renderDashboard()"><option value="">Todas as turmas</option></select>
+      </div>
+      <div class="stats-row" id="dash-stats"></div>
+      <div class="charts-grid" id="dash-charts"></div>
+      <div class="empty-state" id="empty-dash" style="display:none">
+        <div class="empty-icon">📊</div>
+        <div class="empty-title">Sem dados para exibir</div>
+        <div>Configure a planilha e aguarde respondentes.</div>
+      </div>
+    </div>
+
+    <!-- ░ EXPORTAR ░ -->
+    <div id="tab-exportar" class="tab-panel">
+      <div class="page-header">
+        <div><div class="page-title">Exportar Relatórios</div><div class="page-sub">Exporte dados individuais ou em grupo</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
+        <div class="config-block">
+          <div class="config-block-title">📄 Relatório Individual</div>
+          <p style="font-size:13px;color:var(--mid);margin-bottom:14px;line-height:1.6">Gera o relatório completo em PDF de um respondente específico. Selecione o respondente na tabela e clique em "Ver perfil".</p>
+          <button class="btn btn-outline" onclick="showTab('respondentes')">Ir para Respondentes →</button>
+        </div>
+
+        <div class="config-block">
+          <div class="config-block-title">📦 CSV — Todos os Dados</div>
+          <p style="font-size:13px;color:var(--mid);margin-bottom:14px;line-height:1.6">Exporta todos os dados em formato CSV compatível com Excel. Ideal para análise em lote ou cruzamento com outros sistemas.</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-gold" onclick="exportAllCSV()">⬇ Exportar Tudo</button>
+            <button class="btn btn-outline" onclick="exportFilteredCSV()">⬇ Exportar Filtrado</button>
+          </div>
+        </div>
+
+        <div class="config-block">
+          <div class="config-block-title">📊 Relatório de Turma</div>
+          <p style="font-size:13px;color:var(--mid);margin-bottom:14px;line-height:1.6">Gera um relatório HTML com o mapa de perfis de uma turma completa — ideal para devolutiva coletiva.</p>
+          <div style="margin-bottom:10px">
+            <select class="filter-sel" id="export-turma" style="width:100%"><option value="">Selecione a turma</option></select>
+          </div>
+          <button class="btn btn-gold" onclick="exportGroupReport()">📊 Gerar Relatório de Turma</button>
+        </div>
+
+        <div class="config-block">
+          <div class="config-block-title">🎯 Selecionados</div>
+          <p style="font-size:13px;color:var(--mid);margin-bottom:14px;line-height:1.6">Exporta apenas os respondentes marcados na tabela de respondentes.</p>
+          <button class="btn btn-outline" onclick="exportSelected()">⬇ Exportar Selecionados</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ░ TURMAS ░ -->
+    <div id="tab-turmas" class="tab-panel">
+      <div class="page-header">
+        <div><div class="page-title">Gerenciar Turmas</div><div class="page-sub">Insira, altere ou remova turmas disponíveis no assessment</div></div>
+      </div>
+
+      <div class="config-block">
+        <div class="config-block-title">Turmas Cadastradas</div>
+        <div class="turma-list" id="turma-list"></div>
+        <div class="add-turma-row">
+          <input type="text" id="new-turma" placeholder="Nome da nova turma (ex: Impact Leader · Turma 2025/3)" maxlength="80">
+          <button class="btn btn-gold" onclick="addTurma()">+ Adicionar</button>
+        </div>
+      </div>
+
+      <div class="config-block">
+        <div class="config-block-title">⚠️ Restaurar Padrão</div>
+        <p style="font-size:13px;color:var(--mid);margin-bottom:14px;line-height:1.6">Restaura a lista de turmas para os valores padrão do sistema. Esta ação não pode ser desfeita.</p>
+        <button class="btn btn-danger" onclick="resetTurmas()">Restaurar Padrão</button>
+      </div>
+    </div>
+
+    <!-- ░ CONFIGURAÇÃO ░ -->
+    <div id="tab-config" class="tab-panel">
+      <div class="page-header">
+        <div><div class="page-title">Configuração</div><div class="page-sub">Integração com Google Sheets e Apps Script</div></div>
+      </div>
+
+      <div class="config-block">
+        <div class="config-block-title">🔗 Google Sheets — Fonte de Dados</div>
+        <div class="config-row">
+          <div class="config-label">URL de Exportação CSV</div>
+          <input class="config-input" id="cfg-csv-url" placeholder="https://docs.google.com/spreadsheets/d/SEU_ID/export?format=csv&gid=0">
+          <div class="config-hint">Planilha deve estar pública (somente leitura). ID atual: <strong>1C8kfRIjc3caRCfCkIgFToudZJD6Ch_-_36JBW9Mr7ho</strong></div>
+        </div>
+        <div class="config-row">
+          <div class="config-label">URL do Apps Script (Web App)</div>
+          <input class="config-input" id="cfg-script-url" placeholder="https://script.google.com/macros/s/XXXX/exec">
+          <div class="config-hint">Gerada ao implantar o Apps Script como Web App com acesso público.</div>
+        </div>
+        <button class="btn btn-gold" onclick="saveConfig()" style="margin-top:6px">💾 Salvar Configuração</button>
+        <button class="btn btn-outline" onclick="testConnection()" style="margin-left:8px">🔌 Testar Conexão</button>
+        <div id="conn-status" style="margin-top:12px;font-size:13px;display:none"></div>
+      </div>
+
+      <div class="config-block">
+        <div class="config-block-title">🔐 Acesso Admin</div>
+        <div class="config-row">
+          <div class="config-label">Senha de Acesso ao Painel</div>
+          <input class="config-input" id="cfg-password" type="password" placeholder="Defina uma senha para proteger este painel">
+          <div class="config-hint">Armazenada localmente neste navegador. Para uso multi-dispositivo, configure via variável no código.</div>
+        </div>
+        <button class="btn btn-gold" onclick="savePassword()">💾 Salvar Senha</button>
+      </div>
+
+      <div class="config-block">
+        <div class="config-block-title">📋 Guia Rápido Apps Script</div>
+        <div style="font-size:13px;color:var(--mid);line-height:1.8">
+          <strong style="color:var(--parch)">1.</strong> Abra a planilha → Extensões → Apps Script<br>
+          <strong style="color:var(--parch)">2.</strong> Cole o conteúdo do arquivo <code style="background:rgba(255,255,255,.07);padding:2px 6px;border-radius:4px">APPS_SCRIPT.gs</code><br>
+          <strong style="color:var(--parch)">3.</strong> Execute <code style="background:rgba(255,255,255,.07);padding:2px 6px;border-radius:4px">configurarCabecalhos()</code> uma vez<br>
+          <strong style="color:var(--parch)">4.</strong> Implantar → Nova implantação → Aplicativo da Web → Qualquer pessoa<br>
+          <strong style="color:var(--parch)">5.</strong> Cole a URL gerada no campo acima e no arquivo <code style="background:rgba(255,255,255,.07);padding:2px 6px;border-radius:4px">index.html</code><br>
+          <strong style="color:var(--parch)">6.</strong> Torne a planilha pública (somente leitura) e cole a URL de exportação CSV acima
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL PERFIL -->
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="m-name">—</div>
+        <div class="modal-sub" id="m-meta">—</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-outline btn-sm" onclick="printModal()" id="m-print-btn">🖨️ Imprimir</button>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- EDIT TURMA MODAL -->
+<div class="modal-overlay" id="edit-turma-modal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <div class="modal-title">Editar Turma</div>
+      <button class="modal-close" onclick="closeEditTurma()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input class="config-input" id="edit-turma-input" placeholder="Nome da turma" style="width:100%;margin-bottom:14px">
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-gold" onclick="saveEditTurma()">💾 Salvar</button>
+        <button class="btn btn-outline" onclick="closeEditTurma()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════
+// CONFIG & STORAGE
+// ════════════════════════════════════════════════════
+const SHEET_ID = '1C8kfRIjc3caRCfCkIgFToudZJD6Ch_-_36JBW9Mr7ho';
+const DEFAULT_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
+const DEFAULT_TURMAS = ['Impact Leader · Turma 2025/1','Impact Leader · Turma 2025/2','Formação de Líderes · 2025','Programa Executivo · 2025'];
+
+function getCfg(k,def=''){try{return localStorage.getItem('il_admin_'+k)||def}catch(e){return def}}
+function setCfg(k,v){try{localStorage.setItem('il_admin_'+k,v)}catch(e){}}
+function getTurmas(){try{const t=JSON.parse(localStorage.getItem('il_turmas'));return Array.isArray(t)&&t.length?t:DEFAULT_TURMAS}catch(e){return DEFAULT_TURMAS}}
+function setTurmas(arr){try{localStorage.setItem('il_turmas',JSON.stringify(arr))}catch(e){}}
+
+let allData=[];
+let filteredData=[];
+let selectedIds=new Set();
+let editTurmaIdx=-1;
+
+// ════════════════════════════════════════════════════
+// NAV
+// ════════════════════════════════════════════════════
+function showTab(id){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+  const panel=document.getElementById('tab-'+id);
+  if(panel)panel.classList.add('active');
+  const navItem=document.querySelector(`.nav-item[data-tab="${id}"]`);
+  if(navItem)navItem.classList.add('active');
+  if(id==='dashboard')renderDashboard();
+  if(id==='turmas')renderTurmaList();
+  if(id==='config')loadConfig();
+  if(id==='exportar')populateExportTurmas();
+}
+
+// ════════════════════════════════════════════════════
+// DATA LOADING
+// ════════════════════════════════════════════════════
+const DISC_NAMES={D:'Dominante',I:'Influente',S:'Estável',C:'Conformidade'};
+const DISC_COLORS={D:'var(--flame)',I:'#F0C030',S:'var(--sky)',C:'var(--mist)'};
+const ELEM_COLORS={FOGO:'var(--flame)',AR:'var(--mist)',TERRA:'var(--moss)','ÁGUA':'var(--sky)'};
+
+async function loadData(){
+  const url = getCfg('csv_url', DEFAULT_CSV);
+  const emptyEl = document.getElementById('empty-resp');
+
+  // If still using the default unconfigured URL, load demo data
+  if(url === DEFAULT_CSV && !getCfg('csv_url','')){
+    loadDemoData();
+    return;
+  }
+
+  try{
+    const res=await fetch(url+'&t='+Date.now());
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const csv=await res.text();
+    const parsed=parseCSV(csv);
+    if(parsed.length===0){
+      // Sheet is accessible but empty or has no valid rows
+      allData=[];filteredData=[];
+      renderTable();renderDashboard();
+      toast('Planilha acessada, mas sem respondentes ainda.','info');
+      return;
+    }
+    allData=parsed;
+    filteredData=[...allData];
+    populateFilters();
+    renderTable();
+    renderDashboard();
+    toast(`✅ ${allData.length} respondente(s) carregado(s)`,'success');
+  }catch(e){
+    // Show helpful message — don't leave blank screen
+    if(emptyEl){
+      emptyEl.style.display='block';
+      emptyEl.innerHTML=`<div class="empty-icon">⚙️</div>
+        <div class="empty-title">Planilha não configurada</div>
+        <div style="font-size:13px;line-height:1.7;max-width:480px;margin:0 auto">
+          Configure a URL do Google Sheets na aba <strong>Configuração</strong>.<br>
+          A planilha deve estar compartilhada como pública (somente leitura).<br><br>
+          <button class="btn btn-gold btn-sm" onclick="showTab('config')">⚙️ Ir para Configuração</button>
+          &nbsp;
+          <button class="btn btn-outline btn-sm" onclick="loadDemoData()">👁 Ver com dados de exemplo</button>
+        </div>`;
+    }
+    toast('Planilha não encontrada. Configure na aba Configuração.','warn');
+  }
+}
+
+function loadDemoData(){
+  // Demo data so the admin panel works visually before Sheets is configured
+  allData=[
+    {_id:0,timestamp:'2025-05-01T09:00:00Z',nome:'Maria Silva',turma:'Impact Leader · Turma 2025/1',fase:'Pré-Treinamento',disc_primario:'D',disc_secundario:'I',disc_D:'18',disc_I:'12',disc_S:'6',disc_C:'4',elem_primario:'FOGO',ennea_tipo:'8',ennea_nome:'O Desafiador',arquetipos:'Herói',kolb_estilo:'Convergente',need_1a:'Significância',need_2a:'Crescimento',need_certeza:'3.0',need_variedade:'4.0',need_significancia:'4.8',need_conexao:'3.2',need_crescimento:'4.5',need_contribuicao:'3.8',holland_codigo:'EDS',holland_R:'5',holland_I:'4',holland_A:'3',holland_S:'6',holland_E:'9',holland_C:'7'},
+    {_id:1,timestamp:'2025-05-01T09:30:00Z',nome:'João Santos',turma:'Impact Leader · Turma 2025/1',fase:'Pré-Treinamento',disc_primario:'I',disc_secundario:'S',disc_D:'8',disc_I:'20',disc_S:'14',disc_C:'5',elem_primario:'AR',ennea_tipo:'7',ennea_nome:'O Entusiasta',arquetipos:'Mago',kolb_estilo:'Divergente',need_1a:'Conexão',need_2a:'Variedade',need_certeza:'2.5',need_variedade:'4.5',need_significancia:'3.8',need_conexao:'4.7',need_crescimento:'4.0',need_contribuicao:'3.5',holland_codigo:'ASI',holland_R:'3',holland_I:'7',holland_A:'9',holland_S:'8',holland_E:'6',holland_C:'2'},
+    {_id:2,timestamp:'2025-05-01T10:00:00Z',nome:'Ana Oliveira',turma:'Impact Leader · Turma 2025/1',fase:'Pré-Treinamento',disc_primario:'C',disc_secundario:'S',disc_D:'5',disc_I:'8',disc_S:'14',disc_C:'19',elem_primario:'TERRA',ennea_tipo:'1',ennea_nome:'O Perfeccionista',arquetipos:'Sábio',kolb_estilo:'Assimilador',need_1a:'Certeza',need_2a:'Crescimento',need_certeza:'4.8',need_variedade:'2.0',need_significancia:'3.5',need_conexao:'3.0',need_crescimento:'4.2',need_contribuicao:'4.0',holland_codigo:'CIS',holland_R:'4',holland_I:'7',holland_A:'3',holland_S:'6',holland_E:'5',holland_C:'9'},
+    {_id:3,timestamp:'2025-05-01T10:30:00Z',nome:'Carlos Mendes',turma:'Impact Leader · Turma 2025/2',fase:'Pré-Treinamento',disc_primario:'S',disc_secundario:'I',disc_D:'6',disc_I:'15',disc_S:'18',disc_C:'8',elem_primario:'ÁGUA',ennea_tipo:'2',ennea_nome:'O Ajudador',arquetipos:'Cuidador',kolb_estilo:'Acomodador',need_1a:'Conexão',need_2a:'Contribuição',need_certeza:'3.2',need_variedade:'3.0',need_significancia:'2.8',need_conexao:'4.9',need_crescimento:'3.5',need_contribuicao:'4.6',holland_codigo:'SCA',holland_R:'3',holland_I:'5',holland_A:'6',holland_S:'9',holland_E:'4',holland_C:'7'},
+    {_id:4,timestamp:'2025-05-02T09:00:00Z',nome:'Fernanda Lima',turma:'Impact Leader · Turma 2025/2',fase:'Durante o Treinamento',disc_primario:'D',disc_secundario:'C',disc_D:'22',disc_I:'8',disc_S:'5',disc_C:'16',elem_primario:'FOGO',ennea_tipo:'3',ennea_nome:'O Realizador',arquetipos:'Rei/Rainha',kolb_estilo:'Convergente',need_1a:'Significância',need_2a:'Certeza',need_certeza:'4.2',need_variedade:'3.0',need_significancia:'4.9',need_conexao:'2.8',need_crescimento:'4.0',need_contribuicao:'3.2',holland_codigo:'ECI',holland_R:'6',holland_I:'7',holland_A:'4',holland_S:'5',holland_E:'9',holland_C:'8'},
+  ];
+  filteredData=[...allData];
+  populateFilters();
+  renderTable();
+  renderDashboard();
+  const emptyEl=document.getElementById('empty-resp');
+  if(emptyEl)emptyEl.style.display='none';
+  toast('👁 Exibindo dados de exemplo — configure a planilha para dados reais','info');
+}
+
+function parseCSV(csv){
+  const lines=csv.trim().split('\n');
+  if(lines.length<2)return[];
+  const headers=lines[0].split(',').map(h=>h.replace(/"/g,'').trim().toLowerCase());
+  return lines.slice(1).map((line,idx)=>{
+    const vals=splitCSV(line);
+    const row={_id:idx};
+    headers.forEach((h,i)=>{row[h]=(vals[i]||'').replace(/"/g,'').trim()});
+    return row;
+  }).filter(r=>r.nome||r.name);
+}
+
+function splitCSV(line){
+  const r=[];let cur='';let q=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(c==='"'){q=!q}else if(c===','&&!q){r.push(cur);cur=''}else cur+=c;
+  }
+  r.push(cur);return r;
+}
+
+// ════════════════════════════════════════════════════
+// FILTERS & TABLE
+// ════════════════════════════════════════════════════
+function populateFilters(){
+  const turmas=[...new Set(allData.map(r=>r.turma).filter(Boolean))];
+  ['f-turma','dash-turma'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    const cur=el.value;
+    el.innerHTML='<option value="">Todas as turmas</option>'+turmas.map(t=>`<option${t===cur?' selected':''}>${t}</option>`).join('');
+  });
+}
+
+function filterTable(){
+  const s=document.getElementById('search').value.toLowerCase();
+  const t=document.getElementById('f-turma').value;
+  const f=document.getElementById('f-fase').value;
+  const d=document.getElementById('f-disc').value;
+  filteredData=allData.filter(r=>{
+    const name=(r.nome||r.name||'').toLowerCase();
+    const discName=DISC_NAMES[r.disc_primario]||r.disc_primario||'';
+    if(s&&!name.includes(s))return false;
+    if(t&&r.turma!==t)return false;
+    if(f&&!(r.fase||'').includes(f.split(' ')[0]))return false;
+    if(d&&discName!==d)return false;
+    return true;
+  });
+  renderTable();
+  updateSelCount();
+}
+
+function renderTable(){
+  const tbody=document.getElementById('table-body');
+  const empty=document.getElementById('empty-resp');
+  if(!filteredData.length){tbody.innerHTML='';empty.style.display='block';return}
+  empty.style.display='none';
+
+  tbody.innerHTML=filteredData.map((r,i)=>{
+    const discC=DISC_COLORS[r.disc_primario]||'var(--gold)';
+    const discN=DISC_NAMES[r.disc_primario]||r.disc_primario||'—';
+    const elemC=ELEM_COLORS[r.elem_primario]||'var(--gold)';
+    const dt=r.timestamp?new Date(r.timestamp).toLocaleDateString('pt-BR'):'—';
+    const sel=selectedIds.has(r._id);
+    return `<tr>
+      <td class="check-col"><input type="checkbox" class="row-check" ${sel?'checked':''} onchange="toggleRow(${r._id},this)"></td>
+      <td style="color:var(--mid);font-family:'JetBrains Mono',monospace">${i+1}</td>
+      <td class="td-name">${r.nome||r.name||'—'}</td>
+      <td style="color:var(--mid);max-width:160px;overflow:hidden;text-overflow:ellipsis" title="${r.turma||''}">${r.turma||'—'}</td>
+      <td><span style="font-size:10px;color:var(--mid)">${r.fase||'—'}</span></td>
+      <td><span class="badge" style="color:${discC};background:rgba(255,255,255,.04)">${discN}</span></td>
+      <td style="color:${elemC}">${r.elem_primario||'—'}</td>
+      <td style="color:var(--mist)">T${r.ennea_tipo||'—'}</td>
+      <td style="color:var(--gold)">${(r.arquetipos||'—').slice(0,12)}</td>
+      <td style="color:var(--sky)">${r.kolb_estilo||'—'}</td>
+      <td style="color:#F0A050">${r.need_1a||'—'}</td>
+      <td style="color:#E8A840;font-weight:700">${r.holland_codigo||'—'}</td>
+      <td class="td-date">${dt}</td>
+      <td><button class="btn btn-outline btn-sm" onclick="openProfile(${r._id})">👁 Ver</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function toggleRow(id,cb){
+  if(cb.checked)selectedIds.add(id);else selectedIds.delete(id);
+  updateSelCount();
+}
+
+function toggleAll(cb){
+  if(cb.checked)filteredData.forEach(r=>selectedIds.add(r._id));
+  else filteredData.forEach(r=>selectedIds.delete(r._id));
+  renderTable();updateSelCount();
+}
+
+function selectAll(){filteredData.forEach(r=>selectedIds.add(r._id));renderTable();updateSelCount()}
+function clearSelection(){selectedIds.clear();renderTable();updateSelCount()}
+function updateSelCount(){const el=document.getElementById('sel-count');if(el)el.textContent=selectedIds.size>0?`${selectedIds.size} selecionado(s)`:''}
+
+// ════════════════════════════════════════════════════
+// PROFILE MODAL
+// ════════════════════════════════════════════════════
+const DISC_PROFILE={
+  D:{fortes:'Resultados, assertividade, autonomia, decisão rápida, coragem, iniciativa',atencao:'Pode ser impaciente, autoritário. Dificuldade em ouvir e delegar',delegacao:'Dê a meta, liberdade de método e prazo curto. Cobre entregas, não processos',comunicacao:'Direto, objetivo, foque em resultados. Reuniões curtas',motivacao:'Desafios, autonomia, reconhecimento por conquistas, competição',desmotivacao:'Microgestão, burocracia, ambientes lentos, decisões em comitê sem prazo',gestao:'Metas desafiadoras com liberdade. Feedback direto e sem rodeios'},
+  I:{fortes:'Carisma, comunicação, engajamento, otimismo, criação de conexões',atencao:'Pode ser disperso, superficial. Dificuldade em manter foco e cumprir prazos',delegacao:'Apresente a visão, mostre o reconhecimento. Check-ins frequentes',comunicacao:'Entusiasmo, histórias, exemplos. Prefere conversas dinâmicas',motivacao:'Reconhecimento público, visibilidade, projetos novos, feedback positivo',desmotivacao:'Trabalho solitário, rotina, falta de reconhecimento, excesso de burocracia',gestao:'Rituais de reconhecimento. Varie as atividades. Ajude a priorizar e concluir'},
+  S:{fortes:'Lealdade, paciência, empatia, consistência, segurança psicológica',atencao:'Pode evitar conflitos necessários, resistir a mudanças bruscas',delegacao:'Explique o contexto, dê tempo para perguntas. Responsabilidades claras',comunicacao:'Gentil, paciente, contextual. Prefere conversas individuais',motivacao:'Ambientes harmoniosos, relacionamentos, consistência, reconhecimento pela lealdade',desmotivacao:'Conflitos frequentes, mudanças bruscas sem explicação, pressão excessiva',gestao:'Estabilidade e previsibilidade. Inclua nas decisões antes de implementar mudanças'},
+  C:{fortes:'Análise crítica, precisão, planejamento, rigor técnico, garantia de qualidade',atencao:'Pode entrar em paralisia analítica, ser excessivamente crítico',delegacao:'Forneça critérios claros, dados suficientes e prazos bem definidos',comunicacao:'Preciso, fundamentado, lógico. Prefere comunicação escrita e estruturada',motivacao:'Precisão, reconhecimento pela competência técnica, clareza de expectativas',desmotivacao:'Improvisação, falta de dados, padrões baixos, pressão para decidir sem informação',gestao:'Defina expectativas com clareza. Dados e ferramentas adequadas. Reconheça pela qualidade'}
+};
+
+function openProfile(id){
+  const r=allData.find(x=>x._id===id);
+  if(!r)return;
+  const discC=DISC_COLORS[r.disc_primario]||'var(--gold)';
+  const discN=DISC_NAMES[r.disc_primario]||r.disc_primario||'—';
+  const dp=DISC_PROFILE[r.disc_primario]||{};
+  const dt=r.timestamp?new Date(r.timestamp).toLocaleString('pt-BR'):'—';
+
+  document.getElementById('m-name').textContent=r.nome||r.name||'—';
+  document.getElementById('m-meta').textContent=`${r.turma||'—'} · ${r.fase||'—'} · ${dt}`;
+
+  const needRows=['certeza','variedade','significancia','conexao','crescimento','contribuicao'].map(k=>{
+    const v=parseFloat(r['need_'+k]||0);
+    return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <span style="font-size:12px;width:100px;flex-shrink:0;color:var(--mid)">${k.charAt(0).toUpperCase()+k.slice(1)}</span>
+      <div style="flex:1;height:6px;background:rgba(255,255,255,.08);border-radius:3px"><div style="height:100%;border-radius:3px;background:#F0A050;width:${v/5*100}%"></div></div>
+      <span style="font-size:11px;color:var(--gold);width:26px;text-align:right">${v.toFixed(1)}</span>
+    </div>`;}).join('');
+
+  const hollandCols=['R','I','A','S','E','C'];
+  const hollandBars=hollandCols.map(k=>{
+    const v=parseInt(r['holland_'+k.toLowerCase()]||r['holland_'+k]||0);
+    const colors={R:'#E8763A',I:'#4A90D4',A:'#A878E0',S:'#48C864',E:'#F0C030',C:'#9AB050'};
+    return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <span style="font-size:12px;width:18px;flex-shrink:0;color:${colors[k]};font-weight:700">${k}</span>
+      <div style="flex:1;height:6px;background:rgba(255,255,255,.08);border-radius:3px"><div style="height:100%;border-radius:3px;background:${colors[k]};width:${v*10}%"></div></div>
+      <span style="font-size:11px;color:var(--gold);width:20px;text-align:right">${v}</span>
+    </div>`;}).join('');
+
+  document.getElementById('modal-body').innerHTML=`
+    <div class="profile-grid">
+      ${[
+        ['DISC',`<span style="color:${discC}">${discN}</span>`],
+        ['Temperamento',r.elem_primario||'—'],
+        ['Eneagrama',`Tipo ${r.ennea_tipo||'—'}`],
+        ['Arquétipo',r.arquetipos||'—'],
+        ['Kolb',r.kolb_estilo||'—'],
+        ['Necessidade 1ª',r.need_1a||'—'],
+        ['Necessidade 2ª',r.need_2a||'—'],
+        ['Holland RIASEC',`<span style="color:#E8A840;font-weight:800;font-size:16px">${r.holland_codigo||'—'}</span>`],
+      ].map(([l,v])=>`<div class="profile-cell"><div class="profile-cell-label">${l}</div><div class="profile-cell-value">${v}</div></div>`).join('')}
+    </div>
+
+    <div class="modal-section-title">Perfil DISC Expandido</div>
+    <div class="modal-disc-grid">
+      ${dp.fortes?`<div class="disc-detail-cell"><div class="disc-detail-cell-label">✅ Pontos Fortes</div><div class="disc-detail-cell-value">${dp.fortes}</div></div>`:''}
+      ${dp.atencao?`<div class="disc-detail-cell"><div class="disc-detail-cell-label">⚠️ Pontos de Atenção</div><div class="disc-detail-cell-value">${dp.atencao}</div></div>`:''}
+      ${dp.delegacao?`<div class="disc-detail-cell"><div class="disc-detail-cell-label">📤 Delegação</div><div class="disc-detail-cell-value">${dp.delegacao}</div></div>`:''}
+      ${dp.comunicacao?`<div class="disc-detail-cell"><div class="disc-detail-cell-label">🗣️ Comunicação</div><div class="disc-detail-cell-value">${dp.comunicacao}</div></div>`:''}
+      ${dp.motivacao?`<div class="disc-detail-cell"><div class="disc-detail-cell-label">⚡ Motivadores</div><div class="disc-detail-cell-value">${dp.motivacao}</div></div>`:''}
+      ${dp.desmotivacao?`<div class="disc-detail-cell"><div class="disc-detail-cell-label">🚫 Desmotivadores</div><div class="disc-detail-cell-value">${dp.desmotivacao}</div></div>`:''}
+    </div>
+    ${dp.gestao?`<div class="insight-box" style="margin-top:12px"><strong>Gestão de pessoas:</strong> ${dp.gestao}</div>`:''}
+
+    <div class="modal-section-title">6 Necessidades</div>
+    ${needRows}
+
+    <div class="modal-section-title">Holland RIASEC — ${r.holland_codigo||'—'}</div>
+    ${hollandBars}
+
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-gold" onclick="generate360Report(${id})">📋 Relatório 360º</button>
+      <button class="btn btn-outline" onclick="printModal()">🖨️ Imprimir</button>
+      <button class="btn btn-outline" onclick="exportOneCSV(${id})">⬇ CSV</button>
+      <button class="btn btn-outline" onclick="closeModal()">Fechar</button>
+    </div>`;
+
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal(){document.getElementById('modal').classList.remove('open')}
+
+// ════════════════════════════════════════════════════
+// RELATÓRIO 360º — Liderança Ativacional
+// ════════════════════════════════════════════════════
+function generate360Report(id){
+  const r=allData.find(x=>x._id===id);
+  if(!r)return;
+
+  const discN={D:'Dominante',I:'Influente',S:'Estável',C:'Conformidade'};
+  const discPct={D:parseInt(r.disc_D||0),I:parseInt(r.disc_I||0),S:parseInt(r.disc_S||0),C:parseInt(r.disc_C||0)};
+  const total=Math.max(Object.values(discPct).reduce((a,b)=>a+b,0),1);
+  const discPctStr=Object.entries(discPct).map(([k,v])=>`${discN[k]}: ${Math.round(v/total*100)}%`).join(' | ');
+
+  const elemNames={FOGO:'Fogo 🔥',TERRA:'Terra 🌿','ÁGUA':'Água 💧',AR:'Ar 💨'};
+  const elemDesc={
+    FOGO:'Energia assertiva, ritmo intenso e orientação ao comando. Alta presença de liderança e tomada de decisão rápida.',
+    TERRA:'Energia analítica, ritmo metódico e orientação à precisão. Rigor técnico e comprometimento com a qualidade.',
+    'ÁGUA':'Energia diplomática, ritmo compassivo e orientação ao pertencimento. Habilidade natural para criar coesão e harmonia.',
+    AR:'Energia visionária, ritmo criativo e orientação à inovação. Capacidade de ver além e inspirar com ideias disruptivas.'
+  };
+  const kolbDesc={
+    Convergente:'Aprende resolvendo problemas práticos. Prefere experimentação ativa e aplicação técnica. Decisões lógicas e baseadas em resultados.',
+    Divergente:'Aprende pela experiência e reflexão coletiva. Forte em empatia e geração de ideias. Decisões influenciadas pela perspectiva humana.',
+    Assimilador:'Aprende por modelos teóricos e observação. Forte em raciocínio lógico e planejamento. Decisões embasadas em frameworks e dados.',
+    Acomodador:'Aprende na ação e adaptação. Forte em execução e intuição. Decisões rápidas ajustadas no caminho.'
+  };
+  const enneaVicio={1:'Raiva/Resentimento',2:'Orgulho/Necessidade de ser necessário',3:'Vaidade/Identificação com o sucesso',4:'Inveja/Melancolia',5:'Avareza/Retração',6:'Ansiedade/Covardia',7:'Gula/Fuga da dor',8:'Luxúria/Excesso de força',9:'Preguiça/Adormecimento'};
+  const enneaVirtude={1:'Serenidade',2:'Humildade',3:'Autenticidade',4:'Equanimidade',5:'Desapego',6:'Coragem',7:'Sobriedade',8:'Inocência',9:'Ação'};
+  const enneaImpact={1:'Cria culturas de alta exigência e qualidade. Risco de perfeccionismo que paralisa e crítica que desengaja.',2:'Cria culturas de cuidado e suporte. Risco de dependência emocional e dificuldade em colocar limites.',3:'Cria culturas de alta performance e resultados. Risco de superficialidade e priorização de imagem sobre substância.',4:'Cria culturas de autenticidade e profundidade. Risco de instabilidade emocional e isolamento.',5:'Cria culturas de conhecimento e rigor. Risco de distância emocional e acúmulo sem compartilhamento.',6:'Cria culturas de lealdade e segurança. Risco de ansiedade coletiva e excesso de análise antes de agir.',7:'Cria culturas de entusiasmo e inovação. Risco de dispersão e abandono de projetos antes do fim.',8:'Cria culturas de poder e proteção. Risco de intimidação e dificuldade em aceitar vulnerabilidade.',9:'Cria culturas de harmonia e inclusão. Risco de passividade e evitação de conflitos necessários.'};
+
+  const disc=r.disc_primario||'D';
+  const elem=r.elem_primario||'FOGO';
+  const ennea=parseInt(r.ennea_tipo||'1');
+  const arch=r.arquetipos||'Herói';
+  const kolb=r.kolb_estilo||'Convergente';
+  const need1=r.need_1a||'Significância';
+  const need2=r.need_2a||'Crescimento';
+  const holland=r.holland_codigo||'ESC';
+  const nome=r.nome||r.name||'Líder';
+  const turma=r.turma||'—';
+  const data=r.timestamp?new Date(r.timestamp).toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'}):new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+
+  // PDI dinâmico baseado nos perfis
+  const pdiComecar=[];const pdiParar=[];const pdiContinuar=[];
+
+  if(disc==='D'){pdiComecar.push('Praticar escuta ativa antes de responder — reserve 2 min de silêncio antes de qualquer decisão importante');pdiParar.push('Interromper reuniões e conversas antes que os outros terminem de falar');}
+  if(disc==='I'){pdiComecar.push('Criar um sistema de acompanhamento semanal para garantir que projetos iniciados sejam concluídos');pdiParar.push('Prometer prazos e entregas sem verificar capacidade real de execução');}
+  if(disc==='S'){pdiComecar.push('Praticar a verbalização da própria opinião, mesmo quando ela contraria o grupo');pdiParar.push('Evitar conflitos que são necessários para o crescimento da equipe');}
+  if(disc==='C'){pdiComecar.push('Estabelecer um prazo fixo para tomada de decisão — no máximo 48h após ter 80% das informações necessárias');pdiParar.push('Buscar informação adicional quando já há dados suficientes para decidir');}
+
+  if(ennea<=3)pdiComecar.push('Iniciar uma prática de reflexão diária (10 min) para separar quem você é de como você performa');
+  if(ennea>=7)pdiComecar.push('Escolher um projeto de longo prazo e comprometer-se publicamente com sua conclusão');
+  if(need1==='Significância')pdiParar.push('Medir seu valor pessoal exclusivamente pelo reconhecimento externo e pelos resultados obtidos');
+  if(need1==='Certeza')pdiParar.push('Aguardar condições ideais antes de agir — a ação imperfeita gera mais aprendizado que o planejamento perfeito');
+
+  pdiContinuar.push(`Cultivar seu talento natural em ${discN[disc]||disc} — é sua principal alavanca de liderança`);
+  pdiContinuar.push(`Desenvolver equipes com perfis complementares ao seu — especialmente ${disc==='D'?'S e C':disc==='I'?'C e S':disc==='S'?'D e I':'D e I'}`);
+  pdiContinuar.push('Investir em seu desenvolvimento contínuo como líder — autoconhecimento é vantagem competitiva duradoura');
+
+  // Talentos e pontos cegos
+  const talentos=[];const pontosCegos=[];
+  talentos.push(`**${discN[disc]}** (DISC) + **${elemNames[elem]||elem}** (Temperamento) → ${disc==='D'?'Liderança de alta performance com capacidade de mobilizar e entregar resultados em tempo recorde':disc==='I'?'Influência natural e capacidade de criar engajamento genuíno em qualquer ambiente':disc==='S'?'Construção de times coesos com alta retenção e clima organizacional positivo':'Excelência técnica e garantia de qualidade que gera confiança e credibilidade'}`);
+  talentos.push(`**Eneagrama Tipo ${ennea}** + **Necessidade de ${need1}** → Motor motivacional de alta intensidade que impulsiona consistência e ambição`);
+  talentos.push(`**Holland ${holland}** + **Kolb ${kolb}** → Alinhamento entre vocação e estilo de processamento que acelera aprendizado e inovação`);
+
+  pontosCegos.push(`**${discN[disc]} em excesso** → ${discPctStr}. Quando sobre pressão: ${disc==='D'?'tendência ao autoritarismo e impaciência':disc==='I'?'tendência à superficialidade e promessas não cumpridas':disc==='S'?'tendência à passividade e evitação de conflitos':'tendência à paralisia analítica e hipercriticidade'}`);
+  pontosCegos.push(`**Eneagrama ${ennea} — Vício emocional:** ${enneaVicio[ennea]||'—'}. Sob estresse, este padrão amplifica os comportamentos reativos e reduz o acesso às forças naturais`);
+  pontosCegos.push(`**Necessidade de ${need1}** não atendida → Pode gerar ${need1==='Significância'?'competitividade disfuncional e dificuldade em celebrar o sucesso coletivo':need1==='Certeza'?'rigidez e resistência a mudanças necessárias':need1==='Variedade'?'dispersão e dificuldade em sustentar prioridades':'impacto negativo no desempenho e na qualidade das decisões'}`);
+
+  const html=`<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Relatório 360º — ${nome}</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Syne:wght@400;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Syne',sans-serif;background:#FAF6EE;color:#1A1612;line-height:1.6;font-size:14px}
+.page{max-width:840px;margin:0 auto;padding:48px 40px}
+/* CAPA */
+.cover{background:linear-gradient(135deg,#0A0806 0%,#1A1612 100%);color:#FAF6EE;padding:56px 48px;border-radius:16px;margin-bottom:40px;position:relative;overflow:hidden}
+.cover::after{content:'';position:absolute;top:-40px;right:-40px;width:240px;height:240px;border-radius:50%;background:rgba(201,168,76,.08)}
+.cover-badge{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;color:#C9A84C;text-transform:uppercase;margin-bottom:20px;display:inline-block;border:1px solid rgba(201,168,76,.3);padding:5px 14px;border-radius:100px}
+.cover-title{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:700;line-height:1.15;margin-bottom:8px}
+.cover-subtitle{font-size:14px;color:#C4B898;margin-bottom:32px;line-height:1.7}
+.cover-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:32px;padding-top:28px;border-top:1px solid rgba(201,168,76,.2)}
+.cover-meta-item .label{font-family:'JetBrains Mono',monospace;font-size:9px;color:#8A7A5A;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px}
+.cover-meta-item .value{font-size:15px;font-weight:700;color:#FAF6EE}
+.cover-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+.cover-pill{font-family:'JetBrains Mono',monospace;font-size:10px;padding:4px 12px;border-radius:100px;border:1px solid rgba(201,168,76,.25);color:#C9A84C;letter-spacing:.08em}
+/* SECTIONS */
+.section{margin-bottom:36px;background:#fff;border:1px solid #E8E0D0;border-radius:12px;overflow:hidden}
+.section-header{display:flex;align-items:center;gap:14px;padding:18px 24px;border-bottom:1px solid #F0E8D8;background:linear-gradient(90deg,#FAF6EE,#F5F0E8)}
+.section-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:#C9A84C;letter-spacing:.1em;background:rgba(201,168,76,.12);padding:4px 10px;border-radius:100px}
+.section-icon{font-size:20px}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:#0A0806}
+.section-badge{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;padding:5px 14px;border-radius:100px}
+.section-body{padding:22px 24px}
+/* TEXT */
+h3{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700;color:#0A0806;margin:16px 0 8px}
+h3:first-child{margin-top:0}
+p{font-size:13px;color:#4A4038;line-height:1.75;margin-bottom:10px}
+strong{color:#0A0806;font-weight:700}
+em{font-style:italic;color:#7A6E5A}
+/* BARS */
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.bar-name{font-size:12px;font-weight:700;width:100px;flex-shrink:0}
+.bar-track{flex:1;height:10px;background:#F0E8D8;border-radius:5px;overflow:hidden}
+.bar-fill{height:100%;border-radius:5px}
+.bar-pct{font-family:'JetBrains Mono',monospace;font-size:12px;width:38px;text-align:right;color:#7A6E5A}
+/* GRID */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:14px 0}
+.card{background:#FAF6EE;border:1px solid #E8E0D0;border-radius:10px;padding:16px}
+.card-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
+.card-value{font-size:14px;font-weight:700;color:#0A0806;margin-bottom:4px}
+.card-sub{font-size:12px;color:#7A6E5A;line-height:1.5}
+/* INSIGHT */
+.insight{background:linear-gradient(90deg,rgba(201,168,76,.07),rgba(201,168,76,.02));border-left:3px solid #C9A84C;border-radius:0 8px 8px 0;padding:12px 16px;margin:12px 0;font-size:13px;line-height:1.7;color:#2A2018}
+.insight strong{color:#8A6520}
+/* ALERT */
+.alert{background:rgba(239,68,68,.05);border-left:3px solid #EF4444;border-radius:0 8px 8px 0;padding:12px 16px;margin:10px 0;font-size:13px;color:#7A0A0A;line-height:1.7}
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:12px;margin:12px 0}
+th{background:#0A0806;color:#C9A84C;padding:10px 12px;text-align:left;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase}
+td{padding:10px 12px;border-bottom:1px solid #F0E8D8;color:#4A4038;vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:nth-child(even)td{background:#FDFAF5}
+/* PDI */
+.pdi-section{margin:14px 0}
+.pdi-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.pdi-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:8px;margin-bottom:8px;font-size:13px;line-height:1.6}
+.pdi-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+/* MATRIZ */
+.matriz-item{background:#FAF6EE;border:1px solid #E8E0D0;border-radius:10px;padding:16px;margin-bottom:12px}
+.matriz-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
+.matriz-text{font-size:13px;color:#2A2018;line-height:1.7}
+/* FOOTER */
+.footer{text-align:center;padding:32px 0 0;border-top:1px solid #E8E0D0;margin-top:40px;font-family:'JetBrains Mono',monospace;font-size:10px;color:#B0A090;letter-spacing:.08em}
+/* PRINT */
+@media print{
+  body{background:#fff}
+  .cover{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .section{break-inside:avoid}
+  .page{padding:24px 28px}
+  .no-print{display:none}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- TOOLBAR -->
+<div class="no-print" style="position:fixed;top:20px;right:20px;z-index:100;display:flex;gap:8px">
+  <button onclick="window.print()" style="background:#C9A84C;color:#0A0806;border:none;border-radius:8px;padding:10px 18px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;font-size:13px">🖨️ Imprimir / PDF</button>
+  <button onclick="window.close()" style="background:rgba(255,255,255,.9);color:#555;border:1px solid #ddd;border-radius:8px;padding:10px 14px;font-family:'Syne',sans-serif;font-weight:600;cursor:pointer;font-size:13px">✕ Fechar</button>
+</div>
+
+<!-- CAPA -->
+<div class="cover">
+  <div class="cover-badge">Instituto da Liderança · Diagnóstico Integrado</div>
+  <div class="cover-title">Relatório de Liderança<br>Ativacional 360º</div>
+  <div class="cover-subtitle">Um diagnóstico profundo que integra comportamento, motivação, temperamento,<br>vocação e estilo de aprendizagem para revelar o perfil completo de liderança.</div>
+  <div class="cover-pills">
+    <span class="cover-pill">DISC</span>
+    <span class="cover-pill">Temperamento</span>
+    <span class="cover-pill">Eneagrama</span>
+    <span class="cover-pill">Arquétipos</span>
+    <span class="cover-pill">Kolb</span>
+    <span class="cover-pill">6 Necessidades</span>
+    <span class="cover-pill">Holland RIASEC</span>
+  </div>
+  <div class="cover-meta">
+    <div class="cover-meta-item"><div class="label">Líder</div><div class="value">${nome}</div></div>
+    <div class="cover-meta-item"><div class="label">Programa</div><div class="value">${turma}</div></div>
+    <div class="cover-meta-item"><div class="label">Data de Emissão</div><div class="value">${data}</div></div>
+  </div>
+</div>
+
+<!-- I. DISC -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">I</span>
+    <span class="section-icon">🎯</span>
+    <span class="section-title">Perfil Comportamental — DISC</span>
+    <span class="section-badge" style="background:rgba(240,112,48,.12);color:#F07030">${discN[disc]||disc}</span>
+  </div>
+  <div class="section-body">
+    <h3>Distribuição do Perfil</h3>
+    ${Object.entries(discPct).map(([k,v])=>{
+      const colors={D:'#F07030',I:'#F0C030',S:'#4A90D4',C:'#A878E0'};
+      const pct=Math.round(v/total*100);
+      return`<div class="bar-row">
+        <span class="bar-name" style="color:${colors[k]}">${discN[k]}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${colors[k]}"></div></div>
+        <span class="bar-pct">${pct}%</span>
+      </div>`;}).join('')}
+
+    <div class="grid-2" style="margin-top:18px">
+      <div class="card">
+        <div class="card-label">Estilo Natural</div>
+        <div class="card-value">${discN[disc]||disc}</div>
+        <div class="card-sub">Quem você é — seu padrão comportamental mais autêntico, expresso sem pressão externa.</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Estilo Ajustado</div>
+        <div class="card-value">${discN[r.disc_secundario]||'—'} como 2º estilo</div>
+        <div class="card-sub">Como você percebe que deve agir no ambiente atual para ser mais eficaz e aceito.</div>
+      </div>
+    </div>
+
+    <h3>Atributos de Liderança</h3>
+    <p>${disc==='D'?'Líder <strong>Condutora</strong> — move pelo resultado, pela decisão e pela capacidade de enfrentar desafios com determinação. Sua presença é sentida antes de você falar.':disc==='I'?'Líder <strong>Inspiradora</strong> — move pelo entusiasmo, pela visão e pela capacidade de conectar pessoas em torno de uma causa. Sua energia transforma ambientes.':disc==='S'?'Líder <strong>Estabilizadora</strong> — move pela consistência, pelo cuidado e pela capacidade de criar ambientes seguros onde as pessoas prosperam. Sua lealdade é inestimável.':'Líder <strong>Estrategista</strong> — move pela qualidade, pela análise e pela capacidade de garantir que o que é feito é feito da forma certa. Seu rigor é um diferencial raro.'}</p>
+
+    <h3>Pontos de Atenção</h3>
+    <div class="alert">
+      <strong>Comportamentos sob pressão:</strong> ${disc==='D'?'Impulsividade, autoritarismo e dificuldade em ouvir perspectivas alternativas. A velocidade de decisão pode atropelhar pessoas e processos importantes.':disc==='I'?'Dispersão, promessas não cumpridas e fuga de conflitos necessários. O entusiasmo pode sobrepor o planejamento e a execução consistente.':disc==='S'?'Passividade, acúmulo de ressentimentos e evitação de conversas difíceis. A busca por harmonia pode sufocar o crescimento e a inovação.':'Paralisia analítica, hipercriticidade e dificuldade em agir sem informação completa. O perfeccionismo pode travar decisões e desmotivar equipes.'}
+    </div>
+  </div>
+</div>
+
+<!-- II. TEMPERAMENTO -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">II</span>
+    <span class="section-icon">${{FOGO:'🔥',TERRA:'🌿','ÁGUA':'💧',AR:'💨'}[elem]||'🔥'}</span>
+    <span class="section-title">Temperamento — Elementos da Natureza</span>
+    <span class="section-badge" style="background:rgba(240,112,48,.08);color:#7A6E5A">${elemNames[elem]||elem}</span>
+  </div>
+  <div class="section-body">
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-label">Elemento Dominante</div>
+      <div class="card-value" style="font-size:18px">${elemNames[elem]||elem}</div>
+      <div class="card-sub" style="margin-top:8px">${elemDesc[elem]||''}</div>
+    </div>
+    <h3>Dinâmica Energética e Resiliência</h3>
+    <p>${elem==='FOGO'?'Sua energia é <strong>expansiva e propulsiva</strong>. Você naturalmente ocupa o espaço — sua presença energiza e ao mesmo tempo pode sobrecarregar ambientes que precisam de pausa. Sua resiliência é alta em situações de adversidade, mas pode se tornar inflexibilidade em contextos que exigem adaptação gradual.':elem==='TERRA'?'Sua energia é <strong>concentrada e metódica</strong>. Você funciona com mais eficácia quando tem tempo e informação adequados. Sua resiliência está na consistência — você raramente desiste, mas pode tornar-se rígido quando os parâmetros mudam abruptamente.':elem==='ÁGUA'?'Sua energia é <strong>fluida e receptiva</strong>. Você tem capacidade natural de perceber o estado emocional do ambiente e adaptar-se. Sua resiliência está na conexão — você processa melhor os desafios quando tem apoio relacional, mas pode perder-se nas emoções dos outros.':'Sua energia é <strong>expansiva e exploratória</strong>. Você prospera em ambientes que permitem criatividade e movimento. Sua resiliência está na adaptação — você muda de direção com facilidade, mas pode dispersar energia em muitas frentes sem consolidar resultados.'}</p>
+    <div class="insight">
+      <strong>Equilíbrio:</strong> ${elem==='FOGO'?'Incorporar práticas de pausa e escuta ativa complementa a força natural de comando. A liderança de impacto duradouro une velocidade com cuidado.':elem==='TERRA'?'Desenvolver tolerância à ambiguidade e velocidade decisória em contextos de incerteza eleva o impacto da liderança analítica.':elem==='ÁGUA'?'Cultivar assertividade e capacidade de sustentar posições sob pressão transforma a naturalidade diplomática em influência estratégica.':'Criar sistemas de foco e conclusão transforma a energia criativa em resultados concretos e escaláveis.'}
+    </div>
+  </div>
+</div>
+
+<!-- III. ENEAGRAMA -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">III</span>
+    <span class="section-icon">⬡</span>
+    <span class="section-title">Eneagrama — Motivações Inconscientes</span>
+    <span class="section-badge" style="background:rgba(168,120,224,.12);color:#A878E0">Tipo ${ennea}</span>
+  </div>
+  <div class="section-body">
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-label">Eneatipo</div>
+        <div class="card-value">Tipo ${ennea}</div>
+        <div class="card-sub">${r.ennea_nome||'—'}</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Vício Emocional</div>
+        <div class="card-value" style="color:#EF4444;font-size:13px">${enneaVicio[ennea]||'—'}</div>
+        <div class="card-sub">Padrão que emerge sob estresse</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Virtude</div>
+        <div class="card-value" style="color:#22C55E;font-size:13px">${enneaVirtude[ennea]||'—'}</div>
+        <div class="card-sub">Estado em presença plena</div>
+      </div>
+    </div>
+    <h3>Impacto no Clima e na Cultura</h3>
+    <p>${enneaImpact[ennea]||'—'}</p>
+    <div class="insight">
+      <strong>Sinal de Estresse (DISC × Eneagrama):</strong> Quando seu perfil <strong>${discN[disc]}</strong> encontra o padrão reativo do <strong>Tipo ${ennea}</strong>, o comportamento tende a ${disc==='D'&&ennea===8?'intensidade máxima — confronto direto e controle absoluto do ambiente':disc==='I'&&ennea===7?'dispersão acelerada — muitas ideias, pouca execução e fuga dos problemas':disc==='S'&&ennea===9?'invisibilidade — concordância sem ação e acúmulo silencioso de ressentimentos':'amplificar os padrões de saída — a qualidade das decisões diminui e os relacionamentos são impactados primeiro'}. Reconhecer este padrão é o primeiro passo para interrompê-lo.
+    </div>
+  </div>
+</div>
+
+<!-- IV. ARQUÉTIPOS -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">IV</span>
+    <span class="section-icon">⚔️</span>
+    <span class="section-title">Arquétipos — Imagens de Poder</span>
+    <span class="section-badge" style="background:rgba(201,168,76,.12);color:#C9A84C">${arch}</span>
+  </div>
+  <div class="section-body">
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-label">Arquétipo Regente</div>
+      <div class="card-value" style="font-size:18px">${arch}</div>
+    </div>
+    <h3>Simbologia Estratégica</h3>
+    <p>${arch==='Herói'?'O <strong>Herói</strong> lidera pela ação e pela superação de obstáculos. Sua autoridade vem da coragem demonstrada, não do título. Usa metáforas de batalha e conquista — cada desafio organizacional é uma missão a ser cumprida. Projeta visão através do exemplo.':arch==='Mago'?'O <strong>Mago</strong> lidera pela transformação e pela capacidade de ver o que outros não veem. Usa linguagem de possibilidade e visão — transforma realidades com palavras e frameworks. Projeta autoridade através do conhecimento aplicado.':arch==='Sábio'?'O <strong>Sábio</strong> lidera pelo conhecimento e pela orientação. Usa dados, frameworks e princípios para guiar decisões. Projeta autoridade como referência técnica e intelectual — as pessoas o buscam quando precisam entender algo complexo.':arch==='Cuidador'?'O <strong>Cuidador</strong> lidera pelo serviço e pelo desenvolvimento das pessoas. Projeta autoridade através da generosidade — as pessoas o seguem porque se sentem genuinamente vistas e apoiadas.':arch==='Rei/Rainha'?'O <strong>Soberano</strong> lidera pela ordem e pela visão de longo prazo. Usa estruturas, rituais e tradições para criar estabilidade. Projeta autoridade pela capacidade de criar e manter sistemas que geram prosperidade.':'O <strong>Guerreiro</strong> lidera pela integridade e pelo comprometimento com a missão. Usa linguagem de disciplina e propósito — cada pessoa da equipe tem um papel na vitória coletiva. Projeta autoridade pela consistência e pelo exemplo ético.'}</p>
+    <div class="insight">
+      <strong>Sombra do Arquétipo:</strong> O ${arch} pode exagerar ${arch==='Herói'||arch==='Guerreiro'?'a necessidade de estar sempre em batalha — dificultando a delegação e criando dependência da sua presença':arch==='Mago'?'o uso da visão sem ancoragem em resultados concretos — gerando expectativas que a realidade nem sempre acompanha':arch==='Sábio'?'o acúmulo de informação antes da ação — criando gargalos de decisão e cultura de análise sem execução':arch==='Cuidador'?'o cuidado com os outros às custas de si mesmo — esgotamento e dificuldade em estabelecer limites necessários':'a estrutura e o controle — criando rigidez e dificuldade de adaptação em ambientes voláteis'}. Integrar a sombra é o caminho para uma liderança completa.
+    </div>
+  </div>
+</div>
+
+<!-- V. KOLB -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">V</span>
+    <span class="section-icon">🔄</span>
+    <span class="section-title">Ciclo de Aprendizagem — Kolb</span>
+    <span class="section-badge" style="background:rgba(74,144,212,.12);color:#4A90D4">${kolb}</span>
+  </div>
+  <div class="section-body">
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-label">Estilo de Aprendizagem</div>
+      <div class="card-value">${kolb}</div>
+      <div class="card-sub" style="margin-top:8px">${kolbDesc[kolb]||''}</div>
+    </div>
+    <h3>Tomada de Decisão e Ponto Cego</h3>
+    <table>
+      <tr><th>Dimensão</th><th>Força</th><th>Ponto Cego</th></tr>
+      <tr>
+        <td>Decisão</td>
+        <td>${kolb==='Convergente'?'Lógica, técnica, baseada em dados':kolb==='Divergente'?'Empática, contextual, multifacetada':kolb==='Assimilador'?'Fundamentada, estruturada, teórica':'Rápida, intuitiva, prática'}</td>
+        <td>${kolb==='Convergente'?'Pode negligenciar o impacto humano':kolb==='Divergente'?'Pode demorar por excesso de perspectivas':kolb==='Assimilador'?'Pode perder a urgência da ação':'Pode repetir erros por falta de reflexão'}</td>
+      </tr>
+      <tr>
+        <td>Aprendizado</td>
+        <td>${kolb==='Convergente'?'Absorve rápido aplicando na prática':kolb==='Divergente'?'Aprende melhor em grupo e debate':kolb==='Assimilador'?'Aprende com frameworks e leitura':'Aprende fazendo e ajustando'}</td>
+        <td>${kolb==='Convergente'?'Pode pular etapas de reflexão':kolb==='Divergente'?'Pode evitar a experimentação direta':kolb==='Assimilador'?'Pode ficar na teoria sem aplicar':'Pode agir sem plano suficiente'}</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- VI. 6 NECESSIDADES -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">VI</span>
+    <span class="section-icon">💫</span>
+    <span class="section-title">As 6 Necessidades Humanas</span>
+    <span class="section-badge" style="background:rgba(240,160,80,.12);color:#F0A050">${need1} + ${need2}</span>
+  </div>
+  <div class="section-body">
+    <h3>Hierarquia de Necessidades</h3>
+    <div class="grid-2">
+      <div class="card" style="border-color:#F0A050">
+        <div class="card-label" style="color:#F0A050">1ª Necessidade — Primária</div>
+        <div class="card-value">${need1}</div>
+        <div class="card-sub">Motor principal das suas decisões. Define o que você busca e o que evita — consciente ou inconscientemente.</div>
+      </div>
+      <div class="card">
+        <div class="card-label">2ª Necessidade — Secundária</div>
+        <div class="card-value">${need2}</div>
+        <div class="card-sub">Amplificador do motor primário. Juntas, ${need1} e ${need2} formam o padrão motivacional mais influente do seu estilo de liderança.</div>
+      </div>
+    </div>
+    <h3>Engajamento e Sustentabilidade</h3>
+    <p>Para manter-se motivado a longo prazo, ${nome} precisa de ambientes que <strong>ofereçam ${need1.toLowerCase()}</strong> de forma consistente. Quando esta necessidade não é atendida, o comportamento sob estresse se intensifica e a qualidade das decisões diminui.</p>
+    <div class="insight">
+      <strong>Conexão com DISC:</strong> Sua necessidade de <strong>${need1}</strong> potencializa e ao mesmo tempo pode exagerar o perfil <strong>${discN[disc]}</strong>. ${need1==='Significância'&&disc==='D'?'A combinação cria um perfil de alta performance, mas com risco de ego e competitividade disfuncional.':need1==='Conexão'&&disc==='I'?'A combinação cria um líder que energiza ambientes, mas que pode ter dificuldade em tomar decisões impopulares.':need1==='Certeza'&&disc==='C'?'A combinação cria rigor e qualidade excepcionais, mas com risco real de paralisia analítica.':need1==='Crescimento'?'A combinação cria um líder que aprende rapidamente e inspira desenvolvimento, mas que pode perder a paciência com ritmos diferentes.':'Esta combinação cria padrões de liderança únicos que merecem exploração em sessão de devolutiva individual.'}
+    </div>
+  </div>
+</div>
+
+<!-- VII. HOLLAND -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">VII</span>
+    <span class="section-icon">🧭</span>
+    <span class="section-title">Tipologia Holland — RIASEC</span>
+    <span class="section-badge" style="background:rgba(232,168,64,.12);color:#E8A840;font-size:16px;font-weight:800">${holland}</span>
+  </div>
+  <div class="section-body">
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-label">Código RIASEC</div>
+      <div class="card-value" style="font-size:24px;letter-spacing:.12em;color:#E8A840">${holland}</div>
+      <div class="card-sub" style="margin-top:8px">Os 3 tipos com maior pontuação formam o código que representa as inclinações vocacionais naturais.</div>
+    </div>
+    <h3>Aderência ao Cargo Executivo</h3>
+    <table>
+      <tr><th>Dimensão</th><th>Análise</th></tr>
+      <tr><td><strong>Inclinações Naturais</strong></td><td>Ambientes e atividades onde ${nome} naturalmente prospera e se sente mais autêntico como líder.</td></tr>
+      <tr><td><strong>Alinhamento com DISC ${discN[disc]||disc}</strong></td><td>${holland.includes('E')||holland.includes('S')?'Alta congruência — código Holland com perfil Empreendedor ou Social alinha-se naturalmente com perfis de liderança direta.':holland.includes('I')||holland.includes('C')?'Possível tensão produtiva — código Holland analítico com perfil comportamental mais assertivo. Explore como integrar profundidade intelectual com velocidade de execução.':'Perfil equilibrado — o código Holland reflete versatilidade que pode ser tanto força quanto dispersão.'}</td></tr>
+      <tr><td><strong>Recomendação de Carreira</strong></td><td>Maximizar o desempenho garantindo que pelo menos 60% das atividades diárias estejam alinhadas com as inclinações do código ${holland}.</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- MATRIZ DE DESENVOLVIMENTO -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">∞</span>
+    <span class="section-icon">🎯</span>
+    <span class="section-title">Matriz de Desenvolvimento Integrada</span>
+  </div>
+  <div class="section-body">
+    <h3>Principais Talentos</h3>
+    ${talentos.map(t=>`<div class="matriz-item"><div class="matriz-text">${t.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}</div></div>`).join('')}
+
+    <h3 style="margin-top:20px">Pontos Cegos Transversais</h3>
+    ${pontosCegos.map(p=>`<div class="alert">${p.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}</div>`).join('')}
+
+    <h3 style="margin-top:20px">Plano de Ação Individual — PDI</h3>
+    <div class="pdi-section">
+      <div class="pdi-title" style="color:#22C55E">🟢 COMEÇAR</div>
+      ${pdiComecar.slice(0,3).map(a=>`<div class="pdi-item" style="background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.2)"><div class="pdi-dot" style="background:#22C55E"></div><span>${a}</span></div>`).join('')}
+    </div>
+    <div class="pdi-section">
+      <div class="pdi-title" style="color:#EF4444">🔴 PARAR</div>
+      ${pdiParar.slice(0,3).map(a=>`<div class="pdi-item" style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2)"><div class="pdi-dot" style="background:#EF4444"></div><span>${a}</span></div>`).join('')}
+    </div>
+    <div class="pdi-section">
+      <div class="pdi-title" style="color:#C9A84C">🟡 CONTINUAR</div>
+      ${pdiContinuar.map(a=>`<div class="pdi-item" style="background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.2)"><div class="pdi-dot" style="background:#C9A84C"></div><span>${a}</span></div>`).join('')}
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  Instituto da Liderança · CNPJ 22.233.124/0001-50 · Diagnóstico de Liderança Ativacional 360º<br>
+  Este relatório é de uso exclusivo do líder avaliado e do facilitador responsável pelo programa.<br>
+  ${data} · @institutodaideranca
+</div>
+
+</div>
+</body>
+</html>`;
+
+  const w=window.open('','_blank');
+  if(!w){toast('Bloqueio de pop-up detectado — permita pop-ups para este site','warn');return}
+  w.document.write(html);
+  w.document.close();
+}
+
+function printModal(){
+  const name=document.getElementById('m-name').textContent;
+  const body=document.getElementById('modal-body').innerHTML;
+  const w=window.open('','_blank','width=900,height=700');
+  w.document.write(`<!DOCTYPE html><html><head><title>Relatório — ${name}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=JetBrains+Mono:wght@400&family=Cormorant+Garamond:wght@400;700&display=swap" rel="stylesheet">
+  <style>body{font-family:'Syne',sans-serif;padding:32px;color:#111}
+  .profile-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+  .profile-cell{border:1px solid #ccc;border-radius:8px;padding:12px}
+  .profile-cell-label{font-size:9px;font-family:'JetBrains Mono',monospace;color:#888;letter-spacing:.1em;margin-bottom:4px}
+  .profile-cell-value{font-size:14px;font-weight:700}
+  .modal-disc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+  .disc-detail-cell{border:1px solid #ddd;border-radius:8px;padding:12px}
+  .disc-detail-cell-label{font-size:9px;font-family:'JetBrains Mono',monospace;color:#888;margin-bottom:5px}
+  .disc-detail-cell-value{font-size:12px;color:#444;line-height:1.5}
+  .insight-box{background:#f5f5f5;border-left:3px solid #999;padding:11px 14px;border-radius:0 8px 8px 0;margin-bottom:10px;font-size:13px}
+  .modal-section-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:#888;letter-spacing:.12em;text-transform:uppercase;margin:18px 0 10px;border-bottom:1px solid #eee;padding-bottom:6px}
+  h1{font-family:'Cormorant Garamond',serif;font-size:28px;margin-bottom:4px}
+  button{display:none}</style></head>
+  <body><h1>${name}</h1><p style="color:#888;font-size:12px;margin-bottom:20px">${document.getElementById('m-meta').textContent}</p>${body}</body></html>`);
+  w.document.close();
+  setTimeout(()=>w.print(),800);
+}
+
+// ════════════════════════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════════════════════════
+function renderDashboard(){
+  const turmaFilter=document.getElementById('dash-turma')?.value||'';
+  const data=turmaFilter?allData.filter(r=>r.turma===turmaFilter):allData;
+  const empty=document.getElementById('empty-dash');
+
+  if(!data.length){
+    document.getElementById('dash-stats').innerHTML='';
+    document.getElementById('dash-charts').innerHTML='<div style="text-align:center;padding:40px;color:var(--mid)">Sem dados para a seleção atual.</div>';
+    if(empty)empty.style.display='none';
+    return;
+  }
+  if(empty)empty.style.display='none';
+
+  const today=new Date().toISOString().slice(0,10);
+  const countFase=f=>data.filter(r=>(r.fase||'').includes(f)).length;
+  document.getElementById('dash-stats').innerHTML=`
+    <div class="stat-card"><div class="stat-num">${data.length}</div><div class="stat-label">Total</div></div>
+    <div class="stat-card"><div class="stat-num">${data.filter(r=>(r.timestamp||'').startsWith(today)).length}</div><div class="stat-label">Hoje</div></div>
+    <div class="stat-card"><div class="stat-num">${countFase('Pré')}</div><div class="stat-label">Pré-Treino</div></div>
+    <div class="stat-card"><div class="stat-num">${countFase('Durante')}</div><div class="stat-label">Durante</div></div>
+    <div class="stat-card"><div class="stat-num">${countFase('Pós')}</div><div class="stat-label">Pós-Treino</div></div>
+    <div class="stat-card"><div class="stat-num">${new Set(allData.map(r=>r.turma).filter(Boolean)).size}</div><div class="stat-label">Turmas</div></div>`;
+
+  // ── helpers ──
+  function countField(field,nameMap=null){
+    const c={};
+    data.forEach(r=>{let v=r[field]||'';if(nameMap)v=nameMap[v]||v;if(v)c[v]=(c[v]||0)+1;});
+    return Object.entries(c).sort((a,b)=>b[1]-a[1]);
+  }
+  function avg(field){
+    const vals=data.map(r=>parseFloat(r[field]||0)).filter(v=>!isNaN(v));
+    return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;
+  }
+  function barChart(entries,colorFn,title){
+    const max=Math.max(...entries.map(e=>e[1]),1);
+    return`<div class="chart-card">
+      <div class="chart-label">${title}</div>
+      ${entries.slice(0,7).map(([k,v])=>`
+        <div class="cbar-row">
+          <span class="cbar-name" style="color:${colorFn(k)||'var(--parch)'}">${k}</span>
+          <div class="cbar-track"><div class="cbar-fill" style="width:${v/max*100}%;background:${colorFn(k)||'var(--gold)'}"></div></div>
+          <span class="cbar-val">${v}</span>
+        </div>`).join('')}
+    </div>`;
+  }
+
+  // ── DISC avg scores ──
+  const discAvg={D:avg('disc_D'),I:avg('disc_I'),S:avg('disc_S'),C:avg('disc_C')};
+  const discMax=Math.max(...Object.values(discAvg),1);
+  const discNorm={D:discAvg.D/discMax,I:discAvg.I/discMax,S:discAvg.S/discMax,C:discAvg.C/discMax};
+
+  // ── Radar SVG helper ──
+  function radarSVG(labels,values,colors,size=220){
+    const N=labels.length;
+    const cx=size/2,cy=size/2,r=size*0.36;
+    const levels=4;
+    const angle=i=>-Math.PI/2+(2*Math.PI*i/N);
+    const pt=(i,frac)=>[cx+Math.cos(angle(i))*r*frac,cy+Math.sin(angle(i))*r*frac];
+
+    // grid
+    let grid='';
+    for(let l=1;l<=levels;l++){
+      const pts=Array.from({length:N},(_,i)=>pt(i,l/levels).join(',')).join(' ');
+      grid+=`<polygon points="${pts}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="1"/>`;
+    }
+    // axes
+    let axes=Array.from({length:N},(_,i)=>{const [x,y]=pt(i,1);return`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(255,255,255,.1)" stroke-width="1"/>`;}).join('');
+    // data polygon
+    const dataPoints=values.map((v,i)=>pt(i,Math.max(0,Math.min(1,v))).join(',')).join(' ');
+    const fillColor=colors[0]||'#C9A84C';
+    // labels
+    let lbls=labels.map((l,i)=>{
+      const [x,y]=pt(i,1.18);
+      const anchor=x<cx-5?'end':x>cx+5?'start':'middle';
+      return`<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="9" font-family="'JetBrains Mono',monospace" fill="${colors[i]||'var(--parch)'}" letter-spacing=".06em">${l}</text>`;
+    }).join('');
+    // value dots
+    let dots=values.map((v,i)=>{const[x,y]=pt(i,Math.max(0,Math.min(1,v)));return`<circle cx="${x}" cy="${y}" r="3" fill="${fillColor}"/>`;}).join('');
+
+    return`<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" style="overflow:visible">
+      ${grid}${axes}
+      <polygon points="${dataPoints}" fill="${fillColor}" fill-opacity=".18" stroke="${fillColor}" stroke-width="2"/>
+      ${dots}${lbls}
+    </svg>`;
+  }
+
+  // ── DISC Radar ──
+  const discRadar=radarSVG(
+    ['D\nDominante','I\nInfluente','S\nEstável','C\nConformidade'],
+    [discNorm.D,discNorm.I,discNorm.S,discNorm.C],
+    ['var(--flame)','#F0C030','var(--sky)','var(--mist)'],240
+  );
+
+  // ── Instruments average scores for team radar ──
+  // Kolb → numeric: CON=D, DIV=I, ASS=C, ACO=S mapping
+  const kolbCounts={Convergente:0,Divergente:0,Assimilador:0,Acomodador:0};
+  data.forEach(r=>{if(r.kolb_estilo&&kolbCounts[r.kolb_estilo]!==undefined)kolbCounts[r.kolb_estilo]++;});
+  const kolbMax=Math.max(...Object.values(kolbCounts),1);
+
+  // Needs averages
+  const needAvgs={
+    Certeza:avg('need_certeza'),Variedade:avg('need_variedade'),
+    Significância:avg('need_significancia'),Conexão:avg('need_conexao'),
+    Crescimento:avg('need_crescimento'),Contribuição:avg('need_contribuicao')
+  };
+  const needMax=Math.max(...Object.values(needAvgs),1);
+
+  // Holland averages
+  const hollandAvgs={R:avg('holland_R'),I:avg('holland_I'),A:avg('holland_A'),S:avg('holland_S'),E:avg('holland_E'),C:avg('holland_C')};
+  const hollandMax=Math.max(...Object.values(hollandAvgs),1);
+
+  const needsRadar=radarSVG(
+    ['Certeza','Variedade','Significância','Conexão','Crescimento','Contribuição'],
+    Object.values(needAvgs).map(v=>v/needMax),
+    ['#F0A050','#F0A050','#F0A050','#F0A050','#F0A050','#F0A050'],220
+  );
+  const hollandRadar=radarSVG(
+    ['R','I','A','S','E','C'],
+    Object.values(hollandAvgs).map(v=>v/hollandMax),
+    ['#E8763A','#4A90D4','#A878E0','#48C864','#F0C030','#9AB050'],200
+  );
+
+  // ── DISC dominant count ──
+  const discCount={D:0,I:0,S:0,C:0};
+  data.forEach(r=>{if(r.disc_primario&&discCount[r.disc_primario]!==undefined)discCount[r.disc_primario]++;});
+  const discColors={D:'var(--flame)',I:'#F0C030',S:'var(--sky)',C:'var(--mist)'};
+
+  // ── Team SWOT ──
+  function teamSWOT(data){
+    const total=data.length||1;
+    const dPct=Math.round((discCount.D||0)/total*100);
+    const iPct=Math.round((discCount.I||0)/total*100);
+    const sPct=Math.round((discCount.S||0)/total*100);
+    const cPct=Math.round((discCount.C||0)/total*100);
+    const dom=Object.entries(discCount).sort((a,b)=>b[1]-a[1])[0][0];
+    const needTop=Object.entries(needAvgs).sort((a,b)=>b[1]-a[1])[0][0];
+    const kolbTop=Object.entries(kolbCounts).sort((a,b)=>b[1]-a[1])[0][0];
+
+    const forças=[];const fraquezas=[];const oport=[];const ameacas=[];
+
+    // Strengths from dominant DISC
+    if(dom==='D')forças.push('Alta capacidade de tomada de decisão e orientação a resultados','Energia para superar obstáculos e aceitar desafios');
+    if(dom==='I')forças.push('Forte engajamento e clima organizacional positivo','Capacidade natural de influência e criação de conexões');
+    if(dom==='S')forças.push('Alta coesão e lealdade entre os membros do time','Ambiente seguro que favorece desenvolvimento e retenção');
+    if(dom==='C')forças.push('Excelência técnica e rigor na qualidade das entregas','Capacidade analítica e planejamento de alto nível');
+    if(dPct>=25&&iPct>=25)forças.push('Diversidade comportamental com perfis complementares (D+I)');
+    if(sPct>=30)forças.push('Estabilidade e consistência — time confiável e previsível');
+    if(cPct>=30)forças.push('Profundidade técnica e foco em qualidade e processo');
+
+    // Weaknesses
+    if(dPct>60)fraquezas.push('Concentração excessiva de perfis Dominantes — risco de conflito de liderança e baixa escuta');
+    if(iPct>60)fraquezas.push('Excesso de perfis Influentes — risco de baixa execução e dificuldade em cumprir prazos');
+    if(sPct>60)fraquezas.push('Predominância Estável — possível resistência a mudanças e falta de assertividade coletiva');
+    if(cPct>60)fraquezas.push('Excesso de Conformidade — risco de paralisia analítica e lentidão decisória');
+    if(discCount.D===0)fraquezas.push('Ausência de perfis Dominantes — pode faltar direcionamento e senso de urgência');
+    if(discCount.I===0)fraquezas.push('Sem perfis Influentes — possível déficit de motivação e comunicação inspiradora');
+    if(needTop==='Certeza')fraquezas.push('Alta necessidade de Certeza — pode gerar resistência coletiva à inovação');
+    if(needTop==='Variedade')fraquezas.push('Alta necessidade de Variedade — risco de dispersão e projetos não concluídos');
+    if(kolbTop==='Convergente')fraquezas.push('Predominância Convergente — pode subestimar perspectivas humanas e relacionais');
+
+    // Opportunities
+    oport.push(`Complementaridade de estilos: desenvolver projetos que usem D (execução), I (engajamento), S (suporte) e C (qualidade) em conjunto`);
+    if(dPct<25)oport.push('Potencial para desenvolver assertividade coletiva com treinamento em tomada de decisão');
+    if(iPct<25)oport.push('Oportunidade de elevar o engajamento com programas de comunicação e cultura');
+    if(kolbTop==='Assimilador'||kolbTop==='Divergente')oport.push('Forte potencial para inovação — time reflexivo com capacidade de criação de soluções únicas');
+    oport.push(`Necessidade de ${needTop} como motor coletivo — alinhar metas e reconhecimento a este driver amplifica performance`);
+
+    // Threats
+    ameacas.push('Estilos muito similares tendem a criar pontos cegos coletivos — o que ninguém vê pode ser o maior risco');
+    if(dPct>50&&sPct<15)ameacas.push('Baixa presença Estável combinada com alta Dominância — risco de burnout e clima de alta pressão');
+    if(iPct>50&&cPct<15)ameacas.push('Sem âncoras de qualidade — o entusiasmo coletivo pode gerar entregas incompletas ou imprecisas');
+    ameacas.push('Conflitos não resolvidos entre estilos opostos (D vs. S ou I vs. C) podem polarizar o time e reduzir a produtividade');
+
+    return{forças,fraquezas,oport,ameacas};
+  }
+
+  const swot=teamSWOT(data);
+
+  function swotBox(items,label,color,bg){
+    return`<div style="background:${bg};border:1px solid ${color};border-radius:10px;padding:16px">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:${color};letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px;font-weight:700">${label}</div>
+      ${items.map(i=>`<div style="font-size:12px;color:var(--parch);line-height:1.6;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)">${i}</div>`).join('')}
+    </div>`;
+  }
+
+  // ── Build HTML ──
+  const ec={FOGO:'var(--flame)',AR:'var(--mist)',TERRA:'var(--moss)','ÁGUA':'var(--sky)'};
+
+  const html=`
+  <div style="margin-bottom:24px">
+
+    <!-- DISC RADAR + BARS -->
+    <div style="background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px">
+      <div class="chart-label" style="margin-bottom:16px">Radar Comportamental — DISC da Equipe</div>
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center">
+        <div style="display:flex;justify-content:center">${discRadar}</div>
+        <div>
+          ${Object.entries(discAvg).map(([k,v])=>`
+            <div class="cbar-row" style="margin-bottom:12px">
+              <span class="cbar-name" style="color:${discColors[k]};font-size:13px;font-weight:700">${DISC_NAMES[k]}</span>
+              <div class="cbar-track" style="height:10px"><div class="cbar-fill" style="width:${v/discMax*100}%;background:${discColors[k]}"></div></div>
+              <span class="cbar-val">${v.toFixed(1)}</span>
+            </div>
+            <div style="font-size:11px;color:var(--mid);margin:-8px 0 10px 110px;line-height:1.5">${{
+              D:'Perfis que lideram pela ação e resultado',
+              I:'Perfis que lideram pela influência e conexão',
+              S:'Perfis que sustentam pela estabilidade e cuidado',
+              C:'Perfis que garantem pela qualidade e análise'
+            }[k]}</div>`).join('')}
+          <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+            <div style="font-size:11px;color:var(--mid);font-family:'JetBrains Mono',monospace;letter-spacing:.08em;margin-bottom:8px">COMPOSIÇÃO POR PERFIL DOMINANTE</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              ${Object.entries(discCount).map(([k,v])=>`<span style="padding:4px 12px;border-radius:100px;background:rgba(255,255,255,.05);border:1px solid ${discColors[k]};color:${discColors[k]};font-size:11px;font-family:'JetBrains Mono',monospace">${DISC_NAMES[k]}: ${v} (${Math.round(v/data.length*100)}%)</span>`).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6 NECESSIDADES RADAR -->
+    <div style="background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px">
+      <div class="chart-label" style="margin-bottom:16px">Radar — 6 Necessidades Humanas da Equipe (média)</div>
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center">
+        <div style="display:flex;justify-content:center">${needsRadar}</div>
+        <div>
+          ${Object.entries(needAvgs).map(([k,v])=>`<div class="cbar-row" style="margin-bottom:9px">
+            <span class="cbar-name" style="color:#F0A050">${k}</span>
+            <div class="cbar-track"><div class="cbar-fill" style="width:${v/needMax*100}%;background:#F0A050"></div></div>
+            <span class="cbar-val">${v.toFixed(1)}</span>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <!-- HOLLAND RADAR -->
+    <div style="background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px">
+      <div class="chart-label" style="margin-bottom:16px">Radar Vocacional — Holland RIASEC da Equipe (média)</div>
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center">
+        <div style="display:flex;justify-content:center">${hollandRadar}</div>
+        <div>
+          ${[['R','#E8763A','Realista'],['I','#4A90D4','Investigativo'],['A','#A878E0','Artístico'],['S','#48C864','Social'],['E','#F0C030','Empreendedor'],['C','#9AB050','Convencional']].map(([k,c,n])=>`
+            <div class="cbar-row" style="margin-bottom:8px">
+              <span class="cbar-name" style="color:${c}">${k} · ${n}</span>
+              <div class="cbar-track"><div class="cbar-fill" style="width:${hollandAvgs[k]/hollandMax*100}%;background:${c}"></div></div>
+              <span class="cbar-val">${hollandAvgs[k].toFixed(1)}</span>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <!-- CHARTS GRID - outros instrumentos -->
+    <div class="charts-grid" style="margin-bottom:16px">
+      ${barChart(countField('elem_primario'),k=>ec[k],'Temperamento (Elementos)')}
+      ${barChart(countField('ennea_tipo').map(([k,v])=>[`Tipo ${k}`,v]),()=>'var(--mist)','Eneagrama — Tipos')}
+      ${barChart(countField('kolb_estilo'),()=>'var(--sky)','Estilos Kolb')}
+      ${barChart(countField('arquetipos'),()=>'var(--gold)','Arquétipos')}
+      ${barChart(countField('need_1a'),()=>'#F0A050','Necessidade Primária')}
+      ${barChart(countField('holland_codigo'),()=>'#E8A840','Código Holland')}
+    </div>
+
+    <!-- SWOT DA EQUIPE -->
+    <div style="background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px">
+      <div class="chart-label" style="margin-bottom:16px">SWOT da Equipe — Análise Integrada de Perfis</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        ${swotBox(swot.forças,'✅ Forças','#22C55E','rgba(34,197,94,.07)')}
+        ${swotBox(swot.fraquezas,'⚠️ Fraquezas','#EF4444','rgba(239,68,68,.07)')}
+        ${swotBox(swot.oport,'🚀 Oportunidades','#4A90D4','rgba(74,144,212,.07)')}
+        ${swotBox(swot.ameacas,'⚡ Ameaças','#F0A050','rgba(240,160,80,.07)')}
+      </div>
+    </div>
+
+    <!-- PONTOS FORTES COLETIVOS -->
+    <div style="background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px">
+      <div class="chart-label" style="margin-bottom:14px">Pontos Fortes Coletivos — Cruzamento de Instrumentos</div>
+      ${[
+        [`DISC ${Object.entries(discCount).sort((a,b)=>b[1]-a[1])[0][0]} dominante (${Math.round(Object.entries(discCount).sort((a,b)=>b[1]-a[1])[0][1]/data.length*100)}%) + Kolb ${Object.entries(kolbCounts).sort((a,b)=>b[1]-a[1])[0][0]}`,`Este par indica uma equipe que ${Object.entries(discCount).sort((a,b)=>b[1]-a[1])[0][0]==='D'?'age com velocidade e resolve problemas práticos com eficiência':Object.entries(discCount).sort((a,b)=>b[1]-a[1])[0][0]==='I'?'engaja com entusiasmo e aprende pela troca e pela experiência coletiva':Object.entries(discCount).sort((a,b)=>b[1]-a[1])[0][0]==='S'?'opera com consistência e processa com reflexão e cuidado':'analisa com profundidade e decide com base em dados e modelos sólidos'}`],
+        [`Necessidade coletiva de ${Object.entries(needAvgs).sort((a,b)=>b[1]-a[1])[0][0]}`,`O principal driver motivacional da equipe. Alinhar reconhecimento, metas e cultura a esta necessidade amplifica engajamento e reduz turnover.`],
+        [`Código Holland predominante: ${data.filter(r=>r.holland_codigo).map(r=>r.holland_codigo[0]).reduce((acc,v)=>{acc[v]=(acc[v]||0)+1;return acc;},{})}`,`O perfil vocacional coletivo indica alinhamento com ambientes ${Object.entries(data.filter(r=>r.holland_codigo).map(r=>r.holland_codigo[0]).reduce((acc,v)=>{acc[v]=(acc[v]||0)+1;return acc;},{})).sort((a,b)=>b[1]-a[1])[0]?.[0]==='E'?'empreendedores e de alta influência':Object.entries(data.filter(r=>r.holland_codigo).map(r=>r.holland_codigo[0]).reduce((acc,v)=>{acc[v]=(acc[v]||0)+1;return acc;},{})).sort((a,b)=>b[1]-a[1])[0]?.[0]==='S'?'sociais e colaborativos':'analíticos e técnicos'}.`]
+      ].map(([tit,txt])=>`<div style="padding:12px 16px;border-radius:8px;background:rgba(201,168,76,.07);border-left:3px solid var(--gold);margin-bottom:10px">
+        <div style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:5px">${tit}</div>
+        <div style="font-size:12px;color:var(--mid);line-height:1.6">${txt}</div>
+      </div>`).join('')}
+    </div>
+
+  </div>`;
+
+  document.getElementById('dash-charts').innerHTML=html;
+}
+
+// ════════════════════════════════════════════════════
+// EXPORTS
+// ════════════════════════════════════════════════════
+function toCSV(rows){
+  if(!rows.length)return'';
+  const keys=Object.keys(rows[0]).filter(k=>k!=='_id');
+  return[keys.join(','),...rows.map(r=>keys.map(k=>`"${(r[k]||'').toString().replace(/"/g,'""')}"`).join(','))].join('\n');
+}
+
+function downloadCSV(content,filename){
+  const blob=new Blob(['\uFEFF'+content],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=filename;
+  a.click();
+}
+
+function exportAllCSV(){
+  if(!allData.length){toast('Sem dados para exportar','warn');return}
+  downloadCSV(toCSV(allData),`assessment-todos-${new Date().toISOString().slice(0,10)}.csv`);
+  toast(`✅ ${allData.length} registros exportados`,'success');
+}
+
+function exportFilteredCSV(){
+  if(!filteredData.length){toast('Sem dados filtrados','warn');return}
+  downloadCSV(toCSV(filteredData),`assessment-filtrado-${new Date().toISOString().slice(0,10)}.csv`);
+  toast(`✅ ${filteredData.length} registros exportados`,'success');
+}
+
+function exportSelected(){
+  const sel=allData.filter(r=>selectedIds.has(r._id));
+  if(!sel.length){toast('Selecione pelo menos um respondente','warn');return}
+  downloadCSV(toCSV(sel),`assessment-selecionados-${new Date().toISOString().slice(0,10)}.csv`);
+  toast(`✅ ${sel.length} registros exportados`,'success');
+}
+
+function exportOneCSV(id){
+  const r=allData.find(x=>x._id===id);
+  if(!r)return;
+  const name=(r.nome||r.name||'respondente').replace(/\s+/g,'_');
+  downloadCSV(toCSV([r]),`perfil-${name}-${new Date().toISOString().slice(0,10)}.csv`);
+  toast('✅ CSV exportado','success');
+}
+
+function populateExportTurmas(){
+  const el=document.getElementById('export-turma');
+  if(!el)return;
+  const turmas=[...new Set(allData.map(r=>r.turma).filter(Boolean))];
+  el.innerHTML='<option value="">Selecione a turma</option>'+turmas.map(t=>`<option>${t}</option>`).join('');
+}
+
+function exportGroupReport(){
+  const turma=document.getElementById('export-turma').value;
+  if(!turma){toast('Selecione uma turma','warn');return}
+  const rows=allData.filter(r=>r.turma===turma);
+  if(!rows.length){toast('Nenhum respondente nesta turma','warn');return}
+
+  const discCount={D:0,I:0,S:0,C:0};
+  const elemCount={FOGO:0,TERRA:0,'ÁGUA':0,AR:0};
+  rows.forEach(r=>{
+    if(r.disc_primario)discCount[r.disc_primario]=(discCount[r.disc_primario]||0)+1;
+    if(r.elem_primario)elemCount[r.elem_primario]=(elemCount[r.elem_primario]||0)+1;
+  });
+  const maxD=Math.max(...Object.values(discCount),1);
+  const maxE=Math.max(...Object.values(elemCount),1);
+
+  const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+  <title>Relatório de Turma — ${turma}</title>
+  <style>body{font-family:Arial,sans-serif;max-width:900px;margin:0 auto;padding:32px;color:#111}
+  h1{font-size:28px;margin-bottom:4px}h2{font-size:18px;margin:24px 0 12px;border-bottom:2px solid #C9A84C;padding-bottom:6px}
+  .meta{color:#888;font-size:13px;margin-bottom:24px}
+  .stats{display:flex;gap:16px;margin-bottom:24px}
+  .stat{border:1px solid #ddd;border-radius:8px;padding:16px;text-align:center;flex:1}
+  .stat-num{font-size:32px;font-weight:800;color:#C9A84C}.stat-label{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.1em}
+  .bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .bar-name{width:120px;font-size:13px;font-weight:600}
+  .bar-track{flex:1;height:10px;background:#eee;border-radius:5px}
+  .bar-fill{height:100%;border-radius:5px}
+  .bar-val{font-size:12px;width:24px;text-align:right;color:#666}
+  table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px}
+  th{background:#C9A84C;color:#fff;padding:8px 10px;text-align:left}
+  td{padding:8px 10px;border-bottom:1px solid #eee}
+  tr:nth-child(even)td{background:#fafafa}
+  @media print{body{padding:16px}}</style>
+  </head><body>
+  <h1>Relatório de Turma</h1>
+  <div class="meta">${turma} · Gerado em ${new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'})} · ${rows.length} participantes</div>
+  <div class="stats">
+    <div class="stat"><div class="stat-num">${rows.length}</div><div class="stat-label">Participantes</div></div>
+    <div class="stat"><div class="stat-num">${Object.entries(discCount).sort((a,b)=>b[1]-a[1])[0][0]}</div><div class="stat-label">DISC Dominante</div></div>
+    <div class="stat"><div class="stat-num">${Object.entries(elemCount).sort((a,b)=>b[1]-a[1])[0][0]}</div><div class="stat-label">Elemento Principal</div></div>
+  </div>
+  <h2>Distribuição DISC</h2>
+  ${Object.entries(discCount).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="bar-row">
+    <span class="bar-name">${DISC_NAMES[k]||k}</span>
+    <div class="bar-track"><div class="bar-fill" style="width:${v/maxD*100}%;background:${{D:'#F07030',I:'#F0C030',S:'#4A90D4',C:'#A878E0'}[k]||'#C9A84C'}"></div></div>
+    <span class="bar-val">${v}</span>
+  </div>`).join('')}
+  <h2>Elementos / Temperamento</h2>
+  ${Object.entries(elemCount).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="bar-row">
+    <span class="bar-name">${k}</span>
+    <div class="bar-track"><div class="bar-fill" style="width:${v/maxE*100}%;background:${{FOGO:'#F07030',AR:'#A878E0',TERRA:'#9AB050','ÁGUA':'#4A90D4'}[k]||'#C9A84C'}"></div></div>
+    <span class="bar-val">${v}</span>
+  </div>`).join('')}
+  <h2>Lista de Participantes</h2>
+  <table><tr><th>#</th><th>Nome</th><th>DISC</th><th>Elem.</th><th>Eneagrama</th><th>Arquétipo</th><th>Necessidade</th><th>Holland</th></tr>
+  ${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${r.nome||r.name||'—'}</td><td>${DISC_NAMES[r.disc_primario]||r.disc_primario||'—'}</td><td>${r.elem_primario||'—'}</td><td>Tipo ${r.ennea_tipo||'—'}</td><td>${r.arquetipos||'—'}</td><td>${r.need_1a||'—'}</td><td><strong>${r.holland_codigo||'—'}</strong></td></tr>`).join('')}
+  </table>
+  </body></html>`;
+
+  const w=window.open('','_blank');
+  w.document.write(html);w.document.close();
+  toast(`✅ Relatório de turma gerado com ${rows.length} participantes`,'success');
+}
+
+// ════════════════════════════════════════════════════
+// TURMAS
+// ════════════════════════════════════════════════════
+function renderTurmaList(){
+  const turmas=getTurmas();
+  const respByTurma={};
+  allData.forEach(r=>{if(r.turma)respByTurma[r.turma]=(respByTurma[r.turma]||0)+1});
+
+  document.getElementById('turma-list').innerHTML=turmas.map((t,i)=>`
+    <div class="turma-item">
+      <span class="turma-name">${t}</span>
+      <span class="turma-count">${respByTurma[t]||0} respondente(s)</span>
+      <div class="turma-actions">
+        <button class="btn btn-outline btn-sm" onclick="editTurma(${i})">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteTurma(${i})">🗑</button>
+      </div>
+    </div>`).join('')||'<p style="color:var(--mid);font-size:13px">Nenhuma turma cadastrada.</p>';
+}
+
+function addTurma(){
+  const val=document.getElementById('new-turma').value.trim();
+  if(!val){toast('Digite o nome da turma','warn');return}
+  const turmas=getTurmas();
+  if(turmas.includes(val)){toast('Turma já cadastrada','warn');return}
+  turmas.push(val);
+  setTurmas(turmas);
+  document.getElementById('new-turma').value='';
+  renderTurmaList();
+  syncTurmaSelects();
+  toast('✅ Turma adicionada','success');
+}
+
+function deleteTurma(i){
+  const turmas=getTurmas();
+  if(!confirm(`Remover a turma "${turmas[i]}"?`))return;
+  turmas.splice(i,1);
+  setTurmas(turmas);
+  renderTurmaList();
+  syncTurmaSelects();
+  toast('Turma removida','success');
+}
+
+function editTurma(i){
+  const turmas=getTurmas();
+  editTurmaIdx=i;
+  document.getElementById('edit-turma-input').value=turmas[i];
+  document.getElementById('edit-turma-modal').classList.add('open');
+}
+
+function saveEditTurma(){
+  const val=document.getElementById('edit-turma-input').value.trim();
+  if(!val){toast('Digite o nome','warn');return}
+  const turmas=getTurmas();
+  turmas[editTurmaIdx]=val;
+  setTurmas(turmas);
+  closeEditTurma();
+  renderTurmaList();
+  syncTurmaSelects();
+  toast('✅ Turma atualizada','success');
+}
+
+function closeEditTurma(){document.getElementById('edit-turma-modal').classList.remove('open')}
+
+function resetTurmas(){
+  if(!confirm('Restaurar turmas padrão? As turmas personalizadas serão removidas.'))return;
+  localStorage.removeItem('il_turmas');
+  renderTurmaList();
+  syncTurmaSelects();
+  toast('Turmas restauradas para o padrão','success');
+}
+
+function syncTurmaSelects(){
+  const turmas=getTurmas();
+  ['f-turma','dash-turma'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    const cur=el.value;
+    el.innerHTML='<option value="">Todas as turmas</option>'+turmas.map(t=>`<option${t===cur?' selected':''}>${t}</option>`).join('');
+  });
+}
+
+// ════════════════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════════════════
+function loadConfig(){
+  document.getElementById('cfg-csv-url').value=getCfg('csv_url',DEFAULT_CSV);
+  document.getElementById('cfg-script-url').value=getCfg('script_url','');
+}
+
+function saveConfig(){
+  const csv=document.getElementById('cfg-csv-url').value.trim();
+  const script=document.getElementById('cfg-script-url').value.trim();
+  setCfg('csv_url',csv||DEFAULT_CSV);
+  setCfg('script_url',script);
+  toast('✅ Configuração salva. Recarregando dados...','success');
+  setTimeout(loadData,800);
+}
+
+function savePassword(){
+  const p=document.getElementById('cfg-password').value;
+  if(!p){toast('Digite uma senha','warn');return}
+  setCfg('password',btoa(p));
+  toast('✅ Senha salva neste navegador','success');
+}
+
+async function testConnection(){
+  const url=document.getElementById('cfg-csv-url').value.trim()||DEFAULT_CSV;
+  const status=document.getElementById('conn-status');
+  status.style.display='block';
+  status.innerHTML='<span class="status-dot dot-gray"></span> Testando conexão...';
+  try{
+    const res=await fetch(url+'&t='+Date.now());
+    if(res.ok){
+      const text=await res.text();
+      const lines=text.trim().split('\n').length-1;
+      status.innerHTML=`<span class="status-dot dot-green"></span> Conexão OK — ${lines} respondente(s) encontrado(s)`;
+    }else{
+      status.innerHTML=`<span class="status-dot" style="background:var(--danger)"></span> Erro HTTP ${res.status}`;
+    }
+  }catch(e){
+    status.innerHTML=`<span class="status-dot" style="background:var(--danger)"></span> Falha na conexão — verifique a URL e o compartilhamento da planilha`;
+  }
+}
+
+// ════════════════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════════════════
+function toast(msg,type='info'){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.style.display='block';
+  el.style.borderColor=type==='success'?'var(--success)':type==='error'||type==='warn'?'var(--danger)':'var(--gold)';
+  clearTimeout(toast._t);
+  toast._t=setTimeout(()=>{el.style.display='none'},3500);
+}
+
+// ════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+  syncTurmaSelects();
+  // Slight delay so DOM is fully ready before fetch
+  setTimeout(loadData, 100);
+  // Auto refresh every 90 seconds when on data tabs
+  setInterval(()=>{
+    const respActive=document.getElementById('tab-respondentes')?.classList.contains('active');
+    const dashActive=document.getElementById('tab-dashboard')?.classList.contains('active');
+    if((respActive||dashActive) && getCfg('csv_url',''))loadData();
+  },90000);
+});
+</script>
+</body>
+</html>
