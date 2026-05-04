@@ -569,7 +569,6 @@ const NEEDS_DATA=[
 ];
 
 
-
 // HOLLAND DATA
 const HOLLAND_TYPES=[
   {code:'R',name:'Realista',alias:'O Executor',icon:'🔧',color:'#E8763A',
@@ -1374,10 +1373,9 @@ function generateReport(){
 // ════════════════════════════════════════════════════
 // GOOGLE SHEETS
 // ════════════════════════════════════════════════════
-const SHEETS_URL='SEU_APPS_SCRIPT_URL_AQUI';
+const SHEETS_URL='https://script.google.com/macros/s/AKfycbxwrET5t_GSWZc-EI8ZptSPTHZnXW1I_fIY1xB0tkqwXDKTHOuIOC52wWo4xGuB0L8aPw/exec';
 
 function saveToSheets(disc,elem,ennea,arch,kolb,needs,holland){
-  if(SHEETS_URL==='SEU_APPS_SCRIPT_URL_AQUI')return;
   const enneaTop=ENNEA_NAMES[ennea.top.num];
   const kolbMap={CON:'Convergente',DIV:'Divergente',ASS:'Assimilador',ACO:'Acomodador'};
   const payload={
@@ -1412,7 +1410,6 @@ function showToast(msg){
   t.textContent=msg;t.style.display='block';
   setTimeout(()=>{t.style.display='none';},4000);
 }
-
 
 // ════════════════════════════════════════════════════
 // EXPORT PDF — abre relatório limpo em nova aba
