@@ -22,8 +22,8 @@ body{font-family:'Syne',sans-serif;background:var(--ink);color:var(--parch);min-
 .bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 60% 40% at 15% 20%,rgba(201,168,76,.07) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 85% 75%,rgba(26,92,180,.06) 0%,transparent 55%),var(--ink)}
 .bg-grid{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(201,168,76,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,.03) 1px,transparent 1px);background-size:48px 48px}
 .wrap{position:relative;z-index:1;max-width:820px;margin:0 auto;padding:0 20px}
-.screen{display:none;animation:fadeUp .4s ease}
-.screen.active{display:block}
+.screen{display:none}
+.screen.active{display:block;animation:fadeUp .4s ease both}
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 /* COVER */
 #cover{padding:72px 0 56px;text-align:center}
@@ -170,6 +170,28 @@ h1.hero span{display:block;background:linear-gradient(135deg,var(--parch) 0%,var
 .h-score-btn{flex:1;min-width:34px;padding:8px 2px;border-radius:var(--r-sm);border:1px solid var(--border);background:rgba(255,255,255,.025);cursor:pointer;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--mid);text-align:center;transition:all .2s}
 .h-score-btn:hover:not(:disabled){border-color:rgba(201,168,76,.4);color:var(--parch)}
 .h-score-btn:disabled{cursor:not-allowed;opacity:.7}
+/* GESTÃO TURMAS/FASES */
+.mgmt-panel{max-width:440px;margin:28px auto 0;border-top:1px solid var(--border);padding-top:20px;text-align:left}
+.mgmt-toggle{display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;color:var(--mid);cursor:pointer;background:none;border:none;font-family:'Syne',sans-serif;padding:4px 0;transition:color .2s;width:100%}
+.mgmt-toggle:hover{color:var(--gold)}
+.mgmt-body{display:none;margin-top:16px}
+.mgmt-body.open{display:block}
+.mgmt-tabs{display:flex;gap:0;margin-bottom:14px;border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden}
+.mgmt-tab{flex:1;padding:9px;text-align:center;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:var(--mid);border:none;font-family:'Syne',sans-serif;transition:all .2s}
+.mgmt-tab.active{background:rgba(201,168,76,.12);color:var(--gold)}
+.mgmt-section{display:none}
+.mgmt-section.active{display:block}
+.mgmt-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:5px}
+.mgmt-item-name{flex:1;font-size:13px;color:var(--parch);word-break:break-word}
+.mgmt-item-btns{display:flex;gap:4px;flex-shrink:0}
+.mgmt-btn{padding:4px 10px;border-radius:5px;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:11px;font-family:'Syne',sans-serif;color:var(--mid);transition:all .2s}
+.mgmt-btn:hover{border-color:var(--gold);color:var(--gold)}
+.mgmt-btn.del:hover{border-color:#DC503C;color:#DC503C}
+.mgmt-add-row{display:flex;gap:8px;margin-top:10px}
+.mgmt-input{flex:1;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 12px;color:var(--parch);font-family:'Syne',sans-serif;font-size:13px;outline:none;min-width:0}
+.mgmt-input:focus{border-color:var(--gold)}
+.mgmt-save-btn{padding:8px 14px;border-radius:var(--r-sm);background:linear-gradient(135deg,var(--gold-dk),var(--gold));color:var(--ink);border:none;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.mgmt-edit-input{flex:1;background:rgba(255,255,255,.06);border:1px solid var(--gold);border-radius:5px;padding:3px 8px;color:var(--parch);font-family:'Syne',sans-serif;font-size:13px;outline:none}
 /* PRINT */
 @media print{
   .bg,.bg-grid,.progress-bar-wrap,.nav-buttons,.btn-primary,.btn-secondary,#s-cover,#s-disc,#s-elem,#s-ennea,#s-arch,#s-kolb,#s-needs,#s-holland{display:none!important}
@@ -235,6 +257,37 @@ h1.hero span{display:block;background:linear-gradient(135deg,var(--parch) 0%,var
       <button class="btn-primary" onclick="startAssessment()" style="margin-top:8px">Iniciar Assessment →</button>
     </div>
     <div id="val-name" class="val-warning" style="max-width:440px;margin:0 auto">Por favor, preencha seu nome completo (nome e sobrenome) e selecione a turma.</div>
+
+    <!-- GESTÃO DE TURMAS E FASES -->
+    <div class="mgmt-panel">
+      <button class="mgmt-toggle" onclick="toggleMgmt()">
+        <span id="mgmt-arrow">⚙️</span> Gerenciar Turmas e Fases
+      </button>
+      <div class="mgmt-body" id="mgmt-body">
+        <div class="mgmt-tabs">
+          <button class="mgmt-tab active" onclick="switchMgmtTab('turmas')">🎓 Turmas</button>
+          <button class="mgmt-tab" onclick="switchMgmtTab('fases')">📋 Fases</button>
+        </div>
+
+        <!-- TURMAS -->
+        <div class="mgmt-section active" id="mgmt-turmas">
+          <div id="turmas-list"></div>
+          <div class="mgmt-add-row">
+            <input class="mgmt-input" id="new-turma-inp" placeholder="Nova turma (ex: Impact Leader · T3)" maxlength="80" onkeydown="if(event.key==='Enter')addTurma()">
+            <button class="mgmt-save-btn" onclick="addTurma()">+ Adicionar</button>
+          </div>
+        </div>
+
+        <!-- FASES -->
+        <div class="mgmt-section" id="mgmt-fases">
+          <div id="fases-list"></div>
+          <div class="mgmt-add-row">
+            <input class="mgmt-input" id="new-fase-inp" placeholder="Nova fase (ex: Revisão Anual)" maxlength="60" onkeydown="if(event.key==='Enter')addFase()">
+            <button class="mgmt-save-btn" onclick="addFase()">+ Adicionar</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -409,28 +462,101 @@ const DEFAULT_TURMAS = [
   'Formação de Líderes · 2025',
   'Programa Executivo · 2025',
 ];
+const DEFAULT_FASES = [
+  'Pré-Treinamento',
+  'Durante o Treinamento',
+  'Pós-Treinamento',
+];
 
-function getTurmas(){
-  try{
-    const t=JSON.parse(localStorage.getItem('il_turmas'));
-    return Array.isArray(t)&&t.length?t:DEFAULT_TURMAS;
-  }catch(e){ return DEFAULT_TURMAS; }
-}
+function getTurmas(){try{const t=JSON.parse(localStorage.getItem('il_turmas'));return Array.isArray(t)&&t.length?t:DEFAULT_TURMAS;}catch(e){return DEFAULT_TURMAS;}}
+function setTurmas(arr){try{localStorage.setItem('il_turmas',JSON.stringify(arr));}catch(e){}}
+function getFases(){try{const f=JSON.parse(localStorage.getItem('il_fases'));return Array.isArray(f)&&f.length?f:DEFAULT_FASES;}catch(e){return DEFAULT_FASES;}}
+function setFases(arr){try{localStorage.setItem('il_fases',JSON.stringify(arr));}catch(e){}}
 
 function populateTurmaSelect(){
   const sel=document.getElementById('inp-turma');
   if(!sel)return;
-  const current=sel.value;
-  const turmas=getTurmas();
-  // Rebuild with all options including any from localStorage
+  const cur=sel.value;
   sel.innerHTML='<option value="">Selecione sua turma (opcional)</option>'+
-    turmas.map(t=>`<option value="${t}"${t===current?' selected':''}>${t}</option>`).join('');
+    getTurmas().map(t=>`<option value="${t}"${t===cur?' selected':''}>${t}</option>`).join('');
+}
+function populateFaseSelect(){
+  const sel=document.getElementById('inp-fase');
+  if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML=getFases().map(f=>`<option value="${f}"${f===cur?' selected':''}>${f}</option>`).join('');
 }
 
-// Sync turmas in real time if admin updates them in another tab
-window.addEventListener('storage', function(e){
-  if(e.key==='il_turmas') populateTurmaSelect();
+window.addEventListener('storage',function(e){
+  if(e.key==='il_turmas'){populateTurmaSelect();renderMgmtTurmas();}
+  if(e.key==='il_fases'){populateFaseSelect();renderMgmtFases();}
 });
+
+// ════════ GESTÃO UI ════════════════════════════════
+function toggleMgmt(){
+  const body=document.getElementById('mgmt-body');
+  const arrow=document.getElementById('mgmt-arrow');
+  if(!body)return;
+  body.classList.toggle('open');
+  arrow.textContent=body.classList.contains('open')?'✕':'⚙️';
+  if(body.classList.contains('open')){renderMgmtTurmas();renderMgmtFases();}
+}
+function switchMgmtTab(tab){
+  document.querySelectorAll('.mgmt-tab').forEach((t,i)=>t.classList.toggle('active',['turmas','fases'][i]===tab));
+  document.querySelectorAll('.mgmt-section').forEach((s,i)=>s.classList.toggle('active',['mgmt-turmas','mgmt-fases'][i]==='mgmt-'+tab));
+}
+
+// ── TURMAS ──
+function renderMgmtTurmas(){
+  const list=document.getElementById('turmas-list');
+  if(!list)return;
+  const turmas=getTurmas();
+  list.innerHTML=turmas.length
+    ?turmas.map((t,i)=>`<div class="mgmt-item" id="ti-${i}"><span class="mgmt-item-name" id="tn-${i}">${t}</span><div class="mgmt-item-btns"><button class="mgmt-btn" onclick="editTurma(${i})">✏️</button><button class="mgmt-btn del" onclick="deleteTurma(${i})">✕</button></div></div>`).join('')
+    :'<div style="font-size:12px;color:var(--mid);padding:6px 0">Nenhuma turma cadastrada.</div>';
+}
+function addTurma(){
+  const inp=document.getElementById('new-turma-inp');
+  const val=(inp.value||'').trim();
+  if(!val)return;
+  const arr=getTurmas();
+  if(arr.includes(val)){inp.style.borderColor='#DC503C';setTimeout(()=>inp.style.borderColor='',1500);return;}
+  arr.push(val);setTurmas(arr);inp.value='';renderMgmtTurmas();populateTurmaSelect();
+}
+function deleteTurma(i){const arr=getTurmas();arr.splice(i,1);setTurmas(arr);renderMgmtTurmas();populateTurmaSelect();}
+function editTurma(i){
+  const item=document.getElementById(`ti-${i}`);
+  const cur=document.getElementById(`tn-${i}`).textContent;
+  item.innerHTML=`<input class="mgmt-edit-input" id="te-${i}" value="${cur}" onkeydown="if(event.key==='Enter')saveTurma(${i});else if(event.key==='Escape')renderMgmtTurmas()"><div class="mgmt-item-btns"><button class="mgmt-btn" onclick="saveTurma(${i})" style="color:var(--gold)">✓</button><button class="mgmt-btn" onclick="renderMgmtTurmas()">✕</button></div>`;
+  document.getElementById(`te-${i}`).focus();
+}
+function saveTurma(i){const val=(document.getElementById(`te-${i}`)?.value||'').trim();if(!val)return;const arr=getTurmas();arr[i]=val;setTurmas(arr);renderMgmtTurmas();populateTurmaSelect();}
+
+// ── FASES ──
+function renderMgmtFases(){
+  const list=document.getElementById('fases-list');
+  if(!list)return;
+  const fases=getFases();
+  list.innerHTML=fases.length
+    ?fases.map((f,i)=>`<div class="mgmt-item" id="fi-${i}"><span class="mgmt-item-name" id="fn-${i}">${f}</span><div class="mgmt-item-btns"><button class="mgmt-btn" onclick="editFase(${i})">✏️</button><button class="mgmt-btn del" onclick="deleteFase(${i})">✕</button></div></div>`).join('')
+    :'<div style="font-size:12px;color:var(--mid);padding:6px 0">Nenhuma fase cadastrada.</div>';
+}
+function addFase(){
+  const inp=document.getElementById('new-fase-inp');
+  const val=(inp.value||'').trim();
+  if(!val)return;
+  const arr=getFases();
+  if(arr.includes(val)){inp.style.borderColor='#DC503C';setTimeout(()=>inp.style.borderColor='',1500);return;}
+  arr.push(val);setFases(arr);inp.value='';renderMgmtFases();populateFaseSelect();
+}
+function deleteFase(i){const arr=getFases();arr.splice(i,1);setFases(arr);renderMgmtFases();populateFaseSelect();}
+function editFase(i){
+  const item=document.getElementById(`fi-${i}`);
+  const cur=document.getElementById(`fn-${i}`).textContent;
+  item.innerHTML=`<input class="mgmt-edit-input" id="fe-${i}" value="${cur}" onkeydown="if(event.key==='Enter')saveFase(${i});else if(event.key==='Escape')renderMgmtFases()"><div class="mgmt-item-btns"><button class="mgmt-btn" onclick="saveFase(${i})" style="color:var(--gold)">✓</button><button class="mgmt-btn" onclick="renderMgmtFases()">✕</button></div>`;
+  document.getElementById(`fe-${i}`).focus();
+}
+function saveFase(i){const val=(document.getElementById(`fe-${i}`)?.value||'').trim();if(!val)return;const arr=getFases();arr[i]=val;setFases(arr);renderMgmtFases();populateFaseSelect();}
 
 // ════════════════════════════════════════════════════
 // DATA
@@ -1726,6 +1852,7 @@ body{font-family:'Syne',sans-serif;background:#FAF6EE;color:#1A1612;font-size:13
 // ════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded',()=>{
   populateTurmaSelect();
+  populateFaseSelect();
   renderDisc();
   renderElemProgress();
   renderElemRound(0);
