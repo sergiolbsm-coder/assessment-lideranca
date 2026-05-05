@@ -843,8 +843,8 @@ tr:nth-child(even)td{background:#FDFAF5}
     <span class="cover-pill">Holland RIASEC</span>
   </div>
   <div class="cover-meta">
-    <div class="cover-meta-item"><div class="label">Líder</div><div class="value">${nome}</div></div>
-    <div class="cover-meta-item"><div class="label">Programa</div><div class="value">${turma}</div></div>
+    <div class="cover-meta-item"><div class="label">Líder</div><div class="value">${nome}</div>${r.email?`<div style="font-size:11px;color:#8A7A5A;margin-top:3px">✉️ ${r.email}</div>`:''}</div>
+    <div class="cover-meta-item"><div class="label">Programa</div><div class="value">${turma}</div>${r.empresa?`<div style="font-size:11px;color:#8A7A5A;margin-top:3px">🏢 ${r.empresa}</div>`:''}</div>
     <div class="cover-meta-item"><div class="label">Data de Emissão</div><div class="value">${data}</div></div>
   </div>
 </div>
@@ -1050,6 +1050,143 @@ tr:nth-child(even)td{background:#FDFAF5}
       <tr><td><strong>Alinhamento com DISC ${discN[disc]||disc}</strong></td><td>${holland.includes('E')||holland.includes('S')?'Alta congruência — código Holland com perfil Empreendedor ou Social alinha-se naturalmente com perfis de liderança direta.':holland.includes('I')||holland.includes('C')?'Possível tensão produtiva — código Holland analítico com perfil comportamental mais assertivo. Explore como integrar profundidade intelectual com velocidade de execução.':'Perfil equilibrado — o código Holland reflete versatilidade que pode ser tanto força quanto dispersão.'}</td></tr>
       <tr><td><strong>Recomendação de Carreira</strong></td><td>Maximizar o desempenho garantindo que pelo menos 60% das atividades diárias estejam alinhadas com as inclinações do código ${holland}.</td></tr>
     </table>
+  </div>
+</div>
+
+<!-- VIII. BATERIA DE ENERGIA -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">VIII</span>
+    <span class="section-icon">🔋</span>
+    <span class="section-title">Bateria de Energia Comportamental</span>
+    <span class="section-badge" style="background:rgba(201,168,76,.12);color:#C9A84C">Custo de Adaptação</span>
+  </div>
+  <div class="section-body">
+    <p>Este indicador quantifica o <strong>esforço mental invisível</strong> para sustentar comportamentos não naturais ao perfil. Quanto maior o dreno, maior o risco de exaustão e menor o desempenho de longo prazo.</p>
+
+    ${(()=>{
+      const discColors={D:'#F07030',I:'#F0C030',S:'#4A90D4',C:'#A878E0'};
+      const discSec=r.disc_secundario||'I';
+      const natPct=Math.max(0,Math.round((discPct[disc]/total)*100));
+      const adjPct=Math.max(0,Math.round((discPct[discSec]/total)*100));
+      const latentPct=Math.max(0,100-natPct-adjPct);
+      const dreno=adjPct>25?'alto':adjPct>15?'moderado':'baixo';
+      const drenoColor=dreno==='alto'?'#EF4444':dreno==='moderado'?'#F0A050':'#22C55E';
+      const baterias=[
+        {nome:'Bateria de Decisão',nat:disc==='D'?85:disc==='C'?30:55,dreno:disc==='C'?60:disc==='S'?40:15,color:'#F07030'},
+        {nome:'Bateria de Influência',nat:disc==='I'?88:disc==='S'?50:40,dreno:disc==='C'||disc==='S'?50:disc==='I'?5:25,color:'#F0C030'},
+        {nome:'Bateria de Estabilidade',nat:disc==='S'?90:disc==='C'?60:45,dreno:disc==='D'?55:disc==='I'?35:10,color:'#4A90D4'},
+        {nome:'Bateria de Qualidade/Processos',nat:disc==='C'?92:disc==='S'?55:40,dreno:disc==='D'||disc==='I'?48:disc==='C'?5:20,color:'#A878E0'},
+      ];
+      return`
+      <div style="margin:16px 0">
+        <div style="font-family:monospace;font-size:10px;color:#C9A84C;letter-spacing:.1em;margin-bottom:10px;font-weight:700">CAPACIDADE GLOBAL — PERFIL ${(discN[disc]||disc).toUpperCase()}</div>
+        <div style="position:relative;height:34px;background:#F0E8D8;border-radius:8px;overflow:hidden;margin-bottom:5px">
+          <div style="position:absolute;left:0;top:0;height:100%;width:${natPct}%;background:${discColors[disc]}99;border-radius:8px 0 0 8px;display:flex;align-items:center;padding-left:10px">
+            <span style="font-size:11px;font-weight:700;color:#0A0806">${natPct}% Natural</span>
+          </div>
+          <div style="position:absolute;left:${natPct}%;top:0;height:100%;width:${adjPct}%;background:repeating-linear-gradient(45deg,${discColors[discSec]}55,${discColors[discSec]}55 3px,${discColors[discSec]}22 3px,${discColors[discSec]}22 6px);border-left:2px solid ${drenoColor}">
+            ${adjPct>8?`<span style="font-size:10px;color:${drenoColor};padding-left:6px;line-height:34px">${adjPct}% Dreno</span>`:''}
+          </div>
+          <div style="position:absolute;left:${natPct+adjPct}%;top:0;height:100%;width:${latentPct}%;background:#EDE8DC;border-left:1px dashed #B0A090;display:flex;align-items:center;justify-content:center">
+            ${latentPct>5?`<span style="font-size:10px;color:#8A7A5A">${latentPct}% Latente</span>`:''}
+          </div>
+        </div>
+        <div style="display:flex;gap:14px;font-size:10px;font-family:monospace;color:#8A7A5A;margin-bottom:18px">
+          <span>🟢 Natural = perfil sustentável</span>
+          <span>🟠 Dreno = custo de adaptação</span>
+          <span>⬜ Latente = potencial ocioso</span>
+        </div>
+        ${baterias.map(b=>{
+          const t2=Math.min(b.nat+b.dreno,100);
+          return`<div style="margin-bottom:12px">
+            <div style="font-size:12px;font-weight:700;color:#0A0806;margin-bottom:4px">${b.nome}</div>
+            <div style="position:relative;height:18px;background:#EDE8DC;border-radius:5px;overflow:hidden">
+              <div style="position:absolute;left:0;top:0;height:100%;width:${b.nat}%;background:${b.color}55;border-radius:5px 0 0 5px"></div>
+              <div style="position:absolute;left:${b.nat}%;top:0;height:100%;width:${b.dreno}%;background:repeating-linear-gradient(45deg,${b.color}33,${b.color}33 3px,${b.color}11 3px,${b.color}11 6px);border-left:2px solid ${b.color}"></div>
+            </div>
+          </div>`;}).join('')}
+      </div>
+      <div class="insight"><strong>Diagnóstico Ativacional:</strong> Perfil <strong>${discN[disc]}</strong> com ${natPct}% natural e dreno de ${adjPct}% ao adaptar comportamento ${discN[discSec]||'secundário'}. Nível de dreno <strong style="color:${drenoColor}">${dreno}</strong>. Potencial Latente de ${latentPct}% representa competências geniais ociosas por falta de espaço ou delegação estratégica.</div>`;
+    })()}
+  </div>
+</div>
+
+<!-- IX. SOMBRAS -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">IX</span>
+    <span class="section-icon">🌑</span>
+    <span class="section-title">Comportamentos de Sombra — Gaps de Performance</span>
+    <span class="section-badge" style="background:rgba(239,68,68,.12);color:#EF4444">Zona de Risco</span>
+  </div>
+  <div class="section-body">
+    <p>As <strong>Zonas de Sombra</strong> ocorrem quando um estilo é utilizado de forma excessiva sob estresse — transformando um ponto forte em prejuízo crítico para o negócio.</p>
+    <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:12px">
+      <thead><tr style="background:#F5F0E8">
+        <th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;border-bottom:2px solid #E0D8C8">ESTILO EM SOMBRA</th>
+        <th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;border-bottom:2px solid #E0D8C8">COMPORTAMENTO OCULTO</th>
+        <th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;border-bottom:2px solid #E0D8C8">GAP DE PERFORMANCE</th>
+      </tr></thead>
+      <tbody>
+        ${[
+          {k:'D',label:'Sombra da Dominância',comp:'Pavio curto e surdez seletiva — deixa de ouvir especialistas por pressa de decidir.',gap:'Perda de Capital Intelectual: turnover e desmotivação de talentos-chave.'},
+          {k:'I',label:'Sombra da Influência',comp:'Desorganização e impulsividade — promete prazos impossíveis para ser popular.',gap:'Quebra de Confiança: falhas em entregas críticas e falta de rigidez nos processos.'},
+          {k:'S',label:'Sombra da Estabilidade',comp:'Resistência passiva e teimosia — mantém o status quo por medo da mudança.',gap:'Obsolescência Operacional: a empresa perde agilidade e para de inovar.'},
+          {k:'C',label:'Sombra da Conformidade',comp:'Crítica excessiva e distanciamento — foca no detalhe e perde a visão estratégica.',gap:'Paralisia por Análise: projetos travam em burocracias e revisões infinitas.'},
+        ].map(s=>`<tr style="${s.k===disc?'background:#FFF5F0;':''}">
+          <td style="padding:9px 12px;border-bottom:1px solid #F0E8D8;font-weight:700;color:${{D:'#F07030',I:'#E8B830',S:'#4A90D4',C:'#A878E0'}[s.k]};vertical-align:top;white-space:nowrap">
+            ${s.label}${s.k===disc?` <span style="font-size:9px;background:#FFEAEA;color:#EF4444;padding:2px 6px;border-radius:100px;font-family:monospace">SEU PERFIL</span>`:''}
+          </td>
+          <td style="padding:9px 12px;border-bottom:1px solid #F0E8D8;color:#6A5A48;vertical-align:top">${s.comp}</td>
+          <td style="padding:9px 12px;border-bottom:1px solid #F0E8D8;color:#6A5A48;vertical-align:top">${s.gap}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    <div class="insight" style="margin-top:14px"><strong>Sinal de Alerta Principal:</strong> Com perfil <strong>${discN[disc]}</strong>, a sombra primária se manifesta em situações de pressão intensa, prazo curto ou conflito não resolvido. Reconhecer este padrão em tempo real é o principal diferencial entre liderança reativa e liderança ativacional.</div>
+  </div>
+</div>
+
+<!-- X. POTENCIAL LATENTE -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">X</span>
+    <span class="section-icon">💎</span>
+    <span class="section-title">Potencial Latente — Oportunidades de Ganho</span>
+    <span class="section-badge" style="background:rgba(34,197,94,.12);color:#22C55E">Competências Ociosas</span>
+  </div>
+  <div class="section-body">
+    <p>Onde <strong>${nome}</strong> está perdendo performance e resultado por não usar plenamente quem é. Cada potencial latente identificado representa uma alavanca de crescimento imediata e de alto retorno.</p>
+    <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:12px">
+      <thead><tr style="background:#F0FAF4">
+        <th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#22C55E;letter-spacing:.1em;border-bottom:2px solid #C8EDD8">INSTRUMENTO</th>
+        <th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#22C55E;letter-spacing:.1em;border-bottom:2px solid #C8EDD8">POTENCIAL LATENTE</th>
+        <th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#22C55E;letter-spacing:.1em;border-bottom:2px solid #C8EDD8">AÇÃO PARA ATIVAR</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td style="padding:9px 12px;border-bottom:1px solid #EEF8F2;font-weight:700;color:${{D:'#F07030',I:'#F0C030',S:'#4A90D4',C:'#A878E0'}[r.disc_secundario||'I']};vertical-align:top">DISC ${discN[r.disc_secundario||'I']||'—'}</td>
+          <td style="padding:9px 12px;border-bottom:1px solid #EEF8F2;color:#4A5A48;vertical-align:top">${{D:'Velocidade decisória e assertividade ainda subutilizadas',I:'Potencial de engajamento e influência de equipes maiores',S:'Habilidade natural de mentoria e criação de segurança psicológica',C:'Rigor analítico e qualidade como vantagem competitiva'}[r.disc_secundario||'I']}</td>
+          <td style="padding:9px 12px;border-bottom:1px solid #EEF8F2;color:#4A5A48;vertical-align:top">${{D:'Assumir projetos de transformação onde velocidade decisória é diferencial',I:'Liderar iniciativas de cultura e engajamento organizacional',S:'Delegar o operacional e assumir papel de desenvolvedor de talentos',C:'Estruturar processos de qualidade e governança como legado estratégico'}[r.disc_secundario||'I']}</td>
+        </tr>
+        <tr>
+          <td style="padding:9px 12px;border-bottom:1px solid #EEF8F2;font-weight:700;color:#E8A840;vertical-align:top">Holland ${holland}</td>
+          <td style="padding:9px 12px;border-bottom:1px solid #EEF8F2;color:#4A5A48;vertical-align:top">Inclinação vocacional — ambiente onde opera com energia natural e zero esforço de adaptação</td>
+          <td style="padding:9px 12px;border-bottom:1px solid #EEF8F2;color:#4A5A48;vertical-align:top">Redirecionar 30%+ das atividades para projetos alinhados ao código ${holland} — alinhamento vocacional é a maior alavanca de performance sustentável</td>
+        </tr>
+        <tr>
+          <td style="padding:9px 12px;border-bottom:1px solid #EEF8F2;font-weight:700;color:#A878E0;vertical-align:top">Eneagrama T${ennea}</td>
+          <td style="padding:9px 12px;border-bottom:1px solid #EEF8F2;color:#4A5A48;vertical-align:top">Virtude do Tipo ${ennea}: <strong>${{1:'Serenidade',2:'Humildade',3:'Autenticidade',4:'Equanimidade',5:'Desapego',6:'Coragem',7:'Sobriedade',8:'Inocência',9:'Ação'}[ennea]}</strong> — ainda pouco expressa na liderança atual</td>
+          <td style="padding:9px 12px;border-bottom:1px solid #EEF8F2;color:#4A5A48;vertical-align:top">Praticar conscientemente a virtude do Tipo ${ennea} como âncora de liderança — ela converte o vício emocional em força genuína e duradoura</td>
+        </tr>
+        <tr>
+          <td style="padding:9px 12px;font-weight:700;color:#F0A050;vertical-align:top">Need. ${need1}</td>
+          <td style="padding:9px 12px;color:#4A5A48;vertical-align:top">Quando plenamente atendida, opera no melhor estado — criativo, presente e de alto impacto</td>
+          <td style="padding:9px 12px;color:#4A5A48;vertical-align:top">Mapear quais atividades e relações alimentam a necessidade de ${need1} e priorizar estrategicamente esses contextos no dia a dia</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="insight" style="margin-top:14px;border-left-color:#22C55E;background:#F0FAF4"><strong>Diagnóstico Ativacional:</strong> ${nome} opera com perfil <strong>${discN[disc]}</strong> como força natural e código Holland <strong>${holland}</strong> como inclinação vocacional. Ativar os potenciais latentes identificados não exige mais esforço — exige <em>melhor direcionamento de quem você já é</em>.</div>
   </div>
 </div>
 
