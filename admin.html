@@ -430,22 +430,14 @@ async function loadData(){
   const url = getCfg('csv_url', DEFAULT_CSV);
   const emptyEl = document.getElementById('empty-resp');
 
-  // If still using the default unconfigured URL, load demo data
-  if(url === DEFAULT_CSV && !getCfg('csv_url','')){
-    loadDemoData();
-    return;
-  }
-
   try{
     const res=await fetch(url+'&t='+Date.now());
-    if(!res.ok)throw new Error('HTTP '+res.status);
+    if(!res.ok) throw new Error('HTTP '+res.status);
     const csv=await res.text();
     const parsed=parseCSV(csv);
     if(parsed.length===0){
-      // Sheet is accessible but empty or has no valid rows
-      allData=[];filteredData=[];
-      renderTable();renderDashboard();
-      toast('Planilha acessada, mas sem respondentes ainda.','info');
+      loadDemoData();
+      toast('Planilha vazia — exibindo dados de exemplo.','info');
       return;
     }
     allData=parsed;
@@ -453,22 +445,20 @@ async function loadData(){
     populateFilters();
     renderTable();
     renderDashboard();
+    if(emptyEl) emptyEl.style.display='none';
     toast(`✅ ${allData.length} respondente(s) carregado(s)`,'success');
   }catch(e){
-    // Show helpful message — don't leave blank screen
+    // Fallback: always load demo data so the UI works
+    loadDemoData();
     if(emptyEl){
       emptyEl.style.display='block';
       emptyEl.innerHTML=`<div class="empty-icon">⚙️</div>
-        <div class="empty-title">Planilha não configurada</div>
+        <div class="empty-title">Exibindo dados de exemplo</div>
         <div style="font-size:13px;line-height:1.7;max-width:480px;margin:0 auto">
-          Configure a URL do Google Sheets na aba <strong>Configuração</strong>.<br>
-          A planilha deve estar compartilhada como pública (somente leitura).<br><br>
-          <button class="btn btn-gold btn-sm" onclick="showTab('config')">⚙️ Ir para Configuração</button>
-          &nbsp;
-          <button class="btn btn-outline btn-sm" onclick="loadDemoData()">👁 Ver com dados de exemplo</button>
+          Configure a URL do Google Sheets na aba <strong>Configuração</strong> para carregar respondentes reais.<br><br>
+          <button class="btn btn-gold btn-sm" onclick="showTab('config')">⚙️ Configuração</button>
         </div>`;
     }
-    toast('Planilha não encontrada. Configure na aba Configuração.','warn');
   }
 }
 
