@@ -1461,9 +1461,13 @@ function generateReport(){
       ${(()=>{
         const nat=disc.primary;
         const sec=disc.secondary;
-        const discPctTotal=Math.max(disc.scores.D+disc.scores.I+disc.scores.S+disc.scores.C,1);
-        const natPct=Math.max(0,Math.round((disc.scores[nat]/discPctTotal)*100));
-        const adjPct=Math.max(0,Math.round((disc.scores[sec]/discPctTotal)*100));
+        // Use only positive scores to avoid >100% bug
+        const posTotal=Math.max(
+          Math.max(disc.scores.D,0)+Math.max(disc.scores.I,0)+Math.max(disc.scores.S,0)+Math.max(disc.scores.C,0),
+          1
+        );
+        const natPct=Math.min(100,Math.max(0,Math.round((Math.max(disc.scores[nat],0)/posTotal)*100)));
+        const adjPct=Math.min(100-natPct,Math.max(0,Math.round((Math.max(disc.scores[sec],0)/posTotal)*100)));
         const latentPct=Math.max(0,100-natPct-adjPct);
         const dreno=adjPct>25?'alto':adjPct>15?'moderado':'baixo';
         const drenoColor=dreno==='alto'?'#D4401A':dreno==='moderado'?'#F0A050':'#22C55E';
@@ -1686,18 +1690,8 @@ function generateReport(){
     </div>
   </div>
 
-  <!-- PDI -->
-  <div class="rmod" style="border-color:rgba(201,168,76,.4)">
-    <div class="rmod-header"><div class="rmod-icon">🎯</div><div><div class="rmod-theory">Plano de Desenvolvimento Individual</div><div class="rmod-title">3 Prioridades de Crescimento</div></div></div>
-    <div class="rmod-body">
-      <div class="rmod-insight"><strong>1. DISC ${DISC_NAMES[disc.primary]} — ampliando o perfil:</strong> Desenvolva competências do quadrante secundário (${DISC_NAMES[disc.secondary]}) para uma liderança mais completa. Foco na Palavra de Ordem: ${{D:'CALMA',I:'ACABATIVA',S:'VAI',C:'FLEXIBILIDADE'}[disc.primary]}.</div>
-      <div class="rmod-insight"><strong>2. Eneagrama Tipo ${ennea.top.num} — trabalhando a sombra:</strong> Reconheça quando você está reagindo a partir do medo central (${['','imperfeição','não ser amado','fracasso','não ter identidade','incompetência','abandono','privação','ser controlado','conflito'][ennea.top.num]}) — e não dos seus pontos fortes. Esta é a maior alavanca de crescimento interior disponível.</div>
-      <div class="rmod-insight"><strong>3. Holland ${holland.code} — alinhamento vocacional:</strong> Seu código indica naturalidade em ambientes de perfil ${holland.top3[0].name} (${holland.top3[0].alias}). Verifique se sua atuação atual permite expressar essas inclinações — incongruência vocacional é uma das principais causas de esgotamento em líderes.</div>
-    </div>
-  </div>
-
   <div class="divider"></div>
-  <p style="text-align:center;font-size:11px;color:var(--mid);font-family:'JetBrains Mono',monospace">Instituto da Liderança · CNPJ 22.233.124/0001-50 · Diagnóstico de Liderança ${new Date().getFullYear()}</p>`;
+  <p style="text-align:center;font-size:11px;color:#8A7A5A;font-family:'JetBrains Mono',monospace">Instituto da Liderança · CNPJ 22.233.124/0001-50 · Diagnóstico de Liderança ${new Date().getFullYear()}</p>`;
 
   saveToSheets(disc,elem,ennea,arch,kolb,needs,holland);
   goTo('s-report');
