@@ -431,41 +431,65 @@ const DISC_COLORS={D:'var(--flame)',I:'#F0C030',S:'var(--sky)',C:'var(--mist)'};
 const ELEM_COLORS={FOGO:'var(--flame)',AR:'var(--mist)',TERRA:'var(--moss)','ÁGUA':'var(--sky)'};
 
 async function loadData(){
-  const url = getCfg('csv_url', DEFAULT_CSV);
-  const emptyEl = document.getElementById('empty-resp');
+  const emptyEl=document.getElementById('empty-resp');
+  const scriptUrl=getCfg('script_url','https://script.google.com/macros/s/AKfycbxwrET5t_GSWZc-EI8ZptSPTHZnXW1I_fIY1xB0tkqwXDKTHOuIOC52wWo4xGuB0L8aPw/exec');
+  const csvUrl=getCfg('csv_url',DEFAULT_CSV);
+  let loaded=false;
 
-  try{
-    const res=await fetch(url+'&t='+Date.now());
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const csv=await res.text();
-    const parsed=parseCSV(csv);
-    if(parsed.length===0){
-      loadDemoData();
-      toast('Planilha vazia — exibindo dados de exemplo.','info');
-      return;
-    }
-    allData=parsed;
-    filteredData=[...allData];
-    populateFilters();
-    renderTable();
-    renderDashboard();
-    if(emptyEl) emptyEl.style.display='none';
-    toast(`✅ ${allData.length} respondente(s) carregado(s)`,'success');
-  }catch(e){
-    // Fallback: always load demo data so the UI works
+  // 1. Try Apps Script GET (returns JSON)
+  if(scriptUrl){
+    try{
+      const res=await fetch(scriptUrl+(scriptUrl.includes('?')?'&':'?')+'t='+Date.now());
+      if(res.ok){
+        const json=await res.json();
+        if(json.status==='ok'&&Array.isArray(json.data)&&json.data.length>0){
+          allData=json.data.map((r,i)=>({...r,_id:r._id!==undefined?Number(r._id):i}));
+          loaded=true;
+        }
+      }
+    }catch(e){console.warn('Script GET failed:',e.message);}
+  }
+
+  // 2. Try CSV direct
+  if(!loaded&&csvUrl){
+    try{
+      let res=await fetch(csvUrl+'&t='+Date.now()).catch(()=>null);
+      if(!res||!res.ok){
+        res=await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(csvUrl));
+      }
+      if(res&&res.ok){
+        const csv=await res.text();
+        if(csv&&csv.trim().length>10){
+          const parsed=parseCSV(csv);
+          if(parsed.length>0){allData=parsed;loaded=true;}
+        }
+      }
+    }catch(e){console.warn('CSV failed:',e.message);}
+  }
+
+  // 3. Fallback demo
+  if(!loaded||allData.length===0){
     loadDemoData();
-    if(emptyEl){
+    if(emptyEl&&!loaded){
       emptyEl.style.display='block';
       emptyEl.innerHTML=`<div class="empty-icon">⚙️</div>
-        <div class="empty-title">Exibindo dados de exemplo</div>
-        <div style="font-size:13px;line-height:1.7;max-width:480px;margin:0 auto">
-          Configure a URL do Google Sheets na aba <strong>Configuração</strong> para carregar respondentes reais.<br><br>
+        <div class="empty-title">Dados de exemplo</div>
+        <div style="font-size:13px;line-height:1.8;max-width:480px;margin:0 auto">
+          Para ver dados reais, configure o Apps Script na aba <strong>Configuração</strong>
+          e reimplante com o novo código que inclui <code>doGet()</code>.<br><br>
           <button class="btn btn-gold btn-sm" onclick="showTab('config')">⚙️ Configuração</button>
         </div>`;
-    }
+    }else if(emptyEl){emptyEl.style.display='none';}
+    return;
   }
-}
 
+  filteredData=[...allData];
+  populateFilters();
+  renderTable();
+  renderDashboard();
+  if(emptyEl)emptyEl.style.display='none';
+  toast(`✅ ${allData.length} respondente(s) carregado(s)`,'success');
+}
 function loadDemoData(){
   // Demo data so the admin panel works visually before Sheets is configured
   allData=[

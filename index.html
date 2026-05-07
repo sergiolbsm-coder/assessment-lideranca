@@ -1703,111 +1703,211 @@ function showToast(msg){
 }
 
 // ════════════════════════════════════════════════════
-// EXPORT PDF — geração automática sem janela
+// EXPORT PDF — geração automática via html2pdf.js
 // ════════════════════════════════════════════════════
 function exportPDF(){
-  const reportBody=document.getElementById('report-body');
-  if(!reportBody||!reportBody.innerHTML.trim()){showToast('⚠️ Gere o relatório primeiro.');return;}
-
-  const nome=state.name||'Líder';
-  const btn=document.querySelector('[onclick="exportPDF()"]');
-  if(btn){btn.textContent='⏳ Gerando PDF...';btn.disabled=true;}
-
-  // Load html2pdf if not loaded
-  function doExport(){
-    const opt={
-      margin:[10,10,10,10],
-      filename:`Relatorio-Lideranca-${nome.replace(/\s+/g,'-')}.pdf`,
-      image:{type:'jpeg',quality:0.95},
-      html2canvas:{scale:2,useCORS:true,letterRendering:true,backgroundColor:'#FAF6EE'},
-      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
-      pagebreak:{mode:['avoid-all','css','legacy']}
-    };
-
-    // Build a clean printable element
-    const wrapper=document.createElement('div');
-    wrapper.style.cssText='font-family:Syne,sans-serif;background:#FAF6EE;color:#1A1612;font-size:12px;line-height:1.6;max-width:800px;margin:0 auto;padding:20px';
-
-    // Logo + capa
-    const logo=document.querySelector('.report-hero img');
-    const logoSrc=logo?logo.src:'';
-    const empresa=state.empresa?`<div style="font-size:11px;color:#888;margin-top:2px">🏢 ${state.empresa}</div>`:'';
-    const email=state.email?`<div style="font-size:11px;color:#888;margin-top:2px">✉️ ${state.email}</div>`:'';
-    const data=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
-
-    wrapper.innerHTML=`
-      <div style="background:#0A0806;color:#FAF6EE;padding:36px;border-radius:12px;margin-bottom:24px;text-align:center">
-        ${logoSrc?`<img src="${logoSrc}" style="height:52px;width:auto;filter:brightness(0) invert(1);margin-bottom:16px;display:block;margin-left:auto;margin-right:auto">` : ''}
-        <div style="font-size:10px;letter-spacing:.15em;color:#C9A84C;text-transform:uppercase;margin-bottom:10px;border:1px solid rgba(201,168,76,.3);padding:4px 14px;border-radius:100px;display:inline-block">Instituto da Liderança · Diagnóstico de Liderança</div>
-        <div style="font-family:Georgia,serif;font-size:26px;font-weight:700;margin:10px 0 4px">Relatório de Liderança Ativacional</div>
-        <div style="font-size:12px;color:#B0A090;margin-bottom:24px">Diagnóstico integrado com 7 instrumentos</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;border-top:1px solid rgba(201,168,76,.2);padding-top:20px;text-align:left">
-          <div><div style="font-size:9px;color:#8A7A5A;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px">Líder</div><div style="font-size:14px;font-weight:700">${nome}</div>${email}</div>
-          <div><div style="font-size:9px;color:#8A7A5A;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px">Programa</div><div style="font-size:14px;font-weight:700">${state.turma||'—'}</div><div style="font-size:11px;color:#8A7A5A">${state.fase||''}</div>${empresa}</div>
-          <div><div style="font-size:9px;color:#8A7A5A;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px">Data</div><div style="font-size:14px;font-weight:700">${data}</div></div>
-        </div>
-      </div>
-      ${reportBody.innerHTML}
-      <div style="text-align:center;padding-top:20px;border-top:1px solid #E0D8C8;margin-top:24px;font-size:10px;color:#B0A090">
-        ${logoSrc?`<img src="${logoSrc}" style="height:28px;width:auto;opacity:.5;margin-bottom:6px;display:block;margin-left:auto;margin-right:auto">` : ''}
-        Instituto da Liderança · CNPJ 22.233.124/0001-50 · @institutodaideranca · ${data}
-      </div>`;
-
-    // Apply inline styles to make it PDF-friendly
-    wrapper.querySelectorAll('.rmod').forEach(el=>{
-      el.style.cssText+='border:1px solid #E0D8C8;border-radius:10px;margin-bottom:14px;overflow:hidden;background:#fff;page-break-inside:avoid';
-    });
-    wrapper.querySelectorAll('.rmod-header').forEach(el=>{
-      el.style.cssText+='display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid #EDE8DC;background:#FAF6EE';
-    });
-    wrapper.querySelectorAll('.rmod-body').forEach(el=>{
-      el.style.cssText+='padding:16px 20px';
-    });
-    wrapper.querySelectorAll('.rmod-insight').forEach(el=>{
-      el.style.cssText+='background:#F5F0E8;border-left:3px solid #C9A84C;padding:10px 14px;margin-bottom:8px;border-radius:0 6px 6px 0;font-size:12px;line-height:1.6';
-    });
-    wrapper.querySelectorAll('.rmod-cell').forEach(el=>{
-      el.style.cssText+='background:#FAF6EE;border:1px solid #E0D8C8;border-radius:8px;padding:12px';
-    });
-    wrapper.querySelectorAll('.rbar-track').forEach(el=>{
-      el.style.cssText+='flex:1;height:7px;background:#EDE8DC;border-radius:4px';
-    });
-    wrapper.querySelectorAll('.disc-detail-grid,.rmod-grid,.report-2col').forEach(el=>{
-      el.style.cssText+='display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0';
-    });
-    wrapper.querySelectorAll('.section-sep').forEach(el=>{
-      el.style.cssText+='font-size:10px;letter-spacing:.14em;color:#C9A84C;margin:20px 0 12px;border-bottom:1px solid #E0D8C8;padding-bottom:6px';
-    });
-    wrapper.querySelectorAll('.needs-suggestion').forEach(el=>{
-      el.style.cssText+='background:#EEF4FF;border:1px solid #B0C4E8;border-radius:8px;padding:12px;margin-top:12px';
-    });
-
-    document.body.appendChild(wrapper);
-    wrapper.style.position='fixed';
-    wrapper.style.left='-9999px';
-    wrapper.style.top='0';
-    wrapper.style.zIndex='-1';
-
-    html2pdf().set(opt).from(wrapper).save().then(()=>{
-      document.body.removeChild(wrapper);
-      if(btn){btn.textContent='📄 Exportar PDF';btn.disabled=false;}
-      showToast('✅ PDF gerado e baixado!');
-    }).catch(err=>{
-      document.body.removeChild(wrapper);
-      if(btn){btn.textContent='📄 Exportar PDF';btn.disabled=false;}
-      showToast('⚠️ Erro ao gerar PDF. Tente Imprimir.');
-      console.error(err);
-    });
+  const reportBody = document.getElementById('report-body');
+  if(!reportBody || !reportBody.innerHTML.trim()){
+    showToast('⚠️ Gere o relatório primeiro.');
+    return;
   }
 
-  // Load html2pdf.js library if not already loaded
+  const btn = document.querySelector('[onclick="exportPDF()"]');
+  if(btn){ btn.textContent = '⏳ Gerando PDF...'; btn.disabled = true; }
+
+  function doExport(){
+    const nome = state.name || 'Lider';
+    const data = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+    const logoEl = document.querySelector('.report-hero img');
+    const logoSrc = logoEl ? logoEl.src : '';
+    const empresa = state.empresa ? `🏢 ${state.empresa}` : '';
+    const email   = state.email   ? `✉️ ${state.email}`   : '';
+
+    // Create full-page PDF container — visible and in-flow
+    const overlay = document.createElement('div');
+    overlay.id = '__pdf_overlay__';
+    overlay.style.cssText = [
+      'position:fixed','inset:0','z-index:99999',
+      'background:#FAF6EE','overflow-y:auto',
+      'font-family:Syne,sans-serif','color:#1A1612',
+      'font-size:12px','line-height:1.6','padding:0','margin:0'
+    ].join(';');
+
+    // Compute all CSS variable values from the page
+    const cs = getComputedStyle(document.documentElement);
+    const gold   = '#C9A84C';
+    const ink    = '#0A0806';
+    const parch  = '#FAF6EE';
+    const mid    = '#7A6E5A';
+    const border = 'rgba(201,168,76,0.22)';
+
+    overlay.innerHTML = `
+<div style="max-width:820px;margin:0 auto;padding:32px 28px 60px">
+  <!-- CAPA -->
+  <div style="background:${ink};color:${parch};padding:36px;border-radius:12px;margin-bottom:28px;text-align:center">
+    ${logoSrc ? `<img src="${logoSrc}" style="height:52px;width:auto;filter:brightness(0) invert(1);margin-bottom:16px;display:block;margin-left:auto;margin-right:auto">` : ''}
+    <div style="font-size:9px;letter-spacing:.16em;color:${gold};text-transform:uppercase;border:1px solid rgba(201,168,76,.3);padding:4px 14px;border-radius:100px;display:inline-block;margin-bottom:12px">Instituto da Liderança · Diagnóstico de Liderança</div>
+    <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:26px;font-weight:700;margin:8px 0 4px">Relatório de Liderança Ativacional</div>
+    <div style="font-size:12px;color:#B0A090;margin-bottom:24px">Diagnóstico integrado com 7 instrumentos</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;border-top:1px solid rgba(201,168,76,.2);padding-top:18px;text-align:left">
+      <div><div style="font-size:9px;color:#8A7A5A;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px">Líder</div>
+           <div style="font-size:14px;font-weight:700">${nome}</div>
+           ${email ? `<div style="font-size:11px;color:#8A7A5A;margin-top:2px">${email}</div>` : ''}</div>
+      <div><div style="font-size:9px;color:#8A7A5A;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px">Programa</div>
+           <div style="font-size:14px;font-weight:700">${state.turma||'—'}</div>
+           <div style="font-size:11px;color:#8A7A5A">${state.fase||''}</div>
+           ${empresa ? `<div style="font-size:11px;color:#8A7A5A;margin-top:2px">${empresa}</div>` : ''}</div>
+      <div><div style="font-size:9px;color:#8A7A5A;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px">Data</div>
+           <div style="font-size:14px;font-weight:700">${data}</div></div>
+    </div>
+  </div>
+  <!-- CONTEUDO -->
+  <div id="__pdf_content__"></div>
+  <!-- RODAPE -->
+  <div style="text-align:center;padding-top:20px;border-top:1px solid #E0D8C8;margin-top:24px;font-size:10px;color:#B0A090">
+    ${logoSrc ? `<img src="${logoSrc}" style="height:28px;width:auto;opacity:.5;margin-bottom:6px;display:block;margin-left:auto;margin-right:auto">` : ''}
+    Instituto da Liderança · CNPJ 22.233.124/0001-50 · @institutodaideranca · ${data}
+  </div>
+</div>`;
+
+    document.body.appendChild(overlay);
+
+    // Clone report body into PDF container with inline styles
+    const pdfContent = overlay.querySelector('#__pdf_content__');
+    pdfContent.innerHTML = reportBody.innerHTML;
+
+    // Apply inline styles replacing all CSS variables
+    pdfContent.querySelectorAll('*').forEach(el => {
+      const s = el.style;
+      // Replace CSS variable references with real values
+      ['color','background','backgroundColor','borderColor','borderLeftColor'].forEach(prop => {
+        const v = s[prop];
+        if(v && v.includes('var(--')) {
+          s[prop] = v
+            .replace(/var\(--parch\)/g, parch)
+            .replace(/var\(--ink\)/g, ink)
+            .replace(/var\(--gold\)/g, gold)
+            .replace(/var\(--gold-lt\)/g, '#E8D08A')
+            .replace(/var\(--gold-dk\)/g, '#8A6520')
+            .replace(/var\(--mid\)/g, mid)
+            .replace(/var\(--border\)/g, border)
+            .replace(/var\(--flame\)/g, '#F07030')
+            .replace(/var\(--fire\)/g, '#D4401A')
+            .replace(/var\(--sky\)/g, '#4A90D4')
+            .replace(/var\(--water\)/g, '#1A5CB4')
+            .replace(/var\(--mist\)/g, '#A878E0')
+            .replace(/var\(--air\)/g, '#7040B0')
+            .replace(/var\(--moss\)/g, '#9AB050')
+            .replace(/var\(--earth\)/g, '#6B7C3A')
+            .replace(/var\(--success\)/g, '#22C55E')
+            .replace(/var\(--r\)/g, '14px')
+            .replace(/var\(--r-sm\)/g, '8px');
+        }
+      });
+    });
+
+    // Apply print-friendly styles to key classes
+    pdfContent.querySelectorAll('.rmod').forEach(el => {
+      Object.assign(el.style, {background:'#fff',border:'1px solid #E0D8C8',borderRadius:'10px',marginBottom:'14px',overflow:'hidden',pageBreakInside:'avoid'});
+    });
+    pdfContent.querySelectorAll('.rmod-header').forEach(el => {
+      Object.assign(el.style, {display:'flex',alignItems:'center',gap:'12px',padding:'14px 20px',borderBottom:'1px solid #EDE8DC',background:'#FAF6EE'});
+    });
+    pdfContent.querySelectorAll('.rmod-body').forEach(el => {
+      Object.assign(el.style, {padding:'16px 20px'});
+    });
+    pdfContent.querySelectorAll('.rmod-title').forEach(el => {
+      Object.assign(el.style, {fontFamily:"'Cormorant Garamond',Georgia,serif",fontSize:'18px',fontWeight:'700',color:ink});
+    });
+    pdfContent.querySelectorAll('.rmod-theory').forEach(el => {
+      Object.assign(el.style, {fontFamily:'monospace',fontSize:'9px',color:gold,letterSpacing:'.1em',textTransform:'uppercase'});
+    });
+    pdfContent.querySelectorAll('.rmod-badge').forEach(el => {
+      Object.assign(el.style, {padding:'3px 10px',borderRadius:'100px',fontSize:'11px',fontWeight:'700'});
+    });
+    pdfContent.querySelectorAll('.rmod-desc').forEach(el => {
+      Object.assign(el.style, {fontSize:'13px',color:'#4A4038',lineHeight:'1.7',marginBottom:'10px'});
+    });
+    pdfContent.querySelectorAll('.rmod-insight').forEach(el => {
+      Object.assign(el.style, {padding:'10px 14px',background:'#F5F0E8',borderLeft:'3px solid '+gold,borderRadius:'0 6px 6px 0',fontSize:'12px',lineHeight:'1.7',marginBottom:'8px',color:'#2A2018'});
+    });
+    pdfContent.querySelectorAll('.rmod-cell').forEach(el => {
+      Object.assign(el.style, {background:'#FAF6EE',border:'1px solid #E0D8C8',borderRadius:'8px',padding:'12px'});
+    });
+    pdfContent.querySelectorAll('.rmod-cell-label').forEach(el => {
+      Object.assign(el.style, {fontFamily:'monospace',fontSize:'9px',color:gold,letterSpacing:'.1em',textTransform:'uppercase',marginBottom:'5px'});
+    });
+    pdfContent.querySelectorAll('.rmod-cell-value').forEach(el => {
+      Object.assign(el.style, {fontSize:'12px',color:'#4A3A28',lineHeight:'1.5'});
+    });
+    pdfContent.querySelectorAll('.rbar-row').forEach(el => {
+      Object.assign(el.style, {display:'flex',alignItems:'center',gap:'8px',marginBottom:'7px'});
+    });
+    pdfContent.querySelectorAll('.rbar-label').forEach(el => {
+      Object.assign(el.style, {fontSize:'12px',fontWeight:'600',width:'140px',flexShrink:'0',color:ink});
+    });
+    pdfContent.querySelectorAll('.rbar-track').forEach(el => {
+      Object.assign(el.style, {flex:'1',height:'7px',background:'#EDE8DC',borderRadius:'4px',overflow:'hidden'});
+    });
+    pdfContent.querySelectorAll('.rbar-val').forEach(el => {
+      Object.assign(el.style, {fontFamily:'monospace',fontSize:'11px',color:gold,width:'28px',textAlign:'right'});
+    });
+    pdfContent.querySelectorAll('.disc-detail-grid,.rmod-grid').forEach(el => {
+      Object.assign(el.style, {display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',margin:'10px 0'});
+    });
+    pdfContent.querySelectorAll('.section-sep').forEach(el => {
+      Object.assign(el.style, {fontFamily:'monospace',fontSize:'9px',letterSpacing:'.14em',textTransform:'uppercase',color:gold,margin:'20px 0 12px',paddingBottom:'6px',borderBottom:'1px solid #E0D8C8',display:'block'});
+    });
+    pdfContent.querySelectorAll('.needs-suggestion').forEach(el => {
+      Object.assign(el.style, {marginTop:'12px',background:'#EEF4FF',border:'1px solid #B0C4E8',borderRadius:'8px',padding:'12px'});
+    });
+    pdfContent.querySelectorAll('.divider').forEach(el => {
+      Object.assign(el.style, {height:'1px',background:'#E0D8C8',margin:'20px 0'});
+    });
+    // Hide nav buttons inside report
+    pdfContent.querySelectorAll('.nav-buttons,.btn-primary,.btn-secondary').forEach(el => {
+      el.style.display = 'none';
+    });
+
+    const opt = {
+      margin: [8,8,8,8],
+      filename: `Relatorio-Lideranca-${nome.replace(/\s+/g,'-')}.pdf`,
+      image: {type:'jpeg', quality:0.92},
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#FAF6EE',
+        logging: false,
+        width: overlay.scrollWidth,
+        windowWidth: 900,
+      },
+      jsPDF: {unit:'mm', format:'a4', orientation:'portrait'},
+      pagebreak: {mode:['avoid-all','css','legacy']}
+    };
+
+    html2pdf().set(opt).from(overlay).save()
+      .then(() => {
+        document.body.removeChild(overlay);
+        if(btn){ btn.textContent='📄 Exportar PDF'; btn.disabled=false; }
+        showToast('✅ PDF gerado com sucesso!');
+      })
+      .catch(err => {
+        document.body.removeChild(overlay);
+        if(btn){ btn.textContent='📄 Exportar PDF'; btn.disabled=false; }
+        console.error('PDF error:', err);
+        showToast('⚠️ Erro ao gerar PDF — tente Imprimir.');
+      });
+  }
+
+  // Load html2pdf.js if not already loaded
   if(typeof html2pdf === 'undefined'){
-    const s=document.createElement('script');
-    s.src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-    s.onload=doExport;
-    s.onerror=()=>{
-      if(btn){btn.textContent='📄 Exportar PDF';btn.disabled=false;}
-      showToast('⚠️ Sem conexão para carregar o gerador. Tente Imprimir.');
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+    s.onload = doExport;
+    s.onerror = () => {
+      if(btn){ btn.textContent='📄 Exportar PDF'; btn.disabled=false; }
+      showToast('⚠️ Sem conexão — use o botão Imprimir.');
     };
     document.head.appendChild(s);
   } else {
