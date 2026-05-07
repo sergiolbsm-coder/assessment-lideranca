@@ -830,6 +830,46 @@ tr:nth-child(even)td{background:#FAF6EE}
   </div>
 </div>
 
+<!-- RESUMO DO PERFIL -->
+<div style="margin-bottom:20px">
+  <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px">Resumo do Perfil <span style="flex:1;height:1px;background:#E0D8C8;display:inline-block"></span></div>
+  <div style="background:#FAF6EE;border:1px solid #E0D8C8;border-radius:10px;padding:18px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
+      <div style="background:#fff;border:1px solid #E0D8C8;border-radius:8px;padding:12px">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">DISC</div>
+        <div style="font-size:16px;font-weight:800;color:${discHex[disc]}">${discN[disc]||disc}</div>
+        <div style="font-size:11px;color:#6A5A48;margin-top:2px">2º: ${discN[discSec]||discSec}</div>
+      </div>
+      <div style="background:#fff;border:1px solid #E0D8C8;border-radius:8px;padding:12px">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">TEMPERAMENTO</div>
+        <div style="font-size:15px;font-weight:700;color:${{FOGO:'#F07030',AR:'#A878E0',TERRA:'#9AB050','ÁGUA':'#4A90D4'}[r.elem_primario]||'#C9A84C'}">${{FOGO:'🔥',TERRA:'🌿','ÁGUA':'💧',AR:'💨'}[r.elem_primario]||''} ${r.elem_primario||'—'}</div>
+      </div>
+      <div style="background:#fff;border:1px solid #E0D8C8;border-radius:8px;padding:12px">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">ENEAGRAMA</div>
+        <div style="font-size:14px;font-weight:700;color:#A878E0">Tipo ${ennea} · ${enneaNames[ennea]||'—'}</div>
+      </div>
+      <div style="background:#fff;border:1px solid #E0D8C8;border-radius:8px;padding:12px">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">ARQUÉTIPO</div>
+        <div style="font-size:14px;font-weight:700;color:#C9A84C">${r.arquetipos||'—'}</div>
+      </div>
+      <div style="background:#fff;border:1px solid #E0D8C8;border-radius:8px;padding:12px">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">KOLB</div>
+        <div style="font-size:14px;font-weight:700;color:#4A90D4">${r.kolb_estilo||'—'}</div>
+      </div>
+      <div style="background:#fff;border:1px solid #E0D8C8;border-radius:8px;padding:12px">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">NECESSIDADE 1ª</div>
+        <div style="font-size:14px;font-weight:700;color:#F0A050">${need1}</div>
+      </div>
+      <div style="background:#fff;border:1px solid #E0D8C8;border-radius:8px;padding:12px">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">HOLLAND RIASEC</div>
+        <div style="font-size:18px;font-weight:800;color:#E8A840">${r.holland_codigo||'—'}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px">Perfis Detalhados <span style="flex:1;height:1px;background:#E0D8C8;display:inline-block"></span></div>
+
 <!-- I. DISC -->
 <div class="section">
   <div class="sec-head">
@@ -845,6 +885,7 @@ tr:nth-child(even)td{background:#FAF6EE}
       ${[['✅ Pontos Fortes',dp.fortes],['⚠️ Pontos de Atenção',dp.atencao],['📤 Forma de Delegação',dp.delegacao],['🗣️ Comunicação',dp.comunicacao],['⚡ O que Motiva',dp.motivacao],['🚫 O que Desmotiva',dp.desmotivacao]].filter(([,v])=>v).map(([l,v])=>`<div class="card"><div class="card-lbl">${l}</div><div class="card-sub">${v}</div></div>`).join('')}
     </div>
     ${dp.gestao?`<div class="insight"><strong>Gestão de Pessoas:</strong> ${dp.gestao}</div>`:''}
+    <div class="insight"><strong>Palavra de Ordem:</strong> ${{D:'CALMA — Vá mais devagar com as pessoas. Ouça antes de decidir.',I:'ACABATIVA — Termine o que começou. Consistência é sua prioridade.',S:'VAI — Inicie mais. Depois que você começa, vai até o fim.',C:'FLEXIBILIDADE — Não busque 110% de informação. Comece e ajuste no caminho.'}[disc]||''}</div>
   </div>
 </div>
 
@@ -1045,6 +1086,22 @@ tr:nth-child(even)td{background:#FAF6EE}
   </div>
 </div>
 
+<!-- PDI -->
+<div class="section" style="border-color:#C9A84C">
+  <div class="sec-head">
+    <span class="sec-num" style="background:rgba(201,168,76,.2)">PDI</span>
+    <span class="sec-icon">🎯</span>
+    <span class="sec-title">Plano de Desenvolvimento Individual</span>
+    <span class="sec-badge" style="background:rgba(201,168,76,.12);color:#C9A84C">3 Prioridades de Crescimento</span>
+  </div>
+  <div class="sec-body">
+    <div class="insight"><strong>1. DISC ${discN[disc]} — ampliando o perfil:</strong> Desenvolva competências do quadrante secundário (${discN[discSec]}) para uma liderança mais completa. Foco na Palavra de Ordem: ${{D:'CALMA',I:'ACABATIVA',S:'VAI',C:'FLEXIBILIDADE'}[disc]||''}.</div>
+    <div class="insight"><strong>2. Eneagrama Tipo ${ennea} — trabalhando a sombra:</strong> Reconheça quando você está reagindo a partir do medo central (${['','imperfeição','não ser amado','fracasso','não ter identidade','incompetência','abandono','privação','ser controlado','conflito'][ennea]||'—'}) — e não dos seus pontos fortes. Esta é a maior alavanca de crescimento interior disponível.</div>
+    <div class="insight"><strong>3. Holland ${r.holland_codigo||'—'} — alinhamento vocacional:</strong> Seu código indica naturalidade em ambientes de perfil ${Object.entries(hollandScores).sort((a,b)=>b[1]-a[1])[0]?hollandNames[Object.entries(hollandScores).sort((a,b)=>b[1]-a[1])[0][0]]||'—':'—'} (${Object.entries(hollandScores).sort((a,b)=>b[1]-a[1])[0]?{R:'O Executor',I:'O Pensador',A:'O Criador',S:'O Ajudador',E:'O Persuasor',C:'O Organizador'}[Object.entries(hollandScores).sort((a,b)=>b[1]-a[1])[0][0]]||'—':'—'}). Verifique se sua atuação atual permite expressar essas inclinações — incongruência vocacional é uma das principais causas de esgotamento em líderes.</div>
+  </div>
+</div>
+
+<div style="height:1px;background:#E0D8C8;margin:24px 0"></div>
 <div class="footer">Instituto da Liderança · CNPJ 22.233.124/0001-50 · @institutodaideranca · ${data}</div>
 
 </div>
