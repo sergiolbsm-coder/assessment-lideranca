@@ -130,39 +130,38 @@ h1.hero span{display:block;background:linear-gradient(135deg,var(--parch) 0%,var
 .nav-buttons{display:flex;justify-content:space-between;align-items:center;padding:28px 0;gap:16px;flex-wrap:wrap}
 .val-warning{display:none;background:rgba(220,80,60,.1);border:1px solid rgba(220,80,60,.3);border-radius:var(--r-sm);padding:11px 15px;font-size:13px;color:#F07060;margin-top:14px}
 .val-warning.show{display:block}
-/* REPORT */
-#report{padding:40px 0 80px}
-.report-hero{text-align:center;padding:44px 0 32px;border-bottom:1px solid var(--border);margin-bottom:36px}
-.report-avatar{width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,var(--gold-dk),var(--gold));display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 18px}
-.report-name{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;margin-bottom:6px}
-.report-turma{font-size:12px;color:var(--mid);font-family:'JetBrains Mono',monospace;letter-spacing:.08em}
-.report-date{font-size:11px;color:var(--mid);margin-top:5px;font-family:'JetBrains Mono',monospace}
-.rmod{background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:var(--r);margin-bottom:18px;overflow:hidden}
-.rmod-header{display:flex;align-items:center;gap:14px;padding:16px 22px;border-bottom:1px solid rgba(255,255,255,.05)}
+/* REPORT — LIGHT THEME */
+#s-report{background:#F5F0E8;min-height:100vh}
+#s-report .wrap{background:#F5F0E8}
+.report-hero{text-align:center;padding:44px 0 32px;border-bottom:2px solid #C9A84C;margin-bottom:36px;background:#0A0806;border-radius:16px;margin-bottom:28px;padding:36px 28px}
+.report-avatar{width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,#8A6520,#C9A84C);display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 14px;color:#0A0806}
+.report-name{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;margin-bottom:6px;color:#FAF6EE}
+.report-turma{font-size:12px;color:#B0A090;font-family:'JetBrains Mono',monospace;letter-spacing:.08em}
+.report-date{font-size:11px;color:#8A7A5A;margin-top:5px;font-family:'JetBrains Mono',monospace}
+.rmod{background:#fff;border:1px solid #E0D8C8;border-radius:var(--r);margin-bottom:16px;overflow:hidden}
+.rmod-header{display:flex;align-items:center;gap:14px;padding:16px 22px;border-bottom:1px solid #EDE8DC;background:#FAF6EE}
 .rmod-icon{font-size:20px;flex-shrink:0}
-.rmod-theory{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:.12em;text-transform:uppercase}
-.rmod-title{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:700}
+.rmod-theory{font-family:'JetBrains Mono',monospace;font-size:10px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase}
+.rmod-title{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:700;color:#0A0806}
 .rmod-badge{margin-left:auto;padding:4px 12px;border-radius:100px;font-size:11px;font-weight:700;font-family:'Syne',sans-serif;letter-spacing:.04em;white-space:nowrap}
 .rmod-body{padding:18px 22px}
-.rmod-desc{font-size:14px;color:var(--mid);line-height:1.7;margin-bottom:14px}
-.rmod-insight{padding:11px 15px;border-radius:var(--r-sm);background:rgba(201,168,76,.07);border-left:3px solid var(--gold);font-size:13px;line-height:1.7;color:var(--parch);margin-bottom:10px}
-.rmod-insight strong{color:var(--gold)}
+.rmod-desc{font-size:14px;color:#4A4038;line-height:1.7;margin-bottom:14px}
+.rmod-insight{padding:11px 15px;border-radius:var(--r-sm);background:#F5F0E8;border-left:3px solid #C9A84C;font-size:13px;line-height:1.7;color:#2A2018;margin-bottom:10px}
+.rmod-insight strong{color:#8A6520}
 .rmod-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:12px 0}
-.rmod-cell{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px}
-.rmod-cell-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
-.rmod-cell-value{font-size:13px;color:var(--mid);line-height:1.6}
+.rmod-cell{background:#FAF6EE;border:1px solid #E0D8C8;border-radius:var(--r-sm);padding:14px}
+.rmod-cell-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+.rmod-cell-value{font-size:13px;color:#4A4038;line-height:1.6}
 .rbar-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
-.rbar-label{font-size:12px;color:var(--parch);width:150px;flex-shrink:0;font-weight:600}
-.rbar-track{flex:1;height:7px;background:rgba(255,255,255,.08);border-radius:4px}
+.rbar-label{font-size:12px;color:#1A1612;width:150px;flex-shrink:0;font-weight:600}
+.rbar-track{flex:1;height:7px;background:#EDE8DC;border-radius:4px}
 .rbar-fill{height:100%;border-radius:4px;transition:width .8s ease}
-.rbar-val{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);width:28px;text-align:right}
-.section-sep{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:16px;margin-top:24px;display:flex;align-items:center;gap:10px}
-.section-sep::after{content:'';flex:1;height:1px;background:var(--border)}
-.divider{height:1px;background:var(--border);margin:28px 0}
-/* NEEDS suggestion box */
-.needs-suggestion{margin-top:14px;background:rgba(26,92,180,.07);border:1px solid rgba(26,92,180,.25);border-radius:var(--r-sm);padding:14px}
-.needs-suggestion-title{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--sky);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
-/* DISC profile detail */
+.rbar-val{font-family:'JetBrains Mono',monospace;font-size:11px;color:#C9A84C;width:28px;text-align:right}
+.section-sep{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#C9A84C;margin-bottom:16px;margin-top:24px;display:flex;align-items:center;gap:10px}
+.section-sep::after{content:'';flex:1;height:1px;background:#E0D8C8}
+.divider{height:1px;background:#E0D8C8;margin:28px 0}
+.needs-suggestion{margin-top:14px;background:#EEF4FF;border:1px solid #B0C4E8;border-radius:var(--r-sm);padding:14px}
+.needs-suggestion-title{font-size:11px;font-family:'JetBrains Mono',monospace;color:#4A70B0;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
 .disc-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
 @media(max-width:640px){.disc-live,.elem-live{grid-template-columns:repeat(2,1fr)}.disc-detail-grid{grid-template-columns:1fr}.rbar-label{width:100px;font-size:11px}}
 /* HOLLAND */
@@ -1146,15 +1145,8 @@ function renderHolland(){
   const c=document.getElementById('holland-container');
   c.innerHTML=HOLLAND_TYPES.map((t,ti)=>`
     <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:14px" id="hblock-${ti}">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
-        <span style="font-size:26px">${t.icon}</span>
-        <div>
-          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:${t.color};letter-spacing:.13em;margin-bottom:2px">${t.code} · ${t.name.toUpperCase()}</div>
-          <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700">${t.alias}</div>
-          <div style="font-size:12px;color:var(--mid);margin-top:2px">${t.desc}</div>
-        </div>
-      </div>
-      <div style="margin-bottom:12px">${t.perguntas.map(p=>`<div style="font-size:13px;color:var(--mid);padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);line-height:1.5">• ${p}</div>`).join('')}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:${t.color};letter-spacing:.13em;margin-bottom:12px">BLOCO ${ti+1} DE 6</div>
+      <div style="margin-bottom:14px">${t.perguntas.map(p=>`<div style="font-size:13px;color:var(--mid);padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);line-height:1.6">• ${p}</div>`).join('')}</div>
       <div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:${t.color};letter-spacing:.1em;margin-bottom:7px">PONTUAÇÃO (1 = nada a ver · 10 = sou exatamente assim)</div>
       <div class="h-score-10">
         ${[1,2,3,4,5,6,7,8,9,10].map(v=>`<button class="h-score-btn" id="hl-${ti}-${v}" onclick="hollandMark(${ti},${v})">${v}</button>`).join('')}
@@ -1465,82 +1457,132 @@ function generateReport(){
       <span class="rmod-badge" style="background:rgba(201,168,76,.12);color:var(--gold)">Custo de Adaptação</span>
     </div>
     <div class="rmod-body">
-      <p class="rmod-desc">Este indicador quantifica o <strong>esforço mental invisível</strong> que você gasta para sustentar comportamentos que não são naturais ao seu perfil. Quanto maior o "dreno", maior o risco de exaustão e menor o desempenho de longo prazo.</p>
+      <p class="rmod-desc">Este indicador quantifica o <strong>esforço mental invisível</strong> que você gasta para sustentar comportamentos não naturais ao seu perfil. Quanto maior o dreno, maior o risco de exaustão — e menor a qualidade de decisão ao longo do tempo.</p>
       ${(()=>{
-        const nat=disc.primary; // Perfil Natural (quem você é)
-        const sec=disc.secondary; // Perfil Ajustado (pressão do ambiente)
+        const nat=disc.primary;
+        const sec=disc.secondary;
         const discPctTotal=Math.max(disc.scores.D+disc.scores.I+disc.scores.S+disc.scores.C,1);
         const natPct=Math.max(0,Math.round((disc.scores[nat]/discPctTotal)*100));
         const adjPct=Math.max(0,Math.round((disc.scores[sec]/discPctTotal)*100));
         const latentPct=Math.max(0,100-natPct-adjPct);
         const dreno=adjPct>25?'alto':adjPct>15?'moderado':'baixo';
-        const drenoColor=dreno==='alto'?'var(--fire)':dreno==='moderado'?'#F0A050':'var(--success)';
+        const drenoColor=dreno==='alto'?'#D4401A':dreno==='moderado'?'#F0A050':'#22C55E';
+        const drenoLabel=dreno==='alto'?'⚠️ CRÍTICO':'🟠 MODERADO';
 
-        // 4 baterias específicas
+        // Real hex colors (not CSS vars which break in light context)
+        const DISC_HEX={D:'#F07030',I:'#F0C030',S:'#4A90D4',C:'#A878E0'};
+        const natColor=DISC_HEX[nat]||'#C9A84C';
+        const secColor=DISC_HEX[sec]||'#888';
+
         const baterias=[
           {nome:'Bateria de Decisão',
-           desc:`Esforço para decidir com velocidade (${nat==='D'?'natural para você':'pressão do ambiente'})`,
-           nat:nat==='D'?85:nat==='C'?30:55,
-           dreno:nat==='C'?60:nat==='S'?40:15,
-           color:'var(--flame)'},
+           desc:nat==='D'?'Decisão rápida é seu estado natural — baixo custo energético':nat==='C'?'Alta energia gasta para decidir sem toda a informação necessária':'Decisão moderada — situacional',
+           pergunta:'Quanta energia você gasta para decidir com velocidade e assertividade?',
+           nat:nat==='D'?82:nat==='I'?58:nat==='S'?48:30,
+           dreno:nat==='D'?8:nat==='I'?22:nat==='S'?35:55,
+           color:DISC_HEX.D,
+           alert:nat==='C'||nat==='S'},
           {nome:'Bateria de Influência',
-           desc:`Energia gasta em networking e persuasão`,
-           nat:nat==='I'?88:nat==='S'?50:40,
-           dreno:nat==='C'||nat==='S'?50:nat==='I'?5:25,
-           color:'#F0C030'},
+           desc:nat==='I'?'Engajar e persuadir é natural — mínimo esforço':nat==='C'?'Alto custo para networking e influência social':nat==='S'?'Influência pelo cuidado — moderado':'Influência pelo comando — média eficiência',
+           pergunta:'Quanto esforço você dispende para influenciar, engajar e persuadir grupos?',
+           nat:nat==='I'?88:nat==='D'?55:nat==='S'?50:38,
+           dreno:nat==='I'?5:nat==='D'?20:nat==='S'?30:50,
+           color:DISC_HEX.I,
+           alert:nat==='C'},
           {nome:'Bateria de Estabilidade',
-           desc:`Custo de manter harmonia e rotinas`,
-           nat:nat==='S'?90:nat==='C'?60:45,
-           dreno:nat==='D'?55:nat==='I'?35:10,
-           color:'var(--sky)'},
-          {nome:'Bateria de Qualidade',
-           desc:`Esforço em processos detalhados e conformidade`,
-           nat:nat==='C'?92:nat==='S'?55:40,
-           dreno:nat==='D'||nat==='I'?48:nat==='C'?5:20,
-           color:'var(--mist)'},
+           desc:nat==='S'?'Harmonia e consistência são seu combustível natural':nat==='D'?'Alto dreno para manter paciência e ritmo gradual':nat==='I'?'Moderado — agitação vs. harmonia':'Moderado — ritmo metódico vs. urgência',
+           pergunta:'Quanto custa energeticamente manter harmonia, paciência e rotinas estáveis?',
+           nat:nat==='S'?90:nat==='C'?62:nat==='I'?48:40,
+           dreno:nat==='S'?5:nat==='D'?52:nat==='I'?32:15,
+           color:DISC_HEX.S,
+           alert:nat==='D'},
+          {nome:'Bateria de Processos e Qualidade',
+           desc:nat==='C'?'Análise detalhada e rigor são naturais — baixíssimo custo':nat==='D'?'Exige esforço significativo para seguir processos rígidos':nat==='I'?'Alto custo para manter atenção ao detalhe':'Moderado — estrutura vs. urgência da mudança',
+           pergunta:'Quanto você gasta para garantir precisão, seguir processos e manter padrão de qualidade?',
+           nat:nat==='C'?92:nat==='S'?58:nat==='I'?38:35,
+           dreno:nat==='C'?5:nat==='D'?50:nat==='I'?45:20,
+           color:DISC_HEX.C,
+           alert:nat==='D'||nat==='I'},
         ];
 
-        return`
-        <div style="margin:16px 0">
-          <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--gold);letter-spacing:.1em;margin-bottom:12px">CAPACIDADE GLOBAL (PERFIL ${DISC_NAMES[nat].toUpperCase()})</div>
-          <div style="position:relative;height:36px;background:rgba(255,255,255,.06);border-radius:8px;overflow:hidden;margin-bottom:6px">
-            <div style="position:absolute;left:0;top:0;height:100%;width:${natPct}%;background:linear-gradient(90deg,${DISC_COLORS[nat]},${DISC_COLORS[nat]}99);border-radius:8px 0 0 8px;display:flex;align-items:center;padding-left:12px">
-              <span style="font-size:12px;font-weight:700;color:#fff">${natPct}% Natural</span>
-            </div>
-            <div style="position:absolute;left:${natPct}%;top:0;height:100%;width:${adjPct}%;background:repeating-linear-gradient(45deg,${DISC_COLORS[sec]}44,${DISC_COLORS[sec]}44 4px,${DISC_COLORS[sec]}22 4px,${DISC_COLORS[sec]}22 8px);border-left:2px solid ${drenoColor}">
-              <span style="font-size:11px;color:${drenoColor};padding-left:8px;line-height:36px;white-space:nowrap">${adjPct}% Dreno</span>
-            </div>
-            <div style="position:absolute;left:${natPct+adjPct}%;top:0;height:100%;width:${latentPct}%;background:rgba(255,255,255,.03);border-left:1px dashed rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center">
-              <span style="font-size:11px;color:var(--mid)">${latentPct}% Latente</span>
-            </div>
-          </div>
-          <div style="display:flex;gap:16px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--mid);margin-bottom:20px">
-            <span>🟢 Natural = perfil sustentável</span>
-            <span>🟠 Dreno = custo de adaptação</span>
-            <span>⬜ Latente = potencial ocioso</span>
-          </div>
+        const alertIcon=(a)=>a?'⚠️':'✅';
 
-          ${baterias.map(b=>{
-            const total=Math.min(b.nat+b.dreno,100);
-            const empty=Math.max(0,100-total);
-            return`<div style="margin-bottom:14px">
-              <div style="display:flex;justify-content:space-between;margin-bottom:5px">
-                <span style="font-size:12px;font-weight:700;color:var(--parch)">${b.nome}</span>
-                <span style="font-size:11px;color:var(--mid)">${b.desc}</span>
-              </div>
-              <div style="position:relative;height:22px;background:rgba(255,255,255,.05);border-radius:6px;overflow:hidden">
-                <div style="position:absolute;left:0;top:0;height:100%;width:${b.nat}%;background:${b.color}66;border-radius:6px 0 0 6px"></div>
-                <div style="position:absolute;left:${b.nat}%;top:0;height:100%;width:${b.dreno}%;background:repeating-linear-gradient(45deg,${b.color}44,${b.color}44 3px,${b.color}22 3px,${b.color}22 6px);border-left:2px solid ${b.color}"></div>
-              </div>
-            </div>`;
-          }).join('')}
+        return`
+        <div style="background:#FAF6EE;border-radius:10px;padding:16px;margin-bottom:20px;border:1px solid #E0D8C8">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin-bottom:14px">📊 COMO LER ESTE GRÁFICO</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+            <div style="text-align:center;padding:10px;background:#fff;border-radius:8px;border:1px solid #E0D8C8">
+              <div style="width:100%;height:14px;background:linear-gradient(90deg,${natColor},${natColor}88);border-radius:4px;margin-bottom:6px"></div>
+              <div style="font-size:11px;font-weight:700;color:#1A1612">🟢 Perfil Natural</div>
+              <div style="font-size:11px;color:#4A4038;margin-top:3px;line-height:1.5">Comportamentos que sustenta com facilidade e sem esforço consciente. A bateria se recarrega neste modo.</div>
+            </div>
+            <div style="text-align:center;padding:10px;background:#fff;border-radius:8px;border:1px solid #E0D8C8">
+              <div style="width:100%;height:14px;background:repeating-linear-gradient(45deg,${drenoColor}88,${drenoColor}88 3px,${drenoColor}33 3px,${drenoColor}33 7px);border:1px solid ${drenoColor};border-radius:4px;margin-bottom:6px"></div>
+              <div style="font-size:11px;font-weight:700;color:#1A1612">🟠 Dreno / Custo</div>
+              <div style="font-size:11px;color:#4A4038;margin-top:3px;line-height:1.5">Energia gasta para sustentar comportamentos que não são naturais ao seu perfil. Esse custo é invisível mas acumulativo.</div>
+            </div>
+            <div style="text-align:center;padding:10px;background:#fff;border-radius:8px;border:1px solid #E0D8C8">
+              <div style="width:100%;height:14px;background:#EDE8DC;border:1px dashed #B0A090;border-radius:4px;margin-bottom:6px"></div>
+              <div style="font-size:11px;font-weight:700;color:#1A1612">⬜ Potencial Latente</div>
+              <div style="font-size:11px;color:#4A4038;margin-top:3px;line-height:1.5">Capacidade que existe mas não é utilizada. Competências que aguardam espaço, delegação e alinhamento para florescer.</div>
+            </div>
+          </div>
         </div>
-        <div class="rmod-insight">
-          <strong>Diagnóstico Ativacional:</strong> Seu perfil <strong>${DISC_NAMES[nat]}</strong> opera com ${natPct}% de energia natural e gera um dreno de ${adjPct}% ao adaptar-se ao perfil ${DISC_NAMES[sec]}. 
-          ${dreno==='alto'?`Este nível de dreno é <strong style="color:var(--fire)">crítico</strong> — a exaustão comportamental impacta diretamente a qualidade das decisões e a liderança de longo prazo.`
-          :dreno==='moderado'?`Este nível de dreno é <strong style="color:#F0A050">moderado</strong> — há espaço de melhoria ao redistribuir tarefas conforme seu perfil natural.`
-          :`Este nível de dreno é <strong style="color:#48C864">saudável</strong> — seu ambiente atual permite expressão genuína do seu perfil.`}
-          Seu <strong>Potencial Latente de ${latentPct}%</strong> representa competências geniais que estão ociosas por falta de espaço ou delegação estratégica.
+
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px">CAPACIDADE GLOBAL — PERFIL ${(DISC_NAMES[nat]||nat).toUpperCase()}</div>
+        <div style="position:relative;height:40px;background:#EDE8DC;border-radius:10px;overflow:hidden;margin-bottom:6px;border:1px solid #D8D0C0">
+          <div style="position:absolute;left:0;top:0;height:100%;width:${natPct}%;background:linear-gradient(90deg,${natColor},${natColor}CC);border-radius:10px 0 0 10px;display:flex;align-items:center;padding-left:12px">
+            <span style="font-size:12px;font-weight:700;color:#fff;white-space:nowrap">${natPct}% Natural</span>
+          </div>
+          <div style="position:absolute;left:${natPct}%;top:0;height:100%;width:${adjPct}%;background:repeating-linear-gradient(45deg,${drenoColor}99,${drenoColor}99 4px,${drenoColor}44 4px,${drenoColor}44 8px);border-left:3px solid ${drenoColor};display:flex;align-items:center">
+            ${adjPct>8?`<span style="font-size:11px;color:${drenoColor};padding-left:8px;white-space:nowrap;font-weight:700">${adjPct}% Dreno</span>`:''}
+          </div>
+          <div style="position:absolute;left:${natPct+adjPct}%;top:0;height:100%;right:0;background:#EDE8DC;border-left:2px dashed #B0A090;display:flex;align-items:center;justify-content:center">
+            ${latentPct>6?`<span style="font-size:11px;color:#8A7A5A">${latentPct}% Latente</span>`:''}
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;font-size:10px;font-family:'JetBrains Mono',monospace;color:#6A5A48;margin-bottom:24px;flex-wrap:wrap">
+          <span style="padding:3px 8px;background:#fff;border:1px solid #E0D8C8;border-radius:4px">Perfil Natural: <strong>${DISC_NAMES[nat]}</strong></span>
+          <span style="padding:3px 8px;background:#fff;border:1px solid #E0D8C8;border-radius:4px">Nível de Dreno: <strong style="color:${drenoColor}">${dreno.toUpperCase()}</strong></span>
+          <span style="padding:3px 8px;background:#fff;border:1px solid #E0D8C8;border-radius:4px">Potencial Ocioso: <strong>${latentPct}%</strong></span>
+        </div>
+
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px">BATERIAS ESPECÍFICAS</div>
+        ${baterias.map(b=>{
+          const natW=Math.min(b.nat,100);
+          const drW=Math.min(b.dreno,100-natW);
+          const latW=Math.max(0,100-natW-drW);
+          return`<div style="margin-bottom:20px;background:#fff;border:1px solid ${b.alert?b.color+'66':'#E0D8C8'};border-radius:10px;padding:14px">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;gap:10px">
+              <div>
+                <div style="font-size:13px;font-weight:700;color:#1A1612">${alertIcon(b.alert)} ${b.nome}</div>
+                <div style="font-size:11px;color:#6A5A48;margin-top:2px;line-height:1.5;font-style:italic">"${b.pergunta}"</div>
+              </div>
+              ${b.alert?`<span style="font-size:9px;font-family:'JetBrains Mono',monospace;color:${b.color};background:${b.color}15;padding:3px 8px;border-radius:100px;border:1px solid ${b.color}44;white-space:nowrap;flex-shrink:0">PONTO DE ATENÇÃO</span>`:''}
+            </div>
+            <div style="position:relative;height:24px;background:#EDE8DC;border-radius:6px;overflow:hidden;margin-bottom:8px">
+              <div style="position:absolute;left:0;top:0;height:100%;width:${natW}%;background:${b.color}BB;border-radius:6px 0 0 6px;display:flex;align-items:center;padding-left:8px">
+                ${natW>12?`<span style="font-size:10px;font-weight:700;color:#fff">${natW}%</span>`:''}
+              </div>
+              <div style="position:absolute;left:${natW}%;top:0;height:100%;width:${drW}%;background:repeating-linear-gradient(45deg,${b.color}66,${b.color}66 3px,${b.color}22 3px,${b.color}22 6px);border-left:2px solid ${b.color}">
+                ${drW>12?`<span style="font-size:10px;color:${b.color};padding-left:6px;font-weight:700">${drW}%</span>`:''}
+              </div>
+              <div style="position:absolute;left:${natW+drW}%;top:0;height:100%;right:0;background:#EDE8DC;border-left:1px dashed #B0A090"></div>
+            </div>
+            <div style="font-size:12px;color:#4A4038;line-height:1.6;padding:8px 12px;background:#FAF6EE;border-radius:6px;border-left:3px solid ${b.color}">${b.desc}</div>
+          </div>`;
+        }).join('')}
+
+        <div class="rmod-insight" style="margin-top:4px;border-left-color:${drenoColor};background:${dreno==='alto'?'#FFF0EE':dreno==='moderado'?'#FFF8EE':'#F0FAF0'}">
+          <strong style="color:${drenoColor}">Diagnóstico Ativacional — Nível de Dreno ${drenoLabel}:</strong><br>
+          Seu perfil <strong>${DISC_NAMES[nat]}</strong> opera com <strong>${natPct}%</strong> de energia no modo natural.
+          O custo de adaptação ao perfil <strong>${DISC_NAMES[sec]}</strong> consome <strong>${adjPct}%</strong> da sua capacidade.
+          ${dreno==='alto'
+            ?`<br><br>⚠️ <strong>Atenção:</strong> Este nível de dreno é crítico. A exaustão comportamental acumulada reduz a qualidade das decisões, aumenta o risco de burnout e impacta negativamente a liderança e os relacionamentos. <strong>Prioridade: renegociar responsabilidades para ampliar o espaço do perfil natural.</strong>`
+            :dreno==='moderado'
+            ?`<br><br>🟠 <strong>Atenção:</strong> Nível de dreno moderado. Há espaço de melhoria — identifique quais atividades consomem mais energia e redistribua conforme seu perfil natural.`
+            :`<br><br>✅ <strong>Sinal positivo:</strong> Seu ambiente atual permite expressão genuína do seu perfil. Mantenha este alinhamento e explore o potencial latente de ${latentPct}% ainda disponível.`}
+          <br><br>💎 <strong>Potencial Latente de ${latentPct}%</strong> — competências genuínas que não encontraram espaço ainda. Delegar, reorganizar e alinhar tarefas ao perfil natural é a forma mais eficiente de ativar esse potencial.
         </div>`;
       })()}
     </div>

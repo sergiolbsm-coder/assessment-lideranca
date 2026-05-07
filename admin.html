@@ -678,6 +678,7 @@ function openProfile(id){
 
     <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-gold" onclick="generate360Report(${id})">📋 Relatório 360º</button>
+      <button class="btn btn-outline" onclick="generateIndividualReport(${id})" style="border-color:rgba(74,144,212,.5);color:var(--sky)">📊 Relatório Individual</button>
       <button class="btn btn-outline" onclick="printModal()">🖨️ Imprimir</button>
       <button class="btn btn-outline" onclick="exportOneCSV(${id})">⬇ CSV</button>
       <button class="btn btn-outline" onclick="closeModal()">Fechar</button>
@@ -689,8 +690,372 @@ function openProfile(id){
 function closeModal(){document.getElementById('modal').classList.remove('open')}
 
 // ════════════════════════════════════════════════════
-// RELATÓRIO 360º — Liderança Ativacional
+// RELATÓRIO INDIVIDUAL — mesmo formato do assessment
 // ════════════════════════════════════════════════════
+function generateIndividualReport(id){
+  const r=allData.find(x=>x._id===id);
+  if(!r)return;
+
+  const discN={D:'Dominante',I:'Influente',S:'Estável',C:'Conformidade'};
+  const discHex={D:'#F07030',I:'#F0C030',S:'#4A90D4',C:'#A878E0'};
+  const disc=r.disc_primario||'D';
+  const discSec=r.disc_secundario||'I';
+  const discPcts={D:parseInt(r.disc_D||0),I:parseInt(r.disc_I||0),S:parseInt(r.disc_S||0),C:parseInt(r.disc_C||0)};
+  const discTotal=Math.max(Object.values(discPcts).reduce((a,b)=>a+b,0),1);
+  const nome=r.nome||r.name||'—';
+  const data=r.timestamp?new Date(r.timestamp).toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'}):new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+
+  const natPct=Math.max(0,Math.round((discPcts[disc]/discTotal)*100));
+  const adjPct=Math.max(0,Math.round((discPcts[discSec]/discTotal)*100));
+  const latentPct=Math.max(0,100-natPct-adjPct);
+  const dreno=adjPct>25?'alto':adjPct>15?'moderado':'baixo';
+  const drenoColor=dreno==='alto'?'#D4401A':dreno==='moderado'?'#F0A050':'#22C55E';
+
+  const ennea=parseInt(r.ennea_tipo||'1');
+  const enneaNames={1:'O Perfeccionista',2:'O Ajudador',3:'O Realizador',4:'O Individualista',5:'O Investigador',6:'O Lealista',7:'O Entusiasta',8:'O Desafiador',9:'O Pacificador'};
+  const enneaVicio={1:'Raiva',2:'Orgulho',3:'Vaidade',4:'Inveja',5:'Avareza',6:'Ansiedade',7:'Gula',8:'Excesso de força',9:'Preguiça'};
+  const enneaVirtude={1:'Serenidade',2:'Humildade',3:'Autenticidade',4:'Equanimidade',5:'Desapego',6:'Coragem',7:'Sobriedade',8:'Inocência',9:'Ação'};
+
+  const DISC_PROFILE_DATA={
+    D:{fortes:'Orientação a resultados, assertividade, autonomia, decisão rápida, coragem',atencao:'Pode ser impaciente e autoritário. Dificuldade em ouvir e delegar',delegacao:'Dê a meta, liberdade de método e prazo curto. Cobre entregas, não processos',comunicacao:'Direto, objetivo, foco em resultados. Reuniões curtas e sem rodeios',motivacao:'Desafios, autonomia, reconhecimento por conquistas, competição',desmotivacao:'Microgestão, burocracia, ambientes lentos, decisões em comitê sem prazo',gestao:'Metas desafiadoras com liberdade. Feedback direto. Espaço para liderança'},
+    I:{fortes:'Carisma, comunicação, engajamento, otimismo, criação de conexões',atencao:'Pode ser disperso e superficial. Dificuldade em manter foco e cumprir prazos',delegacao:'Apresente a visão e o reconhecimento. Check-ins frequentes e energizantes',comunicacao:'Entusiasmo, histórias, exemplos práticos. Prefere conversas dinâmicas',motivacao:'Reconhecimento público, visibilidade, projetos novos, feedback positivo',desmotivacao:'Trabalho solitário, rotina repetitiva, falta de reconhecimento, excesso de burocracia',gestao:'Rituais de reconhecimento. Varie as atividades. Ajude a priorizar e concluir'},
+    S:{fortes:'Lealdade, paciência, empatia, consistência, segurança psicológica',atencao:'Pode evitar conflitos necessários e resistir a mudanças bruscas',delegacao:'Explique o contexto, dê tempo para perguntas. Responsabilidades claras',comunicacao:'Gentil, paciente, contextual. Prefere conversas individuais e transparentes',motivacao:'Ambientes harmoniosos, relacionamentos sólidos, consistência, reconhecimento pela lealdade',desmotivacao:'Conflitos frequentes, mudanças bruscas sem explicação, pressão excessiva',gestao:'Estabilidade e previsibilidade. Inclua nas decisões antes de implementar mudanças'},
+    C:{fortes:'Análise crítica, precisão, planejamento, rigor técnico, garantia de qualidade',atencao:'Pode entrar em paralisia analítica e ser excessivamente crítico',delegacao:'Forneça critérios claros, dados suficientes e prazos bem definidos',comunicacao:'Preciso, fundamentado, lógico. Prefere comunicação escrita e estruturada',motivacao:'Precisão, reconhecimento pela competência técnica, clareza de expectativas',desmotivacao:'Improvisação, falta de dados, padrões baixos, pressão para decidir sem informação',gestao:'Defina expectativas com clareza. Dados e ferramentas adequadas. Reconheça pela qualidade'}
+  };
+  const dp=DISC_PROFILE_DATA[disc]||{};
+
+  const needAvgs={
+    Certeza:parseFloat(r.need_certeza||0),Variedade:parseFloat(r.need_variedade||0),
+    Significância:parseFloat(r.need_significancia||0),Conexão:parseFloat(r.need_conexao||0),
+    Crescimento:parseFloat(r.need_crescimento||0),Contribuição:parseFloat(r.need_contribuicao||0)
+  };
+  const needMax=Math.max(...Object.values(needAvgs),1);
+  const need1=r.need_1a||Object.entries(needAvgs).sort((a,b)=>b[1]-a[1])[0][0];
+  const need2=r.need_2a||Object.entries(needAvgs).sort((a,b)=>b[1]-a[1])[1][0];
+
+  const hollandScores={R:parseInt(r.holland_R||0),I:parseInt(r.holland_I||0),A:parseInt(r.holland_A||0),S:parseInt(r.holland_S||0),E:parseInt(r.holland_E||0),C:parseInt(r.holland_C||0)};
+  const hollandColors={R:'#E8763A',I:'#4A90D4',A:'#A878E0',S:'#48C864',E:'#F0C030',C:'#9AB050'};
+  const hollandNames={R:'Realista',I:'Investigativo',A:'Artístico',S:'Social',E:'Empreendedor',C:'Convencional'};
+  const hollandMax=Math.max(...Object.values(hollandScores),1);
+
+  const baterias=[
+    {nome:'Bateria de Decisão',nat:disc==='D'?82:disc==='I'?58:disc==='S'?48:30,dreno:disc==='D'?8:disc==='I'?22:disc==='S'?35:55,color:'#F07030'},
+    {nome:'Bateria de Influência',nat:disc==='I'?88:disc==='D'?55:disc==='S'?50:38,dreno:disc==='I'?5:disc==='D'?20:disc==='S'?30:50,color:'#F0C030'},
+    {nome:'Bateria de Estabilidade',nat:disc==='S'?90:disc==='C'?62:disc==='I'?48:40,dreno:disc==='S'?5:disc==='D'?52:disc==='I'?32:15,color:'#4A90D4'},
+    {nome:'Bateria de Qualidade',nat:disc==='C'?92:disc==='S'?58:disc==='I'?38:35,dreno:disc==='C'?5:disc==='D'?50:disc==='I'?45:20,color:'#A878E0'},
+  ];
+
+  const NEEDS_SUGG={
+    'Certeza':{gap:'Prioriza segurança. Para novos resultados: desenvolva tolerância à incerteza.',dev:['Variedade','Crescimento'],razao:'Variedade treina adaptação e inovação. Crescimento expande o que você considera zona segura.'},
+    'Variedade':{gap:'Energizado por novidade. Para consolidar resultados: desenvolva consistência.',dev:['Certeza','Contribuição'],razao:'Certeza cria disciplina para terminar o que começa. Contribuição ancora propósito além do entusiasmo inicial.'},
+    'Significância':{gap:'Movido por impacto e reconhecimento. Para liderança sustentável: transcenda o ego.',dev:['Conexão','Contribuição'],razao:'Conexão constrói influência independente do status. Contribuição muda o foco para impacto real.'},
+    'Conexão':{gap:'Energizado pelo pertencimento. Para crescer: equilibre cuidado com resultados.',dev:['Crescimento','Significância'],razao:'Crescimento torna você mais valioso para quem ama. Significância desenvolve influência pelo impacto.'},
+    'Crescimento':{gap:'Impulsionado pelo aprendizado. Para transformar em legado: ancore na prática.',dev:['Contribuição','Conexão'],razao:'Contribuição conecta crescimento a resultados reais. Conexão garante que desenvolvimento não vire isolamento.'},
+    'Contribuição':{gap:'Movido por propósito. Para sustentar a missão: cuide da sua própria base.',dev:['Crescimento','Certeza'],razao:'Crescimento pessoal sustenta capacidade de servir sem esgotamento. Certeza cria estabilidade para contribuição duradoura.'}
+  };
+  const sugg=NEEDS_SUGG[need1]||{};
+
+  const html=`<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Relatório Individual — ${nome}</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Syne:wght@400;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Syne',sans-serif;background:#F5F0E8;color:#1A1612;font-size:13px;line-height:1.6}
+.page{max-width:840px;margin:0 auto;padding:32px 28px 60px}
+.toolbar{position:fixed;top:16px;right:16px;z-index:100;display:flex;gap:8px}
+.tb-btn{padding:9px 18px;border-radius:8px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none}
+.tb-gold{background:#C9A84C;color:#0A0806}
+.tb-out{background:#fff;color:#555;border:1px solid #ddd!important}
+.capa{background:#0A0806;color:#FAF6EE;padding:40px;border-radius:14px;margin-bottom:28px}
+.capa-badge{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.16em;color:#C9A84C;text-transform:uppercase;border:1px solid rgba(201,168,76,.3);padding:4px 14px;border-radius:100px;display:inline-block;margin-bottom:14px}
+.capa-title{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;margin-bottom:4px}
+.capa-sub{font-size:13px;color:#B0A090;margin-bottom:24px}
+.capa-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;border-top:1px solid rgba(201,168,76,.2);padding-top:20px}
+.capa-meta .lbl{font-family:'JetBrains Mono',monospace;font-size:9px;color:#8A7A5A;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}
+.capa-meta .val{font-size:14px;font-weight:700}
+.section{background:#fff;border:1px solid #E0D8C8;border-radius:12px;margin-bottom:16px;overflow:hidden;page-break-inside:avoid}
+.sec-head{display:flex;align-items:center;gap:12px;padding:16px 22px;border-bottom:1px solid #EDE8DC;background:#FAF6EE}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:#C9A84C;letter-spacing:.1em;background:rgba(201,168,76,.12);padding:3px 10px;border-radius:100px}
+.sec-icon{font-size:18px;flex-shrink:0}
+.sec-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:#0A0806}
+.sec-badge{margin-left:auto;padding:3px 12px;border-radius:100px;font-size:11px;font-weight:700;white-space:nowrap}
+.sec-body{padding:20px 22px}
+p{font-size:13px;color:#4A4038;line-height:1.7;margin-bottom:10px}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.bar-lbl{font-size:12px;font-weight:700;width:130px;flex-shrink:0}
+.bar-track{flex:1;height:8px;background:#EDE8DC;border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px}
+.bar-val{font-family:'JetBrains Mono',monospace;font-size:11px;color:#C9A84C;width:28px;text-align:right}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.card{background:#FAF6EE;border:1px solid #E0D8C8;border-radius:10px;padding:14px}
+.card-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px}
+.card-val{font-size:14px;font-weight:700;color:#0A0806;margin-bottom:3px}
+.card-sub{font-size:12px;color:#6A5A48;line-height:1.5}
+.insight{background:#F5F0E8;border-left:3px solid #C9A84C;padding:10px 14px;border-radius:0 8px 8px 0;font-size:12px;line-height:1.7;margin:10px 0;color:#2A2018}
+.insight strong{color:#8A6520}
+.alert-box{background:#FFF0EE;border-left:3px solid #EF4444;padding:10px 14px;border-radius:0 8px 8px 0;font-size:12px;line-height:1.7;margin:8px 0;color:#7A0A0A}
+.ok-box{background:#F0FAF4;border-left:3px solid #22C55E;padding:10px 14px;border-radius:0 8px 8px 0;font-size:12px;line-height:1.7;margin:8px 0;color:#0A4A1A}
+table{width:100%;border-collapse:collapse;font-size:12px;margin:10px 0}
+th{background:#0A0806;color:#C9A84C;padding:9px 12px;text-align:left;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase}
+td{padding:9px 12px;border-bottom:1px solid #EDE8DC;color:#4A4038;vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:nth-child(even)td{background:#FAF6EE}
+.pdi-item{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;border-radius:8px;margin-bottom:6px;font-size:12px;line-height:1.6}
+.pdi-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.sugg-box{background:#EEF4FF;border:1px solid #B0C4E8;border-radius:10px;padding:14px;margin-top:12px}
+.footer{text-align:center;padding:24px 0 0;border-top:1px solid #E0D8C8;margin-top:32px;font-family:'JetBrains Mono',monospace;font-size:10px;color:#B0A090}
+@media print{body{background:#fff}.toolbar{display:none!important}.capa{-webkit-print-color-adjust:exact;print-color-adjust:exact}.section{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="toolbar no-print">
+  <button class="tb-btn tb-gold" onclick="window.print()">🖨️ Imprimir / PDF</button>
+  <button class="tb-btn tb-out" onclick="window.close()">✕ Fechar</button>
+</div>
+<div class="page">
+
+<!-- CAPA -->
+<div class="capa">
+  <div class="capa-badge">Instituto da Liderança · Diagnóstico Individual</div>
+  <div class="capa-title">Relatório de Liderança Ativacional</div>
+  <div class="capa-sub">Diagnóstico integrado com 7 instrumentos de autoconhecimento</div>
+  <div class="capa-meta">
+    <div><div class="lbl">Líder</div><div class="val">${nome}</div>${r.email?`<div style="font-size:11px;color:#8A7A5A;margin-top:2px">✉️ ${r.email}</div>`:''}</div>
+    <div><div class="lbl">Programa</div><div class="val">${r.turma||'—'}</div><div style="font-size:11px;color:#8A7A5A">${r.fase||''}</div>${r.empresa?`<div style="font-size:11px;color:#8A7A5A;margin-top:2px">🏢 ${r.empresa}</div>`:''}</div>
+    <div><div class="lbl">Data</div><div class="val">${data}</div></div>
+  </div>
+</div>
+
+<!-- I. DISC -->
+<div class="section">
+  <div class="sec-head">
+    <span class="sec-num">I</span><span class="sec-icon">🎯</span>
+    <span class="sec-title">Perfil DISC — ${discN[disc]||disc}</span>
+    <span class="sec-badge" style="background:${discHex[disc]}22;color:${discHex[disc]}">${discN[disc]||disc}</span>
+  </div>
+  <div class="sec-body">
+    <div style="margin-bottom:16px">
+      ${Object.entries(discPcts).map(([k,v])=>`<div class="bar-row"><span class="bar-lbl" style="color:${discHex[k]}">${discN[k]||k}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.round(v/discTotal*100)}%;background:${discHex[k]}"></div></div><span class="bar-val">${Math.round(v/discTotal*100)}%</span></div>`).join('')}
+    </div>
+    <div class="grid-2">
+      ${[['✅ Pontos Fortes',dp.fortes],['⚠️ Pontos de Atenção',dp.atencao],['📤 Forma de Delegação',dp.delegacao],['🗣️ Comunicação',dp.comunicacao],['⚡ O que Motiva',dp.motivacao],['🚫 O que Desmotiva',dp.desmotivacao]].filter(([,v])=>v).map(([l,v])=>`<div class="card"><div class="card-lbl">${l}</div><div class="card-sub">${v}</div></div>`).join('')}
+    </div>
+    ${dp.gestao?`<div class="insight"><strong>Gestão de Pessoas:</strong> ${dp.gestao}</div>`:''}
+  </div>
+</div>
+
+<!-- II. TEMPERAMENTO -->
+<div class="section">
+  <div class="sec-head">
+    <span class="sec-num">II</span><span class="sec-icon">${{FOGO:'🔥',TERRA:'🌿','ÁGUA':'💧',AR:'💨'}[r.elem_primario]||'🌿'}</span>
+    <span class="sec-title">Temperamento — Elemento ${r.elem_primario||'—'}</span>
+    <span class="sec-badge" style="background:rgba(201,168,76,.12);color:#8A6520">${r.elem_primario||'—'}</span>
+  </div>
+  <div class="sec-body">
+    <p>${{FOGO:'Energia assertiva, ritmo intenso, orientação ao comando. Alta presença e tomada de decisão rápida.',TERRA:'Energia analítica, ritmo metódico, orientação à precisão e qualidade. Rigor técnico e comprometimento.','ÁGUA':'Energia diplomática, ritmo compassivo, orientação ao pertencimento e harmonia.',AR:'Energia visionária, ritmo criativo, orientação à inovação e novas possibilidades.'}[r.elem_primario]||'—'}</p>
+    <div class="insight"><strong>Postura de liderança:</strong> ${{FOGO:'Lidere pela ação e pelo resultado. Sua energia inspira urgência — equilibre com escuta ativa e paciência com ritmos diferentes.',TERRA:'Lidere pela qualidade e pela profundidade. Sua precisão gera confiança — equilibre com flexibilidade e tolerância à ambiguidade.','ÁGUA':'Lidere pela conexão e pela diplomacia. Sua habilidade de criar coesão é rara — equilibre com assertividade quando necessário.',AR:'Lidere pela visão e pela inovação. Sua capacidade de imaginar o futuro é diferencial — equilibre com sistemas de execução e acompanhamento.'}[r.elem_primario]||'—'}</div>
+  </div>
+</div>
+
+<!-- III. ENEAGRAMA -->
+<div class="section">
+  <div class="sec-head">
+    <span class="sec-num">III</span><span class="sec-icon">⬡</span>
+    <span class="sec-title">Eneagrama — Tipo ${ennea}</span>
+    <span class="sec-badge" style="background:rgba(168,120,224,.12);color:#A878E0">Tipo ${ennea}</span>
+  </div>
+  <div class="sec-body">
+    <div class="grid-2" style="margin-bottom:14px">
+      <div class="card"><div class="card-lbl">Eneatipo</div><div class="card-val">Tipo ${ennea} · ${enneaNames[ennea]||'—'}</div></div>
+      <div class="card"><div class="card-lbl">Vício Emocional (sob estresse)</div><div class="card-val" style="color:#EF4444">${enneaVicio[ennea]||'—'}</div></div>
+      <div class="card"><div class="card-lbl">Virtude (em presença plena)</div><div class="card-val" style="color:#22C55E">${enneaVirtude[ennea]||'—'}</div></div>
+      <div class="card"><div class="card-lbl">Nome do Respondente</div><div class="card-val">${r.ennea_nome||enneaNames[ennea]||'—'}</div></div>
+    </div>
+    <div class="insight"><strong>Sinal de Estresse (DISC × Eneagrama):</strong> A combinação de perfil <strong>${discN[disc]}</strong> com Tipo <strong>${ennea}</strong> — sob pressão — tende a amplificar comportamentos reativos: o vício de <em>${enneaVicio[ennea]||'—'}</em> pode aparecer junto com os excessos do perfil ${discN[disc]}. Reconhecer este padrão em tempo real é a principal alavanca de desenvolvimento.</div>
+  </div>
+</div>
+
+<!-- IV. ARQUÉTIPOS -->
+<div class="section">
+  <div class="sec-head">
+    <span class="sec-num">IV</span><span class="sec-icon">⚔️</span>
+    <span class="sec-title">Arquétipo — ${r.arquetipos||'—'}</span>
+    <span class="sec-badge" style="background:rgba(201,168,76,.12);color:#C9A84C">${r.arquetipos||'—'}</span>
+  </div>
+  <div class="sec-body">
+    <p>${{Herói:'O Herói lidera pela ação e pela superação. Autoridade vem da coragem demonstrada. Projeta visão pelo exemplo.',Mago:'O Mago lidera pela transformação e pela visão. Usa linguagem de possibilidade — projeta autoridade pelo conhecimento aplicado.',Sábio:'O Sábio lidera pelo discernimento e pela orientação. As pessoas o buscam quando precisam compreender algo complexo.',Cuidador:'O Cuidador lidera pelo serviço. Projeta autoridade pela generosidade — as pessoas o seguem por se sentirem genuinamente vistas.',Guerreiro:'O Guerreiro lidera pela integridade e pela missão. Projeta autoridade pela consistência e pelo exemplo ético.','Rei/Rainha':'O Soberano lidera pela ordem e pela visão de longo prazo. Cria estruturas e rituais que geram prosperidade coletiva.',Criador:'O Criador lidera pela inovação e pela originalidade. Transforma ambientes em espaços de possibilidade e experimentação.'}[r.arquetipos]||'Arquétipo que emergiu pelas escolhas instintivas nas situações apresentadas.'}</p>
+    <div class="insight"><strong>Sombra do Arquétipo:</strong> Todo arquétipo tem um excesso — a qualidade que, usada em demasia, torna-se limitação. Integrar a sombra é o caminho para uma liderança completa e autêntica.</div>
+  </div>
+</div>
+
+<!-- V. KOLB -->
+<div class="section">
+  <div class="sec-head">
+    <span class="sec-num">V</span><span class="sec-icon">🔄</span>
+    <span class="sec-title">Kolb — ${r.kolb_estilo||'—'}</span>
+    <span class="sec-badge" style="background:rgba(74,144,212,.12);color:#4A90D4">${r.kolb_estilo||'—'}</span>
+  </div>
+  <div class="sec-body">
+    <p>${{Convergente:'Aprende resolvendo problemas práticos. Forte em tomada de decisão técnica e implementação. Prefere experimentar e ver resultados concretos.',Divergente:'Aprende pela experiência e reflexão coletiva. Forte em empatia e geração de ideias. Decisões influenciadas pela perspectiva humana.',Assimilador:'Aprende por modelos teóricos e observação. Forte em raciocínio lógico e planejamento. Decisões embasadas em dados e frameworks.',Acomodador:'Aprende na ação e na adaptação. Forte em execução e intuição. Decisões rápidas ajustadas no caminho.'}[r.kolb_estilo]||'—'}</p>
+    <div class="grid-2">
+      <div class="card"><div class="card-lbl">Como aprender com este líder</div><div class="card-sub">${{Convergente:'Problemas práticos para resolver, simulações e aplicação imediata. Mínimo de teoria pura.',Divergente:'Debates em grupo, troca de experiências e perspectivas diferentes.',Assimilador:'Frameworks, modelos conceituais, materiais estruturados e tempo para reflexão.',Acomodador:'Experimentação, autonomia para testar e feedback rápido de resultado.'}[r.kolb_estilo]||'—'}</div></div>
+      <div class="card"><div class="card-lbl">Ponto cego de aprendizagem</div><div class="card-sub">${{Convergente:'Pode perder a dimensão humana e o impacto emocional das decisões.',Divergente:'Pode ficar em análise reflexiva e não chegar à ação concreta.',Assimilador:'Pode perder o contato com a realidade prática e o fator humano.',Acomodador:'Pode agir sem reflexão suficiente e repetir erros por falta de análise.'}[r.kolb_estilo]||'—'}</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- VI. NECESSIDADES -->
+<div class="section">
+  <div class="sec-head">
+    <span class="sec-num">VI</span><span class="sec-icon">💫</span>
+    <span class="sec-title">6 Necessidades — ${need1} + ${need2}</span>
+    <span class="sec-badge" style="background:rgba(240,160,80,.12);color:#F0A050">${need1}</span>
+  </div>
+  <div class="sec-body">
+    <div style="margin-bottom:14px">
+      ${Object.entries(needAvgs).map(([k,v])=>`<div class="bar-row"><span class="bar-lbl">${k}</span><div class="bar-track"><div class="bar-fill" style="width:${v/needMax*100}%;background:#F0A050"></div></div><span class="bar-val">${v.toFixed(1)}</span></div>`).join('')}
+    </div>
+    ${sugg.gap?`<div class="sugg-box">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#4A70B0;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">💡 Sugestão para Mudança de Padrão</div>
+      <p style="color:#2A3A5A;margin-bottom:8px">${sugg.gap}</p>
+      <p style="color:#1A1612;margin-bottom:6px"><strong>Necessidades a desenvolver:</strong> ${(sugg.dev||[]).join(' + ')}</p>
+      <p style="color:#4A4A6A;font-size:12px">${sugg.razao||''}</p>
+    </div>`:''}
+  </div>
+</div>
+
+<!-- VII. HOLLAND -->
+<div class="section">
+  <div class="sec-head">
+    <span class="sec-num">VII</span><span class="sec-icon">🧭</span>
+    <span class="sec-title">Holland RIASEC — <span style="color:#E8A840;font-weight:800">${r.holland_codigo||'—'}</span></span>
+    <span class="sec-badge" style="background:rgba(232,168,64,.12);color:#E8A840;font-size:14px;font-weight:800">${r.holland_codigo||'—'}</span>
+  </div>
+  <div class="sec-body">
+    <div style="margin-bottom:14px">
+      ${Object.entries(hollandScores).map(([k,v])=>`<div class="bar-row"><span class="bar-lbl" style="color:${hollandColors[k]}">${k} · ${hollandNames[k]}</span><div class="bar-track"><div class="bar-fill" style="width:${v/hollandMax*100}%;background:${hollandColors[k]}"></div></div><span class="bar-val">${v}</span></div>`).join('')}
+    </div>
+    <div class="insight"><strong>Aderência Vocacional:</strong> O código ${r.holland_codigo||'—'} indica inclinação natural para ambientes que permitem expressão das três principais dimensões. Quanto maior o alinhamento entre o trabalho atual e o código Holland, menor o desgaste energético.</div>
+  </div>
+</div>
+
+<!-- VIII. BATERIA DE ENERGIA -->
+<div class="section">
+  <div class="sec-head">
+    <span class="sec-num">VIII</span><span class="sec-icon">🔋</span>
+    <span class="sec-title">Bateria de Energia Comportamental</span>
+    <span class="sec-badge" style="background:${dreno==='alto'?'rgba(239,68,68,.12)':dreno==='moderado'?'rgba(240,160,80,.12)':'rgba(34,197,94,.12)'};color:${drenoColor}">Dreno ${dreno.toUpperCase()}</span>
+  </div>
+  <div class="sec-body">
+    <p>Este indicador quantifica o esforço mental invisível para sustentar comportamentos não naturais. Quanto maior o dreno, maior o risco de exaustão e menor a qualidade de decisão ao longo do tempo.</p>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin:14px 0 8px">CAPACIDADE GLOBAL — PERFIL ${discN[disc]}</div>
+    <div style="position:relative;height:38px;background:#EDE8DC;border-radius:10px;overflow:hidden;margin-bottom:6px;border:1px solid #D8D0C0">
+      <div style="position:absolute;left:0;top:0;height:100%;width:${natPct}%;background:${discHex[disc]};border-radius:10px 0 0 10px;display:flex;align-items:center;padding-left:12px">
+        <span style="font-size:12px;font-weight:700;color:#fff;white-space:nowrap">${natPct}% Natural</span>
+      </div>
+      <div style="position:absolute;left:${natPct}%;top:0;height:100%;width:${adjPct}%;background:repeating-linear-gradient(45deg,${drenoColor}99,${drenoColor}99 4px,${drenoColor}44 4px,${drenoColor}44 8px);border-left:3px solid ${drenoColor};display:flex;align-items:center">
+        ${adjPct>8?`<span style="font-size:11px;color:${drenoColor};padding-left:8px;white-space:nowrap;font-weight:700">${adjPct}% Dreno</span>`:''}
+      </div>
+      <div style="position:absolute;left:${natPct+adjPct}%;top:0;height:100%;right:0;background:#EDE8DC;border-left:2px dashed #B0A090;display:flex;align-items:center;justify-content:center">
+        ${latentPct>6?`<span style="font-size:11px;color:#8A7A5A">${latentPct}% Latente</span>`:''}
+      </div>
+    </div>
+    ${baterias.map(b=>`<div style="margin-bottom:12px">
+      <div style="font-size:12px;font-weight:700;color:#1A1612;margin-bottom:4px">${b.nome}</div>
+      <div style="position:relative;height:20px;background:#EDE8DC;border-radius:5px;overflow:hidden">
+        <div style="position:absolute;left:0;top:0;height:100%;width:${Math.min(b.nat,100)}%;background:${b.color}AA;border-radius:5px 0 0 5px"></div>
+        <div style="position:absolute;left:${Math.min(b.nat,100)}%;top:0;height:100%;width:${Math.min(b.dreno,100-b.nat)}%;background:repeating-linear-gradient(45deg,${b.color}66,${b.color}66 3px,${b.color}22 3px,${b.color}22 6px);border-left:2px solid ${b.color}"></div>
+      </div>
+    </div>`).join('')}
+    <div class="${dreno==='alto'?'alert-box':dreno==='moderado'?'insight':'ok-box'}">
+      <strong>Diagnóstico:</strong> Perfil <strong>${discN[disc]}</strong> — ${natPct}% natural, ${adjPct}% dreno, ${latentPct}% potencial latente.
+      ${dreno==='alto'?` Nível CRÍTICO: risco real de burnout. Priorize renegociar responsabilidades.`:dreno==='moderado'?` Nível MODERADO: identifique e redistribua atividades de maior custo.`:` Nível SAUDÁVEL: ambiente alinhado ao perfil. Explore o potencial latente restante.`}
+    </div>
+  </div>
+</div>
+
+<!-- IX. SOMBRAS -->
+<div class="section">
+  <div class="sec-head">
+    <span class="sec-num">IX</span><span class="sec-icon">🌑</span>
+    <span class="sec-title">Comportamentos de Sombra</span>
+    <span class="sec-badge" style="background:rgba(239,68,68,.1);color:#EF4444">Zona de Risco</span>
+  </div>
+  <div class="sec-body">
+    <table>
+      <tr><th>Estilo em Sombra</th><th>Comportamento Oculto</th><th>Gap de Performance</th></tr>
+      ${[
+        {k:'D',label:'Sombra da Dominância',comp:'Pavio curto e surdez seletiva — deixa de ouvir especialistas por pressa de decidir.',gap:'Perda de Capital Intelectual: turnover e desmotivação de talentos-chave.'},
+        {k:'I',label:'Sombra da Influência',comp:'Desorganização e impulsividade — promete prazos impossíveis para ser popular.',gap:'Quebra de Confiança: falhas em entregas críticas e falta de rigor nos processos.'},
+        {k:'S',label:'Sombra da Estabilidade',comp:'Resistência passiva — mantém o status quo por medo da mudança necessária.',gap:'Obsolescência Operacional: perde agilidade e para de inovar.'},
+        {k:'C',label:'Sombra da Conformidade',comp:'Crítica excessiva — foca no detalhe e perde a visão estratégica do todo.',gap:'Paralisia por Análise: projetos travam em revisões infinitas.'},
+      ].map(s=>`<tr style="${s.k===disc?'background:#FFF5F0;':''}">
+        <td style="font-weight:700;color:${discHex[s.k]};white-space:nowrap">${s.label}${s.k===disc?` <span style="font-size:9px;background:#FFEAEA;color:#EF4444;padding:2px 6px;border-radius:100px">SEU PERFIL</span>`:''}</td>
+        <td>${s.comp}</td><td>${s.gap}</td>
+      </tr>`).join('')}
+    </table>
+  </div>
+</div>
+
+<!-- X. POTENCIAL LATENTE -->
+<div class="section">
+  <div class="sec-head">
+    <span class="sec-num">X</span><span class="sec-icon">💎</span>
+    <span class="sec-title">Potencial Latente</span>
+    <span class="sec-badge" style="background:rgba(34,197,94,.1);color:#22C55E">Oportunidades</span>
+  </div>
+  <div class="sec-body">
+    <table>
+      <tr><th>Instrumento</th><th>Potencial Latente</th><th>Ação para Ativar</th></tr>
+      <tr><td style="font-weight:700;color:${discHex[discSec]}">DISC ${discN[discSec]||discSec}</td><td>${{D:'Velocidade decisória e assertividade',I:'Engajamento e influência de equipes maiores',S:'Mentoria e criação de segurança psicológica',C:'Rigor analítico e qualidade como vantagem'}[discSec]||'—'}</td><td>${{D:'Assumir projetos de transformação onde velocidade é diferencial',I:'Liderar iniciativas de cultura e engajamento',S:'Delegar o operacional e desenvolver talentos',C:'Estruturar processos e governança como legado'}[discSec]||'—'}</td></tr>
+      <tr><td style="font-weight:700;color:#E8A840">Holland ${r.holland_codigo||'—'}</td><td>Inclinação vocacional — ambientes de alto alinhamento onde opera com energia natural e zero esforço de adaptação</td><td>Redirecionar 30%+ das atividades para projetos alinhados ao código ${r.holland_codigo||'—'}</td></tr>
+      <tr><td style="font-weight:700;color:#A878E0">Eneagrama T${ennea}</td><td>Virtude do Tipo ${ennea}: <strong>${enneaVirtude[ennea]||'—'}</strong> — ainda pouco expressa na liderança atual</td><td>Praticar a virtude como âncora de liderança consciente — ela converte o vício emocional em força genuína</td></tr>
+      <tr><td style="font-weight:700;color:#F0A050">Necessidade ${need1}</td><td>Quando plenamente atendida, opera no melhor estado — criativo, presente e de alto impacto</td><td>Mapear quais atividades alimentam ${need1} e priorizar estrategicamente esses contextos</td></tr>
+    </table>
+    <div class="ok-box" style="margin-top:12px"><strong>Diagnóstico Ativacional:</strong> Ativar os potenciais latentes não exige mais esforço — exige <em>melhor direcionamento de quem você já é</em>.</div>
+  </div>
+</div>
+
+<!-- PDI -->
+<div class="section" style="border-color:#C9A84C">
+  <div class="sec-head"><span class="sec-num">PDI</span><span class="sec-icon">🎯</span><span class="sec-title">Plano de Desenvolvimento Individual</span></div>
+  <div class="sec-body">
+    <div style="margin-bottom:14px">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#22C55E;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;font-weight:700">🟢 COMEÇAR</div>
+      <div class="pdi-item" style="background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.2)"><div class="pdi-dot" style="background:#22C55E"></div><span>Desenvolver as competências do quadrante ${discN[discSec]} para uma liderança mais completa e versátil</span></div>
+      <div class="pdi-item" style="background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.2)"><div class="pdi-dot" style="background:#22C55E"></div><span>Praticar a virtude do Eneagrama Tipo ${ennea} (${enneaVirtude[ennea]||'—'}) como âncora nos momentos de estresse e pressão</span></div>
+      <div class="pdi-item" style="background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.2)"><div class="pdi-dot" style="background:#22C55E"></div><span>Redirecionar pelo menos 30% das atividades para projetos alinhados ao código Holland ${r.holland_codigo||'—'}</span></div>
+    </div>
+    <div style="margin-bottom:14px">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#EF4444;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;font-weight:700">🔴 PARAR</div>
+      <div class="pdi-item" style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2)"><div class="pdi-dot" style="background:#EF4444"></div><span>Sustentar comportamentos de alto custo energético sem monitorar o nível de dreno comportamental</span></div>
+      <div class="pdi-item" style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2)"><div class="pdi-dot" style="background:#EF4444"></div><span>Ignorar os sinais de sombra do perfil ${discN[disc]} — reconhecê-los em tempo real é a diferença entre liderança reativa e ativacional</span></div>
+      <div class="pdi-item" style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2)"><div class="pdi-dot" style="background:#EF4444"></div><span>Medir valor pessoal apenas por métricas de resultado — a necessidade de ${need1} não atendida distorce a leitura do próprio desempenho</span></div>
+    </div>
+    <div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;font-weight:700">🟡 CONTINUAR</div>
+      <div class="pdi-item" style="background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.2)"><div class="pdi-dot" style="background:#C9A84C"></div><span>Cultivar o talento natural de ${discN[disc]} como principal alavanca de liderança — é onde você opera com mais autenticidade e impacto</span></div>
+      <div class="pdi-item" style="background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.2)"><div class="pdi-dot" style="background:#C9A84C"></div><span>Desenvolver equipes com perfis complementares — especialmente ${disc==='D'?'S e C':disc==='I'?'C e S':disc==='S'?'D e I':'D e I'}</span></div>
+      <div class="pdi-item" style="background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.2)"><div class="pdi-dot" style="background:#C9A84C"></div><span>Investir em desenvolvimento contínuo — autoconhecimento é vantagem competitiva duradoura e inalienável</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">Instituto da Liderança · CNPJ 22.233.124/0001-50 · @institutodaideranca · ${data}</div>
+
+</div>
+</body>
+</html>`;
+
+  const w=window.open('','_blank');
+  if(!w){toast('Permita pop-ups para gerar o relatório','warn');return;}
+  w.document.write(html);
+  w.document.close();
+}
 function generate360Report(id){
   const r=allData.find(x=>x._id===id);
   if(!r)return;
