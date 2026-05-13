@@ -2548,10 +2548,10 @@ function calcPontosRespondente(r, rodadaFiltro){
 
 function getNivel(pts, posicao1, turmaTotal){
   const niveis=getNiveis();
-  // Check top1 tier
+  // Impact Leader Elite = quem atingir a pontuação mínima do nível top1 (pode ser mais de 1 por turma)
   const top1=niveis.find(n=>n.min==='top1');
-  if(top1 && posicao1===1 && turmaTotal>1) return top1;
-  // Numeric tiers
+  if(top1 && posicao1===1) return top1;
+  // Numeric tiers — ordered highest first
   const sorted=[...niveis].filter(n=>n.min!=='top1').sort((a,b)=>b.min-a.min);
   return sorted.find(n=>pts>=n.min && pts<=n.max)||null;
 }
@@ -2587,6 +2587,8 @@ function renderRanking(){
     const sorted=[...items].sort((a,b)=>b.total-a.total);
     const maxPts=sorted[0]?.total||1;
     const turmaTotal=sorted.length;
+    // Find max score to identify all tied at 1st place
+    const maxScore=sorted[0]?.total||0;
 
     return`<div class="rank-card">
       <div class="rank-card-header">
@@ -2597,7 +2599,9 @@ function renderRanking(){
         </div>
       </div>
       ${sorted.map((x,i)=>{
-        const nivel=getNivel(x.total, i+1, turmaTotal);
+        // Anyone tied with max score gets position 1 (can all be Elite)
+        const isTop = maxScore > 0 && x.total === maxScore;
+        const nivel=getNivel(x.total, isTop?1:i+1, turmaTotal);
         const dc=discColors[x.r.disc_primario]||'var(--gold)';
         const barW=maxPts>0?Math.max(4,Math.round(x.total/maxPts*100)):0;
         const posIcon=i<3?medals[i]:`<span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--mid)">${i+1}º</span>`;
