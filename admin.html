@@ -389,6 +389,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
     <div id="tab-ranking" class="tab-panel">
       <div class="page-header">
         <div><div class="page-title">Ranking Impact Leader</div><div class="page-sub">Classificação por turma e por rodada</div></div>
+        <button class="btn btn-gold btn-sm" id="btn-save-ranking" onclick="saveRankingToSheet()">💾 Salvar na Planilha</button>
         <button class="btn btn-outline btn-sm" onclick="exportRankingCSV()">⬇ Exportar CSV</button>
       </div>
 
@@ -2440,6 +2441,7 @@ function syncGamificacaoSelects(){
 }
 
 // ── PONTUAÇÃO ─────────────────────────────────────────
+function renderPontuacaoTable(){
   const turma = document.getElementById('pts-turma')?.value;
   const rodada = document.getElementById('pts-rodada')?.value||'1';
   const wrap = document.getElementById('pts-table-wrap');
@@ -2482,16 +2484,21 @@ function syncGamificacaoSelects(){
             const key=respKey(r);
             const rdData=pontuacoes[key]?.[rodada]||{};
             const total=atividades.reduce((sum,a)=>sum+(rdData[a.id]?a.pts:0),0);
-            const dc=discColors[r.disc_primario]||'var(--gold)';
+            const dc=discColors[r.disc_primario]||'#C9A84C';
             const dn=(discNames[r.disc_primario]||r.disc_primario||'—').slice(0,3);
-            return`<tr>
-              <td class="td-name">${r.nome||r.name||'—'}</td>
-              <td><span style="font-size:10px;font-weight:700;color:${dc};font-family:JetBrains Mono">${dn}</span></td>
-              ${atividades.map(a=>`<td style="text-align:center">
-                <input type="checkbox" class="pts-check" data-key="${key}" data-rodada="${rodada}" data-atv="${a.id}" ${rdData[a.id]?'checked':''} onchange="togglePonto(this)">
-              </td>`).join('')}
-              <td style="text-align:right"><span class="pts-total" id="pts-total-${key.replace(/[^a-zA-Z0-9]/g,'_')}">${total}</span></td>
-            </tr>`;
+            const safeKey=key.replace(/[^a-zA-Z0-9]/g,'_');
+            const atvCols=atividades.map(a=>{
+              const checked=rdData[a.id]?'checked':'';
+              return '<td style="text-align:center"><input type="checkbox" class="pts-check"'+
+                ' data-key="'+key+'" data-rodada="'+rodada+'" data-atv="'+a.id+'" '+checked+
+                ' onchange="togglePonto(this)"></td>';
+            }).join('');
+            return '<tr>'+
+              '<td class="td-name">'+(r.nome||r.name||'—')+'</td>'+
+              '<td><span style="font-size:10px;font-weight:700;color:'+dc+';font-family:JetBrains Mono">'+dn+'</span></td>'+
+              atvCols+
+              '<td style="text-align:right"><span class="pts-total" id="pts-total-'+safeKey+'">'+total+'</span></td>'+
+              '</tr>';
           }).join('')}
         </tbody>
       </table>
@@ -2610,6 +2617,60 @@ function renderRanking(){
       }).join('')}
     </div>`;
   }).join('');
+}
+
+function saveRankingToSheet(){
+  const rodadaFilter=document.getElementById('rank-rodada')?.value||'';
+  const turmaFilter=document.getElementById('rank-turma')?.value||'';
+  const lista=allData.map(r=>({r,...calcPontosRespondente(r,rodadaFilter)}))
+    .filter(x=>!turmaFilter||x.r.turma===turmaFilter);
+  if(!lista.length){toast('Sem dados para salvar','warn');return;}
+
+  const rows=[];
+  const byTurma={};
+  lista.forEach(x=>{const t=x.r.turma||'Sem turma';if(!byTurma[t])byTurma[t]=[];byTurma[t].push(x);});
+  Object.values(byTurma).forEach(items=>{
+    const sorted=[...items].sort((a,b)=>b.total-a.total);
+    const maxScore=sorted[0]?.total||0;
+    sorted.forEach((x,i)=>{
+      const isTop=maxScore>0&&x.total===maxScore;
+      const nivel=getNivel(x.total,isTop?1:i+1,sorted.length);
+      rows.push({
+        timestamp:new Date().toISOString(),
+        nome:x.r.nome||'',
+        email:x.r.email||'',
+        turma:x.r.turma||'',
+        disc:x.r.disc_primario||'',
+        rodada:rodadaFilter||'Acumulado',
+        posicao:i+1,
+        pontos:x.total,
+        nivel:nivel?.nome||'—'
+      });
+    });
+  });
+
+  const scriptUrl=getCfg('script_url','https://script.google.com/macros/s/AKfycbxwrET5t_GSWZc-EI8ZptSPTHZnXW1I_fIY1xB0tkqwXDKTHOuIOC52wWo4xGuB0L8aPw/exec');
+  if(!scriptUrl){toast('Configure o Apps Script na aba Configuração','warn');return;}
+
+  const btn=document.getElementById('btn-save-ranking');
+  if(btn){btn.textContent='⏳ Salvando...';btn.disabled=true;}
+
+  fetch(scriptUrl,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'saveRanking',rows})
+  })
+  .then(r=>r.json())
+  .then(d=>{
+    if(btn){btn.textContent='💾 Salvar na Planilha';btn.disabled=false;}
+    if(d.status==='ok'){toast('✅ Ranking salvo na planilha ('+rows.length+' registros)','success');}
+    else{toast('⚠️ Erro ao salvar: '+d.message,'warn');}
+  })
+  .catch(e=>{
+    if(btn){btn.textContent='💾 Salvar na Planilha';btn.disabled=false;}
+    toast('⚠️ Falha na conexão com o Apps Script','warn');
+    console.error(e);
+  });
 }
 
 function exportRankingCSV(){
@@ -2748,4 +2809,59 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 </script>
 </body>
-</html>
+</html>function renderPontuacaoTable(){
+  const turma = document.getElementById('pts-turma')?.value;
+  const rodada = document.getElementById('pts-rodada')?.value||'1';
+  const wrap = document.getElementById('pts-table-wrap');
+  if(!wrap) return;
+
+  if(!turma){
+    wrap.innerHTML='<div class="empty-state"><div class="empty-icon">🎯</div><div class="empty-title">Selecione uma turma</div></div>';
+    return;
+  }
+
+  const participantes = allData.filter(r=>r.turma===turma);
+  if(!participantes.length){
+    wrap.innerHTML='<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">Nenhum respondente nesta turma</div></div>';
+    return;
+  }
+
+  const atividades = getAtividades();
+  const pontuacoes = getPontuacoes();
+  const discColors={D:'#F07030',I:'#F0C030',S:'#4A90D4',C:'#A878E0'};
+  const discNames={D:'Dominante',I:'Influente',S:'Estável',C:'Conformidade'};
+
+  // Build HTML using string concatenation to avoid nested template literal issues
+  let html = '<div class="table-wrap" style="overflow-x:auto"><table class="pts-table" style="min-width:700px"><thead>';
+  html += '<tr><th style="min-width:160px">Participante</th><th style="min-width:80px">DISC</th>';
+  atividades.forEach(a=>{html+='<th title="'+a.nome+'" style="min-width:52px;text-align:center">'+a.pts+'pts</th>';});
+  html += '<th style="text-align:right;min-width:80px">Total</th></tr>';
+  html += '<tr style="background:rgba(201,168,76,.04)"><td colspan="2" style="font-size:10px;color:var(--mid);padding:4px 10px">Atividade →</td>';
+  atividades.forEach(a=>{
+    const label=a.nome.split(' ').slice(0,2).join(' ');
+    html+='<td title="'+a.nome+'" style="font-size:9px;color:var(--mid);padding:4px 6px;text-align:center;max-width:52px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+label+'</td>';
+  });
+  html += '<td></td></tr></thead><tbody>';
+
+  participantes.forEach(r=>{
+    const key=respKey(r);
+    const rdData=(pontuacoes[key]||{})[rodada]||{};
+    const total=atividades.reduce((sum,a)=>sum+(rdData[a.id]?a.pts:0),0);
+    const dc=discColors[r.disc_primario]||'#C9A84C';
+    const dn=(discNames[r.disc_primario]||r.disc_primario||'—').slice(0,3);
+    const safeKey=key.replace(/[^a-zA-Z0-9]/g,'_');
+    html += '<tr>';
+    html += '<td class="td-name">'+(r.nome||r.name||'—')+'</td>';
+    html += '<td><span style="font-size:10px;font-weight:700;color:'+dc+';font-family:JetBrains Mono">'+dn+'</span></td>';
+    atividades.forEach(a=>{
+      const checked=rdData[a.id]?'checked':'';
+      html+='<td style="text-align:center"><input type="checkbox" class="pts-check" data-key="'+key+'" data-rodada="'+rodada+'" data-atv="'+a.id+'" '+checked+' onchange="togglePonto(this)"></td>';
+    });
+    html += '<td style="text-align:right"><span class="pts-total" id="pts-total-'+safeKey+'">'+total+'</span></td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+  html += '<div style="font-size:12px;color:var(--mid);padding:10px 0">Rodada '+rodada+' · '+participantes.length+' participante(s) · '+atividades.length+' atividade(s)</div>';
+  wrap.innerHTML = html;
+}

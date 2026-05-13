@@ -63,6 +63,11 @@ function doPost(e) {
 
     var data = JSON.parse(e.postData.contents);
 
+    // Handle ranking save action
+    if (data.action === 'saveRanking') {
+      return doSaveRanking(data.rows);
+    }
+
     var linha = [
       data.timestamp           || new Date().toISOString(),
       data.nome                || '',
@@ -153,6 +158,55 @@ function configurarCabecalhos() {
   Logger.log('✅ Cabeçalhos configurados: ' + CABECALHOS.length + ' colunas');
 }
 
+// ── Salvar Ranking ───────────────────────────────────────────────────────────
+function doSaveRanking(rows) {
+  try {
+    var ss    = SpreadsheetApp.openById(SHEET_ID);
+    var aba   = 'Ranking';
+    var sheet = ss.getSheetByName(aba);
+
+    if (!sheet) {
+      sheet = ss.insertSheet(aba);
+      var headers = ['timestamp','nome','email','turma','disc','rodada','posicao','pontos','nivel'];
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      var hr = sheet.getRange(1, 1, 1, headers.length);
+      hr.setFontWeight('bold');
+      hr.setBackground('#0A0806');
+      hr.setFontColor('#C9A84C');
+      sheet.setFrozenRows(1);
+    }
+
+    if (!rows || !rows.length) {
+      return ContentService.createTextOutput(JSON.stringify({status:'ok', saved:0}))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    var data = rows.map(function(r) {
+      return [r.timestamp||'', r.nome||'', r.email||'', r.turma||'',
+              r.disc||'', r.rodada||'', r.posicao||0, r.pontos||0, r.nivel||''];
+    });
+
+    sheet.getRange(sheet.getLastRow()+1, 1, data.length, data[0].length).setValues(data);
+
+    // Format alternating rows
+    var lastRow = sheet.getLastRow();
+    for (var i = 2; i <= lastRow; i++) {
+      if (i % 2 === 0) {
+        sheet.getRange(i, 1, 1, 9).setBackground('#F5F0E8');
+      }
+    }
+
+    return ContentService.createTextOutput(JSON.stringify({status:'ok', saved: data.length}))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch(err) {
+    Logger.log('Erro doSaveRanking: ' + err.toString());
+    return ContentService.createTextOutput(JSON.stringify({status:'error', message: err.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// ── Ver Estatísticas ─────────────────────────────────────────────────────────
 // ── Teste manual ─────────────────────────────────────────────────────────────
 function testarInsercao() {
   var mock = {
