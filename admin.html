@@ -163,6 +163,10 @@ tr:hover td{background:rgba(255,255,255,.02)}
     <div class="nav-section">Dados</div>
     <div class="nav-item active" data-tab="respondentes" onclick="showTab('respondentes')"><span class="ni">👥</span> Respondentes</div>
     <div class="nav-item" data-tab="dashboard" onclick="showTab('dashboard')"><span class="ni">📊</span> Dashboard</div>
+    <div class="nav-section">Gamificação</div>
+    <div class="nav-item" data-tab="pontuacao" onclick="showTab('pontuacao')"><span class="ni">🏆</span> Lançar Pontos</div>
+    <div class="nav-item" data-tab="ranking" onclick="showTab('ranking')"><span class="ni">🥇</span> Ranking</div>
+    <div class="nav-item" data-tab="atividades" onclick="showTab('atividades')"><span class="ni">⚙️</span> Atividades</div>
     <div class="nav-section">Exportação</div>
     <div class="nav-item" data-tab="exportar" onclick="showTab('exportar')"><span class="ni">⬇️</span> Exportar</div>
     <div class="nav-section">Configurações</div>
@@ -346,6 +350,101 @@ tr:hover td{background:rgba(255,255,255,.02)}
           <strong style="color:var(--parch)">5.</strong> Cole a URL gerada no campo acima e no arquivo <code style="background:rgba(255,255,255,.07);padding:2px 6px;border-radius:4px">index.html</code><br>
           <strong style="color:var(--parch)">6.</strong> Torne a planilha pública (somente leitura) e cole a URL de exportação CSV acima
         </div>
+      </div>
+    </div>
+
+
+    <!-- ░ LANÇAR PONTOS ░ -->
+    <div id="tab-pontuacao" class="tab-panel">
+      <div class="page-header">
+        <div><div class="page-title">Lançar Pontos</div><div class="page-sub">Registre as atividades realizadas por cada participante em cada rodada</div></div>
+        <button class="btn btn-gold btn-sm" onclick="salvarPontuacao()">💾 Salvar Lançamento</button>
+      </div>
+
+      <div class="controls-row" style="margin-bottom:16px">
+        <select class="filter-sel" id="pts-turma" onchange="renderPontuacaoTable()" style="min-width:220px">
+          <option value="">Selecione a turma</option>
+        </select>
+        <select class="filter-sel" id="pts-rodada" style="min-width:160px">
+          <option value="1">Rodada 1</option>
+          <option value="2">Rodada 2</option>
+          <option value="3">Rodada 3</option>
+          <option value="4">Rodada 4</option>
+          <option value="5">Rodada 5</option>
+          <option value="6">Rodada 6</option>
+          <option value="7">Rodada 7</option>
+          <option value="8">Rodada 8</option>
+        </select>
+        <button class="btn btn-outline btn-sm" onclick="renderPontuacaoTable()">↻ Carregar</button>
+      </div>
+
+      <div id="pts-table-wrap">
+        <div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-title">Selecione uma turma</div><div>Escolha a turma e a rodada para lançar pontos</div></div>
+      </div>
+
+      <div id="pts-val-warning" class="val-warning" style="margin-top:12px"></div>
+    </div>
+
+    <!-- ░ RANKING ░ -->
+    <div id="tab-ranking" class="tab-panel">
+      <div class="page-header">
+        <div><div class="page-title">Ranking Impact Leader</div><div class="page-sub">Classificação por turma e por rodada</div></div>
+        <button class="btn btn-outline btn-sm" onclick="exportRankingCSV()">⬇ Exportar CSV</button>
+      </div>
+
+      <div class="controls-row" style="margin-bottom:20px">
+        <select class="filter-sel" id="rank-turma" onchange="renderRanking()" style="min-width:220px">
+          <option value="">Todas as turmas</option>
+        </select>
+        <select class="filter-sel" id="rank-rodada" onchange="renderRanking()">
+          <option value="">Todas as rodadas (acumulado)</option>
+          <option value="1">Rodada 1</option>
+          <option value="2">Rodada 2</option>
+          <option value="3">Rodada 3</option>
+          <option value="4">Rodada 4</option>
+          <option value="5">Rodada 5</option>
+          <option value="6">Rodada 6</option>
+          <option value="7">Rodada 7</option>
+          <option value="8">Rodada 8</option>
+        </select>
+      </div>
+
+      <div id="ranking-body"></div>
+    </div>
+
+    <!-- ░ ATIVIDADES ░ -->
+    <div id="tab-atividades" class="tab-panel">
+      <div class="page-header">
+        <div><div class="page-title">Atividades e Pontuação</div><div class="page-sub">Configure as atividades e seus valores — reflitam as regras do programa</div></div>
+      </div>
+
+      <div class="config-block">
+        <div class="config-block-title">📋 Atividades Cadastradas</div>
+        <div id="atividades-list" style="margin-bottom:16px"></div>
+        <div class="add-turma-row">
+          <input class="mgmt-input" id="new-atv-nome" placeholder="Nome da atividade (ex: Resultado documentado)" maxlength="80" style="flex:2" onkeydown="if(event.key==='Enter')addAtividade()">
+          <input class="mgmt-input" id="new-atv-pts" placeholder="Pontos" type="number" min="1" max="999" style="flex:0 0 90px;text-align:center" onkeydown="if(event.key==='Enter')addAtividade()">
+          <button class="mgmt-save-btn" onclick="addAtividade()">+ Adicionar</button>
+        </div>
+      </div>
+
+      <div class="config-block">
+        <div class="config-block-title">🏅 Níveis de Certificação</div>
+        <div id="niveis-list" style="margin-bottom:16px"></div>
+        <div class="add-turma-row" style="gap:8px">
+          <input class="mgmt-input" id="new-nv-nome" placeholder="Nome do nível (ex: Ouro)" maxlength="40" onkeydown="if(event.key==='Enter')addNivel()">
+          <input class="mgmt-input" id="new-nv-min" placeholder="Mín pts" type="number" min="0" style="flex:0 0 90px;text-align:center">
+          <input class="mgmt-input" id="new-nv-max" placeholder="Máx pts" type="number" min="0" style="flex:0 0 90px;text-align:center">
+          <input class="mgmt-input" id="new-nv-cor" placeholder="#cor" maxlength="7" style="flex:0 0 80px" value="#C9A84C">
+          <button class="mgmt-save-btn" onclick="addNivel()">+ Nível</button>
+        </div>
+        <div style="font-size:11px;color:var(--mid);margin-top:8px">Use "∞" no máximo para o nível mais alto (ex: Top 1 por turma).</div>
+      </div>
+
+      <div class="config-block">
+        <div class="config-block-title">⚠️ Restaurar Padrão</div>
+        <p style="font-size:13px;color:var(--mid);margin-bottom:12px">Restaura as atividades e níveis do programa Impact Leader conforme configuração padrão.</p>
+        <button class="btn btn-danger" onclick="resetAtividades()">Restaurar Padrão</button>
       </div>
     </div>
 
@@ -1254,8 +1353,44 @@ tr:nth-child(even)td{background:#FDFAF5}
 .matriz-text{font-size:13px;color:#2A2018;line-height:1.7}
 /* FOOTER */
 .footer{text-align:center;padding:32px 0 0;border-top:1px solid #E8E0D0;margin-top:40px;font-family:'JetBrains Mono',monospace;font-size:10px;color:#B0A090;letter-spacing:.08em}
-/* PRINT */
-@media print{
+/* RANKING */
+.rank-card{background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px}
+.rank-card-header{display:flex;align-items:center;gap:12px;padding:14px 20px;background:rgba(201,168,76,.07);border-bottom:1px solid var(--border)}
+.rank-card-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700}
+.rank-medal{font-size:22px;width:28px;text-align:center;flex-shrink:0}
+.rank-row{display:flex;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s}
+.rank-row:last-child{border-bottom:none}
+.rank-row:hover{background:rgba(255,255,255,.02)}
+.rank-pos{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;width:28px;text-align:center;flex-shrink:0}
+.rank-name{flex:1;font-size:14px;font-weight:600;color:var(--parch)}
+.rank-disc{font-size:11px;color:var(--mid);width:80px;flex-shrink:0}
+.rank-pts{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800;color:var(--gold);width:70px;text-align:right;flex-shrink:0}
+.rank-badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;flex-shrink:0;font-family:'JetBrains Mono',monospace}
+.rank-bar-wrap{flex:1;height:6px;background:rgba(255,255,255,.06);border-radius:3px;margin:0 8px}
+.rank-bar{height:100%;border-radius:3px;transition:width .8s ease}
+/* PONTUACAO TABLE */
+.pts-table{width:100%;border-collapse:collapse;font-size:12px}
+.pts-table th{padding:9px 10px;text-align:left;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;background:rgba(201,168,76,.07);border-bottom:1px solid var(--border);white-space:nowrap}
+.pts-table td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+.pts-table tr:last-child td{border-bottom:none}
+.pts-table tr:hover td{background:rgba(255,255,255,.02)}
+.pts-check{width:18px;height:18px;accent-color:var(--gold);cursor:pointer}
+.pts-total{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:800;color:var(--gold)}
+/* ATIVIDADES */
+.atv-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:6px}
+.atv-pts-badge{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;color:var(--gold);background:rgba(201,168,76,.1);padding:4px 12px;border-radius:100px;border:1px solid rgba(201,168,76,.3);min-width:60px;text-align:center;flex-shrink:0}
+.nivel-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:6px}
+.nivel-badge{font-size:11px;font-weight:700;padding:4px 14px;border-radius:100px;flex-shrink:0;min-width:80px;text-align:center}
+.mgmt-input{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 12px;color:var(--parch);font-family:'Syne',sans-serif;font-size:13px;outline:none;flex:1;min-width:0}
+.mgmt-input:focus{border-color:var(--gold)}
+.mgmt-save-btn{padding:8px 14px;border-radius:var(--r-sm);background:linear-gradient(135deg,var(--gold-dk),var(--gold));color:var(--ink);border:none;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.add-turma-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+/* RODADA TABS */
+.rodada-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px}
+.rod-tab{padding:5px 14px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--mid);font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:all .2s}
+.rod-tab.active{border-color:var(--gold);background:rgba(201,168,76,.12);color:var(--gold)}
+/* EDIT INLINE */
+.mgmt-edit-input{flex:1;background:rgba(255,255,255,.06);border:1px solid var(--gold);border-radius:5px;padding:3px 8px;color:var(--parch);font-family:'Syne',sans-serif;font-size:13px;outline:none}
   body{background:#fff}
   .cover{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .section{break-inside:avoid}
@@ -2251,13 +2386,362 @@ function toast(msg,type='info'){
 }
 
 // ════════════════════════════════════════════════════
+// GAMIFICAÇÃO — Atividades, Pontuação e Ranking
+// ════════════════════════════════════════════════════
+
+// ── Storage ──────────────────────────────────────────
+const DEFAULT_ATIVIDADES = [
+  {id:'a1', nome:'Presença no encontro',         pts:10},
+  {id:'a2', nome:'Missão da semana concluída',   pts:25},
+  {id:'a3', nome:'Ferramenta aplicada na equipe',pts:20},
+  {id:'a4', nome:'Resultado documentado',         pts:30},
+  {id:'a5', nome:'Diário de Bordo preenchido',   pts:20},
+  {id:'a6', nome:'Engajou alguém da equipe',     pts:15},
+  {id:'a7', nome:'Reduziu indicador negativo',   pts:40},
+];
+const DEFAULT_NIVEIS = [
+  {id:'n1', nome:'Bronze',           min:0,   max:200,  cor:'#A0A0A0'},
+  {id:'n2', nome:'Prata',            min:201, max:400,  cor:'#60A8D4'},
+  {id:'n3', nome:'Ouro',             min:401, max:9999, cor:'#F0C030'},
+  {id:'n4', nome:'Impact Leader Elite', min:'top1', max:'top1', cor:'#7040B0'},
+];
+
+function getAtividades(){try{const a=JSON.parse(localStorage.getItem('il_atividades'));return Array.isArray(a)&&a.length?a:DEFAULT_ATIVIDADES}catch(e){return DEFAULT_ATIVIDADES}}
+function setAtividades(arr){try{localStorage.setItem('il_atividades',JSON.stringify(arr))}catch(e){}}
+function getNiveis(){try{const n=JSON.parse(localStorage.getItem('il_niveis'));return Array.isArray(n)&&n.length?n:DEFAULT_NIVEIS}catch(e){return DEFAULT_NIVEIS}}
+function setNiveis(arr){try{localStorage.setItem('il_niveis',JSON.stringify(arr))}catch(e){}}
+
+// pontuacoes: { [respondente_key]: { [rodada]: { [atv_id]: bool } } }
+function getPontuacoes(){try{return JSON.parse(localStorage.getItem('il_pontuacoes'))||{}}catch(e){return{}}}
+function setPontuacoes(obj){try{localStorage.setItem('il_pontuacoes',JSON.stringify(obj))}catch(e){}}
+
+function respKey(r){return r.email||r.nome||String(r._id)}
+
+// ── showTab extension ──────────────────────────────────
+const _origShowTab = showTab;
+function showTab(id){
+  _origShowTab(id);
+  if(id==='pontuacao')  initPontuacao();
+  if(id==='ranking')    initRanking();
+  if(id==='atividades') renderAtividades();
+}
+
+// ── Sync selects ─────────────────────────────────────
+const _origSyncTurma = syncTurmaSelects;
+function syncTurmaSelects(){
+  _origSyncTurma();
+  const turmas = getTurmas();
+  ['pts-turma','rank-turma'].forEach(id=>{
+    const el=document.getElementById(id); if(!el) return;
+    const cur=el.value;
+    const opts = id==='rank-turma'
+      ? '<option value="">Todas as turmas</option>' + turmas.map(t=>`<option${t===cur?' selected':''}>${t}</option>`).join('')
+      : '<option value="">Selecione a turma</option>' + turmas.map(t=>`<option${t===cur?' selected':''}>${t}</option>`).join('');
+    el.innerHTML = opts;
+  });
+}
+
+// ── PONTUAÇÃO ─────────────────────────────────────────
+function initPontuacao(){syncTurmaSelects(); renderPontuacaoTable();}
+
+function renderPontuacaoTable(){
+  const turma = document.getElementById('pts-turma')?.value;
+  const rodada = document.getElementById('pts-rodada')?.value||'1';
+  const wrap = document.getElementById('pts-table-wrap');
+  if(!wrap) return;
+
+  if(!turma){
+    wrap.innerHTML='<div class="empty-state"><div class="empty-icon">🎯</div><div class="empty-title">Selecione uma turma</div></div>';
+    return;
+  }
+
+  const participantes = allData.filter(r=>r.turma===turma);
+  if(!participantes.length){
+    wrap.innerHTML='<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">Nenhum respondente nesta turma</div></div>';
+    return;
+  }
+
+  const atividades = getAtividades();
+  const pontuacoes = getPontuacoes();
+  const discColors={D:'#F07030',I:'#F0C030',S:'#4A90D4',C:'#A878E0'};
+  const discNames={D:'Dominante',I:'Influente',S:'Estável',C:'Conformidade'};
+
+  wrap.innerHTML=`
+    <div class="table-wrap" style="overflow-x:auto">
+      <table class="pts-table" style="min-width:700px">
+        <thead>
+          <tr>
+            <th style="min-width:160px">Participante</th>
+            <th style="min-width:80px">DISC</th>
+            ${atividades.map(a=>`<th title="${a.nome}" style="min-width:52px;text-align:center">${a.pts}pts</th>`).join('')}
+            <th style="text-align:right;min-width:80px">Total</th>
+          </tr>
+          <tr style="background:rgba(201,168,76,.04)">
+            <td style="font-size:10px;color:var(--mid);padding:4px 10px" colspan="2">Atividade →</td>
+            ${atividades.map(a=>`<td style="font-size:9px;color:var(--mid);padding:4px 6px;text-align:center;max-width:52px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis" title="${a.nome}">${a.nome.split(' ').slice(0,2).join(' ')}</td>`).join('')}
+            <td></td>
+          </tr>
+        </thead>
+        <tbody>
+          ${participantes.map(r=>{
+            const key=respKey(r);
+            const rdData=pontuacoes[key]?.[rodada]||{};
+            const total=atividades.reduce((sum,a)=>sum+(rdData[a.id]?a.pts:0),0);
+            const dc=discColors[r.disc_primario]||'var(--gold)';
+            const dn=(discNames[r.disc_primario]||r.disc_primario||'—').slice(0,3);
+            return`<tr>
+              <td class="td-name">${r.nome||r.name||'—'}</td>
+              <td><span style="font-size:10px;font-weight:700;color:${dc};font-family:JetBrains Mono">${dn}</span></td>
+              ${atividades.map(a=>`<td style="text-align:center">
+                <input type="checkbox" class="pts-check" data-key="${key}" data-rodada="${rodada}" data-atv="${a.id}" ${rdData[a.id]?'checked':''} onchange="togglePonto(this)">
+              </td>`).join('')}
+              <td style="text-align:right"><span class="pts-total" id="pts-total-${key.replace(/[^a-zA-Z0-9]/g,'_')}">${total}</span></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div style="font-size:12px;color:var(--mid);padding:10px 0">
+      Rodada ${rodada} · ${participantes.length} participante(s) · ${atividades.length} atividade(s)
+    </div>`;
+}
+
+function togglePonto(cb){
+  const key=cb.dataset.key, rodada=cb.dataset.rodada, atvId=cb.dataset.atv;
+  const pontuacoes=getPontuacoes();
+  if(!pontuacoes[key]) pontuacoes[key]={};
+  if(!pontuacoes[key][rodada]) pontuacoes[key][rodada]={};
+  pontuacoes[key][rodada][atvId]=cb.checked;
+  setPontuacoes(pontuacoes);
+  // Update row total
+  const atividades=getAtividades();
+  const rdData=pontuacoes[key][rodada];
+  const total=atividades.reduce((sum,a)=>sum+(rdData[a.id]?a.pts:0),0);
+  const safeKey=key.replace(/[^a-zA-Z0-9]/g,'_');
+  const el=document.getElementById('pts-total-'+safeKey);
+  if(el){el.textContent=total; el.style.animation='none'; setTimeout(()=>el.style.animation='',10);}
+}
+
+function salvarPontuacao(){
+  toast('✅ Pontuação salva automaticamente a cada marcação','success');
+}
+
+// ── RANKING ───────────────────────────────────────────
+function initRanking(){syncTurmaSelects(); renderRanking();}
+
+function calcPontosRespondente(r, rodadaFiltro){
+  const atividades=getAtividades();
+  const pontuacoes=getPontuacoes();
+  const key=respKey(r);
+  const rData=pontuacoes[key]||{};
+  let total=0;
+  const detalhe={};
+  Object.entries(rData).forEach(([rod, rdData])=>{
+    if(rodadaFiltro && rod!==String(rodadaFiltro)) return;
+    atividades.forEach(a=>{
+      if(rdData[a.id]){total+=a.pts; detalhe[a.id]=(detalhe[a.id]||0)+a.pts;}
+    });
+    detalhe['__rodadas__']=(detalhe['__rodadas__']||[]).concat([rod]);
+  });
+  return{total, detalhe};
+}
+
+function getNivel(pts, posicao1, turmaTotal){
+  const niveis=getNiveis();
+  // Check top1 tier
+  const top1=niveis.find(n=>n.min==='top1');
+  if(top1 && posicao1===1 && turmaTotal>1) return top1;
+  // Numeric tiers
+  const sorted=[...niveis].filter(n=>n.min!=='top1').sort((a,b)=>b.min-a.min);
+  return sorted.find(n=>pts>=n.min && pts<=n.max)||null;
+}
+
+function renderRanking(){
+  const body=document.getElementById('ranking-body');
+  if(!body) return;
+  const turmaFilter=document.getElementById('rank-turma')?.value||'';
+  const rodadaFilter=document.getElementById('rank-rodada')?.value||'';
+
+  // Build scored list
+  let lista=allData.map(r=>({
+    r, ...calcPontosRespondente(r, rodadaFilter)
+  })).filter(x=>!turmaFilter||x.r.turma===turmaFilter);
+
+  if(!lista.length){
+    body.innerHTML='<div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-title">Sem dados para exibir</div><div>Lance pontos na aba "Lançar Pontos" para ver o ranking</div></div>';
+    return;
+  }
+
+  // Group by turma
+  const byTurma={};
+  lista.forEach(x=>{
+    const t=x.r.turma||'Sem turma';
+    if(!byTurma[t])byTurma[t]=[];
+    byTurma[t].push(x);
+  });
+
+  const discColors={D:'#F07030',I:'#F0C030',S:'#4A90D4',C:'#A878E0'};
+  const medals=['🥇','🥈','🥉'];
+
+  body.innerHTML=Object.entries(byTurma).map(([turma, items])=>{
+    const sorted=[...items].sort((a,b)=>b.total-a.total);
+    const maxPts=sorted[0]?.total||1;
+    const turmaTotal=sorted.length;
+
+    return`<div class="rank-card">
+      <div class="rank-card-header">
+        <span class="rank-medal">🎓</span>
+        <div>
+          <div class="rank-card-title">${turma}</div>
+          <div style="font-size:11px;color:var(--mid);font-family:'JetBrains Mono',monospace">${turmaTotal} participante(s) ${rodadaFilter?'· Rodada '+rodadaFilter:'· Acumulado'}</div>
+        </div>
+      </div>
+      ${sorted.map((x,i)=>{
+        const nivel=getNivel(x.total, i+1, turmaTotal);
+        const dc=discColors[x.r.disc_primario]||'var(--gold)';
+        const barW=maxPts>0?Math.max(4,Math.round(x.total/maxPts*100)):0;
+        const posIcon=i<3?medals[i]:`<span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--mid)">${i+1}º</span>`;
+        return`<div class="rank-row">
+          <div class="rank-pos">${posIcon}</div>
+          <div class="rank-name">${x.r.nome||x.r.name||'—'}</div>
+          <div class="rank-disc" style="color:${dc}">${x.r.disc_primario||'—'}</div>
+          <div class="rank-bar-wrap"><div class="rank-bar" style="width:${barW}%;background:${i===0?'var(--gold)':i===1?'rgba(255,255,255,.3)':'rgba(255,255,255,.15)'}"></div></div>
+          <div class="rank-pts">${x.total}</div>
+          ${nivel?`<div class="rank-badge" style="background:${nivel.cor}22;color:${nivel.cor};border:1px solid ${nivel.cor}55">${nivel.nome}</div>`:'<div class="rank-badge" style="background:rgba(255,255,255,.05);color:var(--mid);border:1px solid var(--border)">—</div>'}
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+function exportRankingCSV(){
+  const rodadaFilter=document.getElementById('rank-rodada')?.value||'';
+  const turmaFilter=document.getElementById('rank-turma')?.value||'';
+  const lista=allData.map(r=>({r,...calcPontosRespondente(r,rodadaFilter)}))
+    .filter(x=>!turmaFilter||x.r.turma===turmaFilter)
+    .sort((a,b)=>b.total-a.total);
+  if(!lista.length){toast('Sem dados para exportar','warn');return;}
+  const rows=[['Posição','Nome','E-mail','Turma','DISC','Pontos','Nível']];
+  const byTurma={};
+  lista.forEach(x=>{const t=x.r.turma||'Sem turma';if(!byTurma[t])byTurma[t]=[];byTurma[t].push(x);});
+  Object.values(byTurma).forEach(items=>{
+    const sorted=[...items].sort((a,b)=>b.total-a.total);
+    sorted.forEach((x,i)=>{
+      const nivel=getNivel(x.total,i+1,sorted.length);
+      rows.push([i+1,x.r.nome||'',x.r.email||'',x.r.turma||'',x.r.disc_primario||'',x.total,nivel?.nome||'—']);
+    });
+  });
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`ranking-impact-leader-${new Date().toISOString().slice(0,10)}.csv`;a.click();
+  toast('✅ Ranking exportado','success');
+}
+
+// ── ATIVIDADES (manutenção) ───────────────────────────
+function renderAtividades(){
+  // Atividades
+  const list=document.getElementById('atividades-list');
+  const atividades=getAtividades();
+  if(list) list.innerHTML=atividades.map((a,i)=>`
+    <div class="atv-item" id="atv-item-${i}">
+      <span class="atv-pts-badge">${a.pts} pts</span>
+      <span class="mgmt-item-name" id="atv-nome-${i}" style="flex:1;font-size:13px;color:var(--parch)">${a.nome}</span>
+      <div class="mgmt-item-btns">
+        <button class="mgmt-btn" onclick="editAtividade(${i})">✏️</button>
+        <button class="mgmt-btn del" onclick="deleteAtividade(${i})">✕</button>
+      </div>
+    </div>`).join('')||'<p style="font-size:12px;color:var(--mid)">Nenhuma atividade cadastrada.</p>';
+
+  // Níveis
+  const nlist=document.getElementById('niveis-list');
+  const niveis=getNiveis();
+  if(nlist) nlist.innerHTML=niveis.map((n,i)=>`
+    <div class="nivel-item" id="nv-item-${i}">
+      <div class="nivel-badge" style="background:${n.cor}22;color:${n.cor};border:1px solid ${n.cor}44">${n.nome}</div>
+      <span style="font-size:12px;color:var(--mid);flex:1">${n.min==='top1'?'Top 1 por turma':`${n.min} – ${n.max==='∞'||n.max>=9999?'∞':n.max} pts`}</span>
+      <div class="mgmt-item-btns">
+        <button class="mgmt-btn del" onclick="deleteNivel(${i})">✕</button>
+      </div>
+    </div>`).join('')||'<p style="font-size:12px;color:var(--mid)">Nenhum nível cadastrado.</p>';
+}
+
+function addAtividade(){
+  const nome=document.getElementById('new-atv-nome')?.value.trim();
+  const pts=parseInt(document.getElementById('new-atv-pts')?.value)||0;
+  if(!nome){toast('Informe o nome da atividade','warn');return;}
+  if(pts<1){toast('Informe os pontos (mínimo 1)','warn');return;}
+  const arr=getAtividades();
+  arr.push({id:'a'+Date.now(),nome,pts});
+  setAtividades(arr);
+  document.getElementById('new-atv-nome').value='';
+  document.getElementById('new-atv-pts').value='';
+  renderAtividades();
+  toast('✅ Atividade adicionada','success');
+}
+
+function editAtividade(i){
+  const a=getAtividades()[i];
+  const item=document.getElementById(`atv-item-${i}`);
+  if(!item)return;
+  item.innerHTML=`
+    <input class="mgmt-edit-input" id="atv-edit-pts-${i}" type="number" value="${a.pts}" style="flex:0 0 70px;text-align:center;background:rgba(255,255,255,.06);border:1px solid var(--gold);border-radius:5px;padding:3px 8px;color:var(--parch);font-size:13px">
+    <input class="mgmt-edit-input" id="atv-edit-nome-${i}" value="${a.nome}" onkeydown="if(event.key==='Enter')saveAtividade(${i})">
+    <div class="mgmt-item-btns">
+      <button class="mgmt-btn" onclick="saveAtividade(${i})" style="color:var(--gold)">✓</button>
+      <button class="mgmt-btn" onclick="renderAtividades()">✕</button>
+    </div>`;
+  document.getElementById(`atv-edit-nome-${i}`).focus();
+}
+
+function saveAtividade(i){
+  const nome=document.getElementById(`atv-edit-nome-${i}`)?.value.trim();
+  const pts=parseInt(document.getElementById(`atv-edit-pts-${i}`)?.value)||0;
+  if(!nome||pts<1)return;
+  const arr=getAtividades();arr[i]={...arr[i],nome,pts};setAtividades(arr);renderAtividades();
+  toast('✅ Atividade atualizada','success');
+}
+
+function deleteAtividade(i){
+  const arr=getAtividades();arr.splice(i,1);setAtividades(arr);renderAtividades();
+  toast('Atividade removida','success');
+}
+
+function addNivel(){
+  const nome=document.getElementById('new-nv-nome')?.value.trim();
+  const minV=document.getElementById('new-nv-min')?.value.trim();
+  const maxV=document.getElementById('new-nv-max')?.value.trim();
+  const cor=document.getElementById('new-nv-cor')?.value.trim()||'#C9A84C';
+  if(!nome){toast('Informe o nome do nível','warn');return;}
+  const arr=getNiveis();
+  arr.push({id:'n'+Date.now(),nome,min:minV==='top1'?'top1':parseInt(minV)||0,max:maxV==='∞'?9999:parseInt(maxV)||9999,cor});
+  setNiveis(arr);
+  document.getElementById('new-nv-nome').value='';
+  document.getElementById('new-nv-min').value='';
+  document.getElementById('new-nv-max').value='';
+  renderAtividades();
+  toast('✅ Nível adicionado','success');
+}
+
+function deleteNivel(i){
+  const arr=getNiveis();arr.splice(i,1);setNiveis(arr);renderAtividades();
+  toast('Nível removido','success');
+}
+
+function resetAtividades(){
+  if(!confirm('Restaurar atividades e níveis padrão do Impact Leader?'))return;
+  localStorage.removeItem('il_atividades');
+  localStorage.removeItem('il_niveis');
+  renderAtividades();
+  toast('✅ Padrão restaurado','success');
+}
+
+// ════════════════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded',()=>{
   syncTurmaSelects();
-  // Slight delay so DOM is fully ready before fetch
   setTimeout(loadData, 100);
-  // Auto refresh every 90 seconds when on data tabs
   setInterval(()=>{
     const respActive=document.getElementById('tab-respondentes')?.classList.contains('active');
     const dashActive=document.getElementById('tab-dashboard')?.classList.contains('active');
