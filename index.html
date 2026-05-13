@@ -242,11 +242,7 @@ h1.hero span{display:block;background:linear-gradient(135deg,var(--parch) 0%,var
       <input type="text" id="inp-empresa" placeholder="Nome da sua empresa...">
       <label>Turma / Programa</label>
       <select id="inp-turma">
-        <option value="">Selecione sua turma (opcional)</option>
-        <option>Impact Leader · Turma 2025/1</option>
-        <option>Impact Leader · Turma 2025/2</option>
-        <option>Formação de Líderes · 2025</option>
-        <option>Programa Executivo · 2025</option>
+        <option value="">Selecione sua turma...</option>
       </select>
       <label>Fase do Diagnóstico</label>
       <select id="inp-fase">
@@ -448,6 +444,7 @@ h1.hero span{display:block;background:linear-gradient(135deg,var(--parch) 0%,var
 // TURMAS — carregadas do localStorage (Admin pode editar)
 // ════════════════════════════════════════════════════
 const DEFAULT_TURMAS = [
+  'Geral',
   'Impact Leader · Turma 2025/1',
   'Impact Leader · Turma 2025/2',
   'Formação de Líderes · 2025',
@@ -468,8 +465,11 @@ function populateTurmaSelect(){
   const sel=document.getElementById('inp-turma');
   if(!sel)return;
   const cur=sel.value;
-  sel.innerHTML='<option value="">Selecione sua turma (opcional)</option>'+
-    getTurmas().map(t=>`<option value="${t}"${t===cur?' selected':''}>${t}</option>`).join('');
+  let turmas=getTurmas();
+  // Guarantee 'Geral' always exists as first option
+  if(!turmas.includes('Geral')) turmas=['Geral',...turmas];
+  sel.innerHTML='<option value="">Selecione sua turma...</option>'+
+    turmas.map(t=>`<option value="${t}"${t===cur?' selected':''}>${t}</option>`).join('');
 }
 function populateFaseSelect(){
   const sel=document.getElementById('inp-fase');

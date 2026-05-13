@@ -495,11 +495,11 @@ tr:hover td{background:rgba(255,255,255,.02)}
 // ════════════════════════════════════════════════════
 const SHEET_ID = '1C8kfRIjc3caRCfCkIgFToudZJD6Ch_-_36JBW9Mr7ho';
 const DEFAULT_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
-const DEFAULT_TURMAS = ['Impact Leader · Turma 2025/1','Impact Leader · Turma 2025/2','Formação de Líderes · 2025','Programa Executivo · 2025'];
+const DEFAULT_TURMAS = ['Geral','Impact Leader · Turma 2025/1','Impact Leader · Turma 2025/2','Formação de Líderes · 2025','Programa Executivo · 2025'];
 
 function getCfg(k,def=''){try{return localStorage.getItem('il_admin_'+k)||def}catch(e){return def}}
 function setCfg(k,v){try{localStorage.setItem('il_admin_'+k,v)}catch(e){}}
-function getTurmas(){try{const t=JSON.parse(localStorage.getItem('il_turmas'));return Array.isArray(t)&&t.length?t:DEFAULT_TURMAS}catch(e){return DEFAULT_TURMAS}}
+function getTurmas(){try{const t=JSON.parse(localStorage.getItem('il_turmas'));const arr=Array.isArray(t)&&t.length?t:DEFAULT_TURMAS;return arr.includes('Geral')?arr:['Geral',...arr];}catch(e){return DEFAULT_TURMAS;}}
 function setTurmas(arr){try{localStorage.setItem('il_turmas',JSON.stringify(arr))}catch(e){}}
 
 let allData=[];
