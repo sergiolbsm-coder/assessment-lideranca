@@ -520,6 +520,9 @@ function showTab(id){
   if(id==='turmas')renderTurmaList();
   if(id==='config')loadConfig();
   if(id==='exportar')populateExportTurmas();
+  if(id==='pontuacao'){syncGamificacaoSelects();renderPontuacaoTable();}
+  if(id==='ranking'){syncGamificacaoSelects();renderRanking();}
+  if(id==='atividades')renderAtividades();
 }
 
 // ════════════════════════════════════════════════════
@@ -2328,6 +2331,8 @@ function syncTurmaSelects(){
     const cur=el.value;
     el.innerHTML='<option value="">Todas as turmas</option>'+turmas.map(t=>`<option${t===cur?' selected':''}>${t}</option>`).join('');
   });
+  // Sync gamification selects too
+  syncGamificacaoSelects();
 }
 
 // ════════════════════════════════════════════════════
@@ -2417,34 +2422,24 @@ function setPontuacoes(obj){try{localStorage.setItem('il_pontuacoes',JSON.string
 
 function respKey(r){return r.email||r.nome||String(r._id)}
 
-// ── showTab extension ──────────────────────────────────
-const _origShowTab = showTab;
-function showTab(id){
-  _origShowTab(id);
-  if(id==='pontuacao')  initPontuacao();
-  if(id==='ranking')    initRanking();
-  if(id==='atividades') renderAtividades();
-}
-
-// ── Sync selects ─────────────────────────────────────
-const _origSyncTurma = syncTurmaSelects;
-function syncTurmaSelects(){
-  _origSyncTurma();
+// ── Sync gamification selects ─────────────────────────
+function syncGamificacaoSelects(){
   const turmas = getTurmas();
-  ['pts-turma','rank-turma'].forEach(id=>{
-    const el=document.getElementById(id); if(!el) return;
-    const cur=el.value;
-    const opts = id==='rank-turma'
-      ? '<option value="">Todas as turmas</option>' + turmas.map(t=>`<option${t===cur?' selected':''}>${t}</option>`).join('')
-      : '<option value="">Selecione a turma</option>' + turmas.map(t=>`<option${t===cur?' selected':''}>${t}</option>`).join('');
-    el.innerHTML = opts;
-  });
+  const ptsTurma = document.getElementById('pts-turma');
+  const rankTurma = document.getElementById('rank-turma');
+  if(ptsTurma){
+    const cur = ptsTurma.value;
+    ptsTurma.innerHTML = '<option value="">Selecione a turma</option>' +
+      turmas.map(t=>`<option value="${t}"${t===cur?' selected':''}>${t}</option>`).join('');
+  }
+  if(rankTurma){
+    const cur = rankTurma.value;
+    rankTurma.innerHTML = '<option value="">Todas as turmas</option>' +
+      turmas.map(t=>`<option value="${t}"${t===cur?' selected':''}>${t}</option>`).join('');
+  }
 }
 
 // ── PONTUAÇÃO ─────────────────────────────────────────
-function initPontuacao(){syncTurmaSelects(); renderPontuacaoTable();}
-
-function renderPontuacaoTable(){
   const turma = document.getElementById('pts-turma')?.value;
   const rodada = document.getElementById('pts-rodada')?.value||'1';
   const wrap = document.getElementById('pts-table-wrap');
@@ -2527,7 +2522,6 @@ function salvarPontuacao(){
 }
 
 // ── RANKING ───────────────────────────────────────────
-function initRanking(){syncTurmaSelects(); renderRanking();}
 
 function calcPontosRespondente(r, rodadaFiltro){
   const atividades=getAtividades();
