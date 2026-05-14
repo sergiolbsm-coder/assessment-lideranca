@@ -113,8 +113,17 @@ function doPost(e) {
 
     sheet.appendRow(linha);
 
-    // Formatar linha
+    // Formatar linha — garantir que colunas de texto não sejam convertidas para número
     var lastRow = sheet.getLastRow();
+    // Colunas de texto: nome(2), email(3), empresa(4), turma(5), fase(6),
+    //                   disc_primario(11), disc_secundario(12), elem_primario(17),
+    //                   ennea_nome(19), arquetipos(21), kolb_estilo(22), need_1a(23), need_2a(24),
+    //                   holland_codigo(31), holland_tipo1(32), holland_tipo2(33), holland_tipo3(34)
+    var textCols = [2,3,4,5,6,11,12,17,19,21,22,23,24,31,32,33,34];
+    textCols.forEach(function(col) {
+      sheet.getRange(lastRow, col, 1, 1).setNumberFormat('@');
+    });
+
     if (lastRow % 2 === 0) {
       sheet.getRange(lastRow, 1, 1, CABECALHOS.length).setBackground('#F5F0E8');
     }
@@ -148,14 +157,28 @@ function configurarCabecalhos() {
   sheet.setFrozenRows(1);
   sheet.setFrozenColumns(2);
 
+  // Forçar formato TEXTO nas colunas de string para evitar conversão automática
+  // Colunas de texto (1-based): nome=2, email=3, empresa=4, turma=5, fase=6,
+  // disc_primario=11, disc_secundario=12, elem_primario=17, ennea_tipo=18, ennea_nome=19,
+  // ennea_score=20, arquetipos=21, kolb_estilo=22, need_1a=23, need_2a=24,
+  // need_certeza=25, need_variedade=26, need_significancia=27, need_conexao=28,
+  // need_crescimento=29, need_contribuicao=30,
+  // holland_codigo=31, holland_tipo1=32, holland_tipo2=33, holland_tipo3=34
+  var textCols = [2,3,4,5,6,11,12,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34];
+  var lastRow  = Math.max(sheet.getLastRow(), 2);
+  textCols.forEach(function(col) {
+    // Aplicar na coluna inteira (linhas 1 a 1000)
+    sheet.getRange(1, col, 1000, 1).setNumberFormat('@');
+  });
+
   sheet.setColumnWidth(1, 180);
   sheet.setColumnWidth(2, 200);
   sheet.setColumnWidth(3, 200);
-  sheet.setColumnWidth(4, 180);
+  sheet.setColumnWidth(4, 180); // empresa
   sheet.setColumnWidth(5, 220);
   for (var i = 6; i <= CABECALHOS.length; i++) sheet.setColumnWidth(i, 110);
 
-  Logger.log('✅ Cabeçalhos configurados: ' + CABECALHOS.length + ' colunas');
+  Logger.log('✅ Cabeçalhos configurados: ' + CABECALHOS.length + ' colunas — colunas de texto formatadas como @');
 }
 
 // ── Salvar Ranking ───────────────────────────────────────────────────────────
