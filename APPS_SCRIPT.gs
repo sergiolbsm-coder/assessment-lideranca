@@ -1,8 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════
 // APPS SCRIPT — Instituto da Liderança
-// Planilha: Impact Leader - Avaliações do Líder
-// ID: 1C8kfRIjc3caRCfCkIgFToudZJD6Ch_-_36JBW9Mr7ho
-// Versão: 2025.2 — suporta POST (gravar) e GET (ler dados para Admin/Painel)
+// Planilha: 1C8kfRIjc3caRCfCkIgFToudZJD6Ch_-_36JBW9Mr7ho
 // ═══════════════════════════════════════════════════════════════════════════
 
 var SHEET_ID = '1C8kfRIjc3caRCfCkIgFToudZJD6Ch_-_36JBW9Mr7ho';
@@ -21,11 +19,15 @@ var CABECALHOS = [
   'holland_R','holland_I','holland_A','holland_S','holland_E','holland_C'
 ];
 
-// ── GET: retorna todos os dados como JSON (para Admin e Painel) ──────────────
+// Colunas que devem ser salvas como TEXTO (1-based index)
+var TEXT_COLS = [1,2,3,4,5,6,11,12,17,18,19,20,21,22,23,24,31,32,33,34];
+
+// ── GET: retorna todos os dados como JSON ────────────────────────────────────
 function doGet(e) {
   var output = ContentService.createTextOutput();
   output.setMimeType(ContentService.MimeType.JSON);
 
+  // doGet pode ser chamado sem parâmetros no editor — proteger
   try {
     var ss    = SpreadsheetApp.openById(SHEET_ID);
     var sheet = ss.getSheetByName(ABA);
@@ -41,7 +43,7 @@ function doGet(e) {
     var data = rows.map(function(row, idx) {
       var obj = { _id: idx };
       headers.forEach(function(h, i) {
-        obj[h] = row[i] !== undefined && row[i] !== null ? String(row[i]) : '';
+        obj[h] = (row[i] !== undefined && row[i] !== null) ? String(row[i]) : '';
       });
       return obj;
     });
@@ -54,19 +56,27 @@ function doGet(e) {
   return output;
 }
 
-// ── POST: grava nova resposta ────────────────────────────────────────────────
+// ── POST: grava nova resposta ou salva ranking ───────────────────────────────
 function doPost(e) {
-  try {
-    var ss    = SpreadsheetApp.openById(SHEET_ID);
-    var sheet = ss.getSheetByName(ABA);
-    if (!sheet) { configurarCabecalhos(); sheet = ss.getSheetByName(ABA); }
+  // Proteger contra execução manual no editor (sem evento HTTP)
+  if (!e || !e.postData || !e.postData.contents) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: 'error', message: 'Esta função deve ser chamada via HTTP POST, não manualmente.' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
 
+  try {
     var data = JSON.parse(e.postData.contents);
 
-    // Handle ranking save action
+    // Roteamento por action
     if (data.action === 'saveRanking') {
       return doSaveRanking(data.rows);
     }
+
+    // Gravar resposta do assessment
+    var ss    = SpreadsheetApp.openById(SHEET_ID);
+    var sheet = ss.getSheetByName(ABA);
+    if (!sheet) { configurarCabecalhos(); sheet = ss.getSheetByName(ABA); }
 
     var linha = [
       data.timestamp           || new Date().toISOString(),
@@ -113,17 +123,13 @@ function doPost(e) {
 
     sheet.appendRow(linha);
 
-    // Formatar linha — garantir que colunas de texto não sejam convertidas para número
+    // Forçar formato TEXTO nas colunas string da linha recém-gravada
     var lastRow = sheet.getLastRow();
-    // Colunas de texto: nome(2), email(3), empresa(4), turma(5), fase(6),
-    //                   disc_primario(11), disc_secundario(12), elem_primario(17),
-    //                   ennea_nome(19), arquetipos(21), kolb_estilo(22), need_1a(23), need_2a(24),
-    //                   holland_codigo(31), holland_tipo1(32), holland_tipo2(33), holland_tipo3(34)
-    var textCols = [2,3,4,5,6,11,12,17,19,21,22,23,24,31,32,33,34];
-    textCols.forEach(function(col) {
+    TEXT_COLS.forEach(function(col) {
       sheet.getRange(lastRow, col, 1, 1).setNumberFormat('@');
     });
 
+    // Zebra alternada
     if (lastRow % 2 === 0) {
       sheet.getRange(lastRow, 1, 1, CABECALHOS.length).setBackground('#F5F0E8');
     }
@@ -134,6 +140,60 @@ function doPost(e) {
 
   } catch(err) {
     Logger.log('Erro doPost: ' + err.toString());
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: 'error', message: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// ── Salvar Ranking ───────────────────────────────────────────────────────────
+function doSaveRanking(rows) {
+  try {
+    var ss    = SpreadsheetApp.openById(SHEET_ID);
+    var abaRank = 'Ranking';
+    var sheet = ss.getSheetByName(abaRank);
+
+    if (!sheet) {
+      sheet = ss.insertSheet(abaRank);
+      var headers = ['timestamp','nome','email','turma','disc','rodada','posicao','pontos','nivel'];
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      var hr = sheet.getRange(1, 1, 1, headers.length);
+      hr.setFontWeight('bold');
+      hr.setBackground('#0A0806');
+      hr.setFontColor('#C9A84C');
+      sheet.setFrozenRows(1);
+      // Forçar texto em todas as colunas da aba Ranking
+      sheet.getRange(1, 1, 1000, headers.length).setNumberFormat('@');
+    }
+
+    if (!rows || !rows.length) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ status: 'ok', saved: 0 }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    var data = rows.map(function(r) {
+      return [
+        r.timestamp || '',
+        r.nome      || '',
+        r.email     || '',
+        r.turma     || '',
+        r.disc      || '',
+        r.rodada    || '',
+        r.posicao   || 0,
+        r.pontos    || 0,
+        r.nivel     || ''
+      ];
+    });
+
+    sheet.getRange(sheet.getLastRow() + 1, 1, data.length, data[0].length).setValues(data);
+
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: 'ok', saved: data.length }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch(err) {
+    Logger.log('Erro doSaveRanking: ' + err.toString());
     return ContentService
       .createTextOutput(JSON.stringify({ status: 'error', message: err.toString() }))
       .setMimeType(ContentService.MimeType.JSON);
@@ -157,103 +217,52 @@ function configurarCabecalhos() {
   sheet.setFrozenRows(1);
   sheet.setFrozenColumns(2);
 
-  // Forçar formato TEXTO nas colunas de string para evitar conversão automática
-  // Colunas de texto (1-based): nome=2, email=3, empresa=4, turma=5, fase=6,
-  // disc_primario=11, disc_secundario=12, elem_primario=17, ennea_tipo=18, ennea_nome=19,
-  // ennea_score=20, arquetipos=21, kolb_estilo=22, need_1a=23, need_2a=24,
-  // need_certeza=25, need_variedade=26, need_significancia=27, need_conexao=28,
-  // need_crescimento=29, need_contribuicao=30,
-  // holland_codigo=31, holland_tipo1=32, holland_tipo2=33, holland_tipo3=34
-  var textCols = [2,3,4,5,6,11,12,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34];
-  var lastRow  = Math.max(sheet.getLastRow(), 2);
-  textCols.forEach(function(col) {
-    // Aplicar na coluna inteira (linhas 1 a 1000)
+  // Forçar formato TEXTO nas colunas de string (evita conversão automática do Sheets)
+  TEXT_COLS.forEach(function(col) {
     sheet.getRange(1, col, 1000, 1).setNumberFormat('@');
   });
 
   sheet.setColumnWidth(1, 180);
   sheet.setColumnWidth(2, 200);
   sheet.setColumnWidth(3, 200);
-  sheet.setColumnWidth(4, 180); // empresa
-  sheet.setColumnWidth(5, 220);
+  sheet.setColumnWidth(4, 200); // empresa
+  sheet.setColumnWidth(5, 220); // turma
   for (var i = 6; i <= CABECALHOS.length; i++) sheet.setColumnWidth(i, 110);
 
-  Logger.log('✅ Cabeçalhos configurados: ' + CABECALHOS.length + ' colunas — colunas de texto formatadas como @');
+  Logger.log('✅ Cabeçalhos configurados: ' + CABECALHOS.length + ' colunas — texto formatado como @');
 }
 
-// ── Salvar Ranking ───────────────────────────────────────────────────────────
-function doSaveRanking(rows) {
-  try {
-    var ss    = SpreadsheetApp.openById(SHEET_ID);
-    var aba   = 'Ranking';
-    var sheet = ss.getSheetByName(aba);
-
-    if (!sheet) {
-      sheet = ss.insertSheet(aba);
-      var headers = ['timestamp','nome','email','turma','disc','rodada','posicao','pontos','nivel'];
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-      var hr = sheet.getRange(1, 1, 1, headers.length);
-      hr.setFontWeight('bold');
-      hr.setBackground('#0A0806');
-      hr.setFontColor('#C9A84C');
-      sheet.setFrozenRows(1);
-    }
-
-    if (!rows || !rows.length) {
-      return ContentService.createTextOutput(JSON.stringify({status:'ok', saved:0}))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-
-    var data = rows.map(function(r) {
-      return [r.timestamp||'', r.nome||'', r.email||'', r.turma||'',
-              r.disc||'', r.rodada||'', r.posicao||0, r.pontos||0, r.nivel||''];
-    });
-
-    sheet.getRange(sheet.getLastRow()+1, 1, data.length, data[0].length).setValues(data);
-
-    // Format alternating rows
-    var lastRow = sheet.getLastRow();
-    for (var i = 2; i <= lastRow; i++) {
-      if (i % 2 === 0) {
-        sheet.getRange(i, 1, 1, 9).setBackground('#F5F0E8');
-      }
-    }
-
-    return ContentService.createTextOutput(JSON.stringify({status:'ok', saved: data.length}))
-      .setMimeType(ContentService.MimeType.JSON);
-
-  } catch(err) {
-    Logger.log('Erro doSaveRanking: ' + err.toString());
-    return ContentService.createTextOutput(JSON.stringify({status:'error', message: err.toString()}))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-// ── Ver Estatísticas ─────────────────────────────────────────────────────────
-// ── Teste manual ─────────────────────────────────────────────────────────────
+// ── Funções de teste (executar manualmente no editor) ────────────────────────
 function testarInsercao() {
-  var mock = {
-    postData: { contents: JSON.stringify({
-      timestamp: new Date().toISOString(),
-      nome:'TESTE — Apagar', email:'teste@il.com', empresa:'Instituto da Liderança',
-      turma:'Impact Leader · Turma 2025/1', fase:'Pré-Treinamento',
-      disc_D:18, disc_I:12, disc_S:8, disc_C:5,
-      disc_primario:'D', disc_secundario:'I',
-      elem_FOGO:12, elem_AR:8, elem_TERRA:4, elem_AGUA:3, elem_primario:'FOGO',
-      ennea_tipo:'8', ennea_nome:'O Desafiador', ennea_score:'4.20',
-      arquetipos:'Herói', kolb_estilo:'Convergente',
-      need_1a:'Significância', need_2a:'Crescimento',
-      need_certeza:'3.2', need_variedade:'4.0', need_significancia:'4.5',
-      need_conexao:'3.0', need_crescimento:'4.2', need_contribuicao:'3.8',
-      holland_codigo:'EIS',
-      holland_tipo1:'Empreendedor', holland_tipo2:'Investigativo', holland_tipo3:'Social',
-      holland_R:5, holland_I:8, holland_A:4, holland_S:7, holland_E:9, holland_C:6,
-    })}
+  // Simula um POST com dados de teste
+  var mockEvent = {
+    postData: {
+      contents: JSON.stringify({
+        timestamp: new Date().toISOString(),
+        nome: 'TESTE — Apagar',
+        email: 'teste@il.com',
+        empresa: 'Instituto da Liderança',
+        turma: 'Geral',
+        fase: 'Pré-Treinamento',
+        disc_D: 18, disc_I: 12, disc_S: 8, disc_C: 5,
+        disc_primario: 'D', disc_secundario: 'I',
+        elem_FOGO: 12, elem_AR: 8, elem_TERRA: 4, elem_AGUA: 3,
+        elem_primario: 'FOGO',
+        ennea_tipo: '8', ennea_nome: 'O Desafiador', ennea_score: '4.20',
+        arquetipos: 'Herói', kolb_estilo: 'Convergente',
+        need_1a: 'Significância', need_2a: 'Crescimento',
+        need_certeza: '3.2', need_variedade: '4.0', need_significancia: '4.5',
+        need_conexao: '3.0', need_crescimento: '4.2', need_contribuicao: '3.8',
+        holland_codigo: 'EIS',
+        holland_tipo1: 'Empreendedor', holland_tipo2: 'Investigativo', holland_tipo3: 'Social',
+        holland_R: 5, holland_I: 8, holland_A: 4, holland_S: 7, holland_E: 9, holland_C: 6,
+      })
+    }
   };
-  var result = doPost(mock);
+  var result = doPost(mockEvent);
   Logger.log('POST resultado: ' + result.getContent());
 
-  // Test GET
+  // Testar GET
   var getResult = doGet({});
   var parsed = JSON.parse(getResult.getContent());
   Logger.log('GET resultado: total=' + parsed.total + ' registros');
@@ -275,6 +284,7 @@ function verEstatisticas() {
   var parsed = JSON.parse(getResult.getContent());
   Logger.log('Total de respostas: ' + parsed.total);
   if (parsed.data.length > 0) {
-    Logger.log('Último respondente: ' + parsed.data[parsed.data.length-1].nome);
+    Logger.log('Último respondente: ' + parsed.data[parsed.data.length - 1].nome);
+    Logger.log('Empresa: ' + parsed.data[parsed.data.length - 1].empresa);
   }
 }
