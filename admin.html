@@ -322,7 +322,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
         </div>
         <div class="config-row">
           <div class="config-label">URL do Apps Script (Web App)</div>
-          <input class="config-input" id="cfg-script-url" placeholder="https://script.google.com/macros/s/XXXX/exec" value="https://script.google.com/macros/s/AKfycbxwrET5t_GSWZc-EI8ZptSPTHZnXW1I_fIY1xB0tkqwXDKTHOuIOC52wWo4xGuB0L8aPw/exec">
+          <input class="config-input" id="cfg-script-url" placeholder="https://script.google.com/macros/s/XXXX/exec" value="https://script.google.com/macros/s/AKfycbzfakehpLWVm1HJYkyHHXq4pBL-3v3Wo_BfhzM0FezaDUqpMXctk3ta8YFB-Hc2TrjfzA/exec">
           <div class="config-hint">Gerada ao implantar o Apps Script como Web App com acesso público.</div>
         </div>
         <button class="btn btn-gold" onclick="saveConfig()" style="margin-top:6px">💾 Salvar Configuração</button>
@@ -535,7 +535,7 @@ const ELEM_COLORS={FOGO:'var(--flame)',AR:'var(--mist)',TERRA:'var(--moss)','ÁG
 
 async function loadData(){
   const emptyEl=document.getElementById('empty-resp');
-  const scriptUrl=getCfg('script_url','https://script.google.com/macros/s/AKfycbxwrET5t_GSWZc-EI8ZptSPTHZnXW1I_fIY1xB0tkqwXDKTHOuIOC52wWo4xGuB0L8aPw/exec');
+  const scriptUrl=getCfg('script_url','https://script.google.com/macros/s/AKfycbzfakehpLWVm1HJYkyHHXq4pBL-3v3Wo_BfhzM0FezaDUqpMXctk3ta8YFB-Hc2TrjfzA/exec');
   const csvUrl=getCfg('csv_url',DEFAULT_CSV);
   let loaded=false;
 
@@ -2678,7 +2678,7 @@ function saveRankingToSheet(){
     });
   });
 
-  const scriptUrl=getCfg('script_url','https://script.google.com/macros/s/AKfycbxwrET5t_GSWZc-EI8ZptSPTHZnXW1I_fIY1xB0tkqwXDKTHOuIOC52wWo4xGuB0L8aPw/exec');
+  const scriptUrl=getCfg('script_url','https://script.google.com/macros/s/AKfycbzfakehpLWVm1HJYkyHHXq4pBL-3v3Wo_BfhzM0FezaDUqpMXctk3ta8YFB-Hc2TrjfzA/exec');
   if(!scriptUrl){toast('Configure o Apps Script na aba Configuração','warn');return;}
 
   const btn=document.getElementById('btn-save-ranking');
