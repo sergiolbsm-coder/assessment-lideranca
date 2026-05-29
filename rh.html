@@ -553,6 +553,29 @@ async function loadData(){
   // Auto-refresh dashboard if active
   const dActive = document.getElementById('tab-dashboard')?.classList.contains('active');
   if(dActive) renderDashboard();
+  // Load pontuacoes from sheet
+  loadPontuacoesRH();
+}
+
+async function loadPontuacoesRH(){
+  try{
+    const res=await fetch('https://script.google.com/macros/s/AKfycbzfakehpLWVm1HJYkyHHXq4pBL-3v3Wo_BfhzM0FezaDUqpMXctk3ta8YFB-Hc2TrjfzA/exec?action=getPontuacoes&t='+Date.now());
+    if(!res.ok)return;
+    const json=await res.json();
+    if(json.status!=='ok'||!Array.isArray(json.data)||!json.data.length)return;
+    const p={};
+    json.data.forEach(row=>{
+      const k=row.respondente_key,rd=row.rodada,av=row.atv_id;
+      if(!k||!rd||!av)return;
+      if(!p[k])p[k]={};
+      if(!p[k][rd])p[k][rd]={};
+      p[k][rd][av]=(row.marcado==='SIM');
+    });
+    try{localStorage.setItem('il_pontuacoes',JSON.stringify(p));}catch(e){}
+    const rankActive=document.getElementById('tab-ranking')?.classList.contains('active');
+    if(rankActive)renderRanking();
+    console.log('Pontuações RH: '+json.data.length+' registros carregados');
+  }catch(e){console.warn('loadPontuacoesRH:',e.message);}
 }
 
 function matchesEmpresa(r){

@@ -592,6 +592,7 @@ async function loadData(){
   renderDashboard();
   if(emptyEl)emptyEl.style.display='none';
   toast(`✅ ${allData.length} respondente(s) carregado(s)`,'success');
+  loadPontuacoesFromSheet();
 }
 function loadDemoData(){
   // Demo data so the admin panel works visually before Sheets is configured
@@ -2421,6 +2422,66 @@ function toast(msg,type='info'){
 }
 
 // ════════════════════════════════════════════════════
+// PONTUAÇÕES — sincronização com Apps Script
+// ════════════════════════════════════════════════════
+async function loadPontuacoesFromSheet(){
+  const scriptUrl=getCfg('script_url','https://script.google.com/macros/s/AKfycbzfakehpLWVm1HJYkyHHXq4pBL-3v3Wo_BfhzM0FezaDUqpMXctk3ta8YFB-Hc2TrjfzA/exec');
+  if(!scriptUrl) return;
+  try{
+    const res=await fetch(scriptUrl+'?action=getPontuacoes&t='+Date.now());
+    if(!res.ok) return;
+    const json=await res.json();
+    if(json.status!=='ok'||!Array.isArray(json.data)||!json.data.length) return;
+    // Rebuild pontuacoes object from sheet rows
+    const pontuacoes={};
+    json.data.forEach(row=>{
+      const key=row.respondente_key||'';
+      const rod=row.rodada||'';
+      const atv=row.atv_id||'';
+      const marcado=row.marcado==='SIM';
+      if(!key||!rod||!atv) return;
+      if(!pontuacoes[key]) pontuacoes[key]={};
+      if(!pontuacoes[key][rod]) pontuacoes[key][rod]={};
+      pontuacoes[key][rod][atv]=marcado;
+    });
+    // Merge with localStorage (sheet wins)
+    setPontuacoes(pontuacoes);
+    console.log('✅ Pontuações carregadas da planilha: '+json.data.length+' registros');
+    // Refresh ranking if active
+    const rankActive=document.getElementById('tab-ranking')?.classList.contains('active');
+    if(rankActive) renderRanking();
+  }catch(e){
+    console.warn('loadPontuacoesFromSheet failed:',e.message);
+  }
+}
+
+// ════════════════════════════════════════════════════
+// PONTUAÇÕES — carregar da planilha
+// ════════════════════════════════════════════════════
+async function loadPontuacoesFromSheet(){
+  const scriptUrl=getCfg('script_url','https://script.google.com/macros/s/AKfycbzfakehpLWVm1HJYkyHHXq4pBL-3v3Wo_BfhzM0FezaDUqpMXctk3ta8YFB-Hc2TrjfzA/exec');
+  if(!scriptUrl)return;
+  try{
+    const res=await fetch(scriptUrl+'?action=getPontuacoes&t='+Date.now());
+    if(!res.ok)return;
+    const json=await res.json();
+    if(json.status!=='ok'||!Array.isArray(json.data)||!json.data.length)return;
+    const p={};
+    json.data.forEach(row=>{
+      const k=row.respondente_key,rd=row.rodada,av=row.atv_id;
+      if(!k||!rd||!av)return;
+      if(!p[k])p[k]={};
+      if(!p[k][rd])p[k][rd]={};
+      p[k][rd][av]=(row.marcado==='SIM');
+    });
+    setPontuacoes(p);
+    const rankActive=document.getElementById('tab-ranking')?.classList.contains('active');
+    if(rankActive)renderRanking();
+    console.log('✅ Pontuações carregadas: '+json.data.length+' registros');
+  }catch(e){console.warn('loadPontuacoesFromSheet:',e.message);}
+}
+
+// ════════════════════════════════════════════════════
 // GAMIFICAÇÃO — Atividades, Pontuação e Ranking
 // ════════════════════════════════════════════════════
 
@@ -2539,22 +2600,82 @@ function renderPontuacaoTable(){
 
 function togglePonto(cb){
   const key=cb.dataset.key, rodada=cb.dataset.rodada, atvId=cb.dataset.atv;
+  // 1. Update localStorage immediately (UI feedback)
   const pontuacoes=getPontuacoes();
   if(!pontuacoes[key]) pontuacoes[key]={};
   if(!pontuacoes[key][rodada]) pontuacoes[key][rodada]={};
   pontuacoes[key][rodada][atvId]=cb.checked;
   setPontuacoes(pontuacoes);
-  // Update row total
+  // 2. Update row total in UI
   const atividades=getAtividades();
   const rdData=pontuacoes[key][rodada];
   const total=atividades.reduce((sum,a)=>sum+(rdData[a.id]?a.pts:0),0);
   const safeKey=key.replace(/[^a-zA-Z0-9]/g,'_');
   const el=document.getElementById('pts-total-'+safeKey);
-  if(el){el.textContent=total; el.style.animation='none'; setTimeout(()=>el.style.animation='',10);}
+  if(el) el.textContent=total;
+  // 3. Find respondente data for the sheet
+  const r=allData.find(x=>respKey(x)===key)||{};
+  // 4. Save to Apps Script (non-blocking)
+  salvarPontoSheet(key, rodada, atvId, cb.checked, r, atividades);
+}
+
+async function salvarPontoSheet(key, rodada, atvId, marcado, r, atividades){
+  const scriptUrl=getCfg('script_url','https://script.google.com/macros/s/AKfycbzfakehpLWVm1HJYkyHHXq4pBL-3v3Wo_BfhzM0FezaDUqpMXctk3ta8YFB-Hc2TrjfzA/exec');
+  if(!scriptUrl) return;
+  const atv=atividades.find(a=>a.id===atvId)||{};
+  try{
+    await fetch(scriptUrl,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        action:'savePontuacao',
+        lancamentos:[{
+          key, nome:r.nome||'', email:r.email||'',
+          turma:r.turma||'', empresa:r.empresa||r.empresa||'',
+          rodada, atv_id:atvId, atv_nome:atv.nome||'',
+          pts:atv.pts||0, marcado
+        }]
+      })
+    });
+  }catch(e){console.warn('Falha ao salvar pontuação no sheet:',e.message);}
 }
 
 function salvarPontuacao(){
-  toast('✅ Pontuação salva automaticamente a cada marcação','success');
+  const turma=document.getElementById('pts-turma')?.value;
+  const rodada=document.getElementById('pts-rodada')?.value||'1';
+  if(!turma){toast('Selecione uma turma primeiro','warn');return;}
+  const scriptUrl=getCfg('script_url','https://script.google.com/macros/s/AKfycbzfakehpLWVm1HJYkyHHXq4pBL-3v3Wo_BfhzM0FezaDUqpMXctk3ta8YFB-Hc2TrjfzA/exec');
+  if(!scriptUrl){toast('Configure o Apps Script na aba Configuração','warn');return;}
+  const participantes=allData.filter(r=>r.turma===turma);
+  const atividades=getAtividades();
+  const pontuacoes=getPontuacoes();
+  const lancamentos=[];
+  participantes.forEach(r=>{
+    const key=respKey(r);
+    const rdData=(pontuacoes[key]||{})[rodada]||{};
+    atividades.forEach(a=>{
+      lancamentos.push({
+        key, nome:r.nome||'', email:r.email||'',
+        turma:r.turma||'', empresa:r.empresa||'',
+        rodada, atv_id:a.id, atv_nome:a.nome,
+        pts:a.pts, marcado:!!(rdData[a.id])
+      });
+    });
+  });
+  const btn=document.querySelector('[onclick="salvarPontuacao()"]');
+  if(btn){btn.textContent='⏳ Salvando...';btn.disabled=true;}
+  fetch(scriptUrl,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'savePontuacao',lancamentos})
+  }).then(r=>r.json()).then(d=>{
+    if(btn){btn.textContent='💾 Salvar Lançamento';btn.disabled=false;}
+    if(d.status==='ok') toast('✅ '+d.saved+' registros salvos na planilha','success');
+    else toast('⚠️ Erro: '+d.message,'warn');
+  }).catch(e=>{
+    if(btn){btn.textContent='💾 Salvar Lançamento';btn.disabled=false;}
+    toast('⚠️ Falha na conexão com o Apps Script','warn');
+  });
 }
 
 // ── RANKING ───────────────────────────────────────────

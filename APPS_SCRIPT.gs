@@ -1,12 +1,13 @@
-// ═══════════════════════════════════════════════════════════════════════════
-// APPS SCRIPT — Instituto da Liderança
-// Planilha: 1C8kfRIjc3caRCfCkIgFToudZJD6Ch_-_36JBW9Mr7ho
-// ═══════════════════════════════════════════════════════════════════════════
 
-var SHEET_ID = '1C8kfRIjc3caRCfCkIgFToudZJD6Ch_-_36JBW9Mr7ho';
-var ABA      = 'Respostas';
+// ═══════════════════════════════════════════════════════════════════════════
+// APPS SCRIPT — Instituto da Liderança  |  Versão 2025.4
+// ═══════════════════════════════════════════════════════════════════════════
+var SHEET_ID       = '1C8kfRIjc3caRCfCkIgFToudZJD6Ch_-_36JBW9Mr7ho';
+var ABA_RESPOSTAS  = 'Respostas';
+var ABA_PONTUACAO  = 'Pontuacao';
+var ABA_RANKING    = 'Ranking';
 
-var CABECALHOS = [
+var CAB_RESPOSTAS = [
   'timestamp','nome','email','empresa','turma','fase',
   'disc_D','disc_I','disc_S','disc_C','disc_primario','disc_secundario',
   'elem_FOGO','elem_AR','elem_TERRA','elem_AGUA','elem_primario',
@@ -18,273 +19,225 @@ var CABECALHOS = [
   'holland_codigo','holland_tipo1','holland_tipo2','holland_tipo3',
   'holland_R','holland_I','holland_A','holland_S','holland_E','holland_C'
 ];
+var TEXT_COLS_R = [1,2,3,4,5,6,11,12,17,18,19,20,21,22,23,24,31,32,33,34];
 
-// Colunas que devem ser salvas como TEXTO (1-based index)
-var TEXT_COLS = [1,2,3,4,5,6,11,12,17,18,19,20,21,22,23,24,31,32,33,34];
+var CAB_PONTUACAO = [
+  'respondente_key','nome','email','turma','empresa',
+  'rodada','atv_id','atv_nome','pts','marcado','timestamp_lancamento'
+];
 
-// ── GET: retorna todos os dados como JSON ────────────────────────────────────
+var CAB_RANKING = [
+  'timestamp','nome','email','turma','empresa','disc',
+  'rodada','posicao','pontos','nivel'
+];
+
+// ── doGet ────────────────────────────────────────────────────────────────────
 function doGet(e) {
-  var output = ContentService.createTextOutput();
-  output.setMimeType(ContentService.MimeType.JSON);
-
-  // doGet pode ser chamado sem parâmetros no editor — proteger
+  var out = ContentService.createTextOutput().setMimeType(ContentService.MimeType.JSON);
   try {
-    var ss    = SpreadsheetApp.openById(SHEET_ID);
-    var sheet = ss.getSheetByName(ABA);
-
-    if (!sheet || sheet.getLastRow() <= 1) {
-      output.setContent(JSON.stringify({ status: 'ok', data: [], total: 0 }));
-      return output;
-    }
-
-    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-    var rows    = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
-
-    var data = rows.map(function(row, idx) {
-      var obj = { _id: idx };
-      headers.forEach(function(h, i) {
-        obj[h] = (row[i] !== undefined && row[i] !== null) ? String(row[i]) : '';
-      });
-      return obj;
-    });
-
-    output.setContent(JSON.stringify({ status: 'ok', data: data, total: data.length }));
+    var action = (e && e.parameter && e.parameter.action) ? e.parameter.action : 'getRespostas';
+    if (action === 'getPontuacoes') return out.setContent(JSON.stringify(sheetToJson(ABA_PONTUACAO)));
+    if (action === 'getRanking')    return out.setContent(JSON.stringify(sheetToJson(ABA_RANKING)));
+    return out.setContent(JSON.stringify(sheetToJson(ABA_RESPOSTAS)));
   } catch(err) {
-    output.setContent(JSON.stringify({ status: 'error', message: err.toString(), data: [], total: 0 }));
+    return out.setContent(JSON.stringify({status:'error', message:err.toString()}));
   }
-
-  return output;
 }
 
-// ── POST: grava nova resposta ou salva ranking ───────────────────────────────
-function doPost(e) {
-  // Proteger contra execução manual no editor (sem evento HTTP)
-  if (!e || !e.postData || !e.postData.contents) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ status: 'error', message: 'Esta função deve ser chamada via HTTP POST, não manualmente.' }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
+function sheetToJson(abaName) {
+  var ss    = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName(abaName);
+  if (!sheet || sheet.getLastRow() <= 1) return {status:'ok', data:[], total:0};
+  var headers = sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0];
+  var rows    = sheet.getRange(2,1,sheet.getLastRow()-1,sheet.getLastColumn()).getValues();
+  var data = rows.map(function(row, idx) {
+    var obj = {_id: idx};
+    headers.forEach(function(h,i){ obj[h] = (row[i] !== null && row[i] !== undefined) ? String(row[i]) : ''; });
+    return obj;
+  });
+  return {status:'ok', data:data, total:data.length};
+}
 
+// ── doPost ───────────────────────────────────────────────────────────────────
+function doPost(e) {
+  var out = ContentService.createTextOutput().setMimeType(ContentService.MimeType.JSON);
+  if (!e || !e.postData || !e.postData.contents) {
+    return out.setContent(JSON.stringify({status:'error', message:'Use HTTP POST. Para testes, chame testarInsercao().'}));
+  }
   try {
     var data = JSON.parse(e.postData.contents);
-
-    // Roteamento por action
-    if (data.action === 'saveRanking') {
-      return doSaveRanking(data.rows);
-    }
-
-    // Gravar resposta do assessment
-    var ss    = SpreadsheetApp.openById(SHEET_ID);
-    var sheet = ss.getSheetByName(ABA);
-    if (!sheet) { configurarCabecalhos(); sheet = ss.getSheetByName(ABA); }
-
-    var linha = [
-      data.timestamp           || new Date().toISOString(),
-      data.nome                || '',
-      data.email               || '',
-      data.empresa             || '',
-      data.turma               || '',
-      data.fase                || '',
-      Number(data.disc_D)      || 0,
-      Number(data.disc_I)      || 0,
-      Number(data.disc_S)      || 0,
-      Number(data.disc_C)      || 0,
-      data.disc_primario       || '',
-      data.disc_secundario     || '',
-      Number(data.elem_FOGO)   || 0,
-      Number(data.elem_AR)     || 0,
-      Number(data.elem_TERRA)  || 0,
-      Number(data.elem_AGUA)   || 0,
-      data.elem_primario       || '',
-      data.ennea_tipo          || '',
-      data.ennea_nome          || '',
-      data.ennea_score         || '',
-      data.arquetipos          || '',
-      data.kolb_estilo         || '',
-      data.need_1a             || '',
-      data.need_2a             || '',
-      data.need_certeza        || '',
-      data.need_variedade      || '',
-      data.need_significancia  || '',
-      data.need_conexao        || '',
-      data.need_crescimento    || '',
-      data.need_contribuicao   || '',
-      data.holland_codigo      || '',
-      data.holland_tipo1       || '',
-      data.holland_tipo2       || '',
-      data.holland_tipo3       || '',
-      Number(data.holland_R)   || 0,
-      Number(data.holland_I)   || 0,
-      Number(data.holland_A)   || 0,
-      Number(data.holland_S)   || 0,
-      Number(data.holland_E)   || 0,
-      Number(data.holland_C)   || 0,
-    ];
-
-    sheet.appendRow(linha);
-
-    // Forçar formato TEXTO nas colunas string da linha recém-gravada
-    var lastRow = sheet.getLastRow();
-    TEXT_COLS.forEach(function(col) {
-      sheet.getRange(lastRow, col, 1, 1).setNumberFormat('@');
-    });
-
-    // Zebra alternada
-    if (lastRow % 2 === 0) {
-      sheet.getRange(lastRow, 1, 1, CABECALHOS.length).setBackground('#F5F0E8');
-    }
-
-    return ContentService
-      .createTextOutput(JSON.stringify({ status: 'ok', nome: data.nome, row: lastRow }))
-      .setMimeType(ContentService.MimeType.JSON);
-
+    if (data.action === 'savePontuacao') return out.setContent(JSON.stringify(doSavePontuacao(data)));
+    if (data.action === 'saveRanking')   return out.setContent(JSON.stringify(doSaveRanking(data.rows)));
+    return out.setContent(JSON.stringify(doSaveResposta(data)));
   } catch(err) {
     Logger.log('Erro doPost: ' + err.toString());
-    return ContentService
-      .createTextOutput(JSON.stringify({ status: 'error', message: err.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return out.setContent(JSON.stringify({status:'error', message:err.toString()}));
   }
 }
 
-// ── Salvar Ranking ───────────────────────────────────────────────────────────
-function doSaveRanking(rows) {
-  try {
-    var ss    = SpreadsheetApp.openById(SHEET_ID);
-    var abaRank = 'Ranking';
-    var sheet = ss.getSheetByName(abaRank);
-
-    if (!sheet) {
-      sheet = ss.insertSheet(abaRank);
-      var headers = ['timestamp','nome','email','turma','disc','rodada','posicao','pontos','nivel'];
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-      var hr = sheet.getRange(1, 1, 1, headers.length);
-      hr.setFontWeight('bold');
-      hr.setBackground('#0A0806');
-      hr.setFontColor('#C9A84C');
-      sheet.setFrozenRows(1);
-      // Forçar texto em todas as colunas da aba Ranking
-      sheet.getRange(1, 1, 1000, headers.length).setNumberFormat('@');
-    }
-
-    if (!rows || !rows.length) {
-      return ContentService
-        .createTextOutput(JSON.stringify({ status: 'ok', saved: 0 }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-
-    var data = rows.map(function(r) {
-      return [
-        r.timestamp || '',
-        r.nome      || '',
-        r.email     || '',
-        r.turma     || '',
-        r.disc      || '',
-        r.rodada    || '',
-        r.posicao   || 0,
-        r.pontos    || 0,
-        r.nivel     || ''
-      ];
-    });
-
-    sheet.getRange(sheet.getLastRow() + 1, 1, data.length, data[0].length).setValues(data);
-
-    return ContentService
-      .createTextOutput(JSON.stringify({ status: 'ok', saved: data.length }))
-      .setMimeType(ContentService.MimeType.JSON);
-
-  } catch(err) {
-    Logger.log('Erro doSaveRanking: ' + err.toString());
-    return ContentService
-      .createTextOutput(JSON.stringify({ status: 'error', message: err.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-// ── Configurar cabeçalhos ────────────────────────────────────────────────────
-function configurarCabecalhos() {
+// ── Salvar resposta do assessment ────────────────────────────────────────────
+function doSaveResposta(d) {
   var ss    = SpreadsheetApp.openById(SHEET_ID);
-  var sheet = ss.getSheetByName(ABA);
-  if (!sheet) sheet = ss.insertSheet(ABA);
+  var sheet = ss.getSheetByName(ABA_RESPOSTAS);
+  if (!sheet) { configurarAbas(); sheet = ss.getSheetByName(ABA_RESPOSTAS); }
 
-  sheet.getRange(1, 1, 1, CABECALHOS.length).setValues([CABECALHOS]);
+  var linha = [
+    d.timestamp || new Date().toISOString(),
+    d.nome || '', d.email || '', d.empresa || '', d.turma || '', d.fase || '',
+    Number(d.disc_D)||0, Number(d.disc_I)||0, Number(d.disc_S)||0, Number(d.disc_C)||0,
+    d.disc_primario||'', d.disc_secundario||'',
+    Number(d.elem_FOGO)||0, Number(d.elem_AR)||0, Number(d.elem_TERRA)||0, Number(d.elem_AGUA)||0,
+    d.elem_primario||'',
+    d.ennea_tipo||'', d.ennea_nome||'', d.ennea_score||'',
+    d.arquetipos||'', d.kolb_estilo||'',
+    d.need_1a||'', d.need_2a||'',
+    d.need_certeza||'', d.need_variedade||'', d.need_significancia||'',
+    d.need_conexao||'', d.need_crescimento||'', d.need_contribuicao||'',
+    d.holland_codigo||'', d.holland_tipo1||'', d.holland_tipo2||'', d.holland_tipo3||'',
+    Number(d.holland_R)||0, Number(d.holland_I)||0, Number(d.holland_A)||0,
+    Number(d.holland_S)||0, Number(d.holland_E)||0, Number(d.holland_C)||0
+  ];
 
-  var hr = sheet.getRange(1, 1, 1, CABECALHOS.length);
-  hr.setFontWeight('bold');
-  hr.setBackground('#0A0806');
-  hr.setFontColor('#C9A84C');
-  hr.setFontFamily('Arial');
-  hr.setFontSize(10);
-  sheet.setFrozenRows(1);
-  sheet.setFrozenColumns(2);
+  sheet.appendRow(linha);
+  var lastRow = sheet.getLastRow();
+  TEXT_COLS_R.forEach(function(col){ sheet.getRange(lastRow,col,1,1).setNumberFormat('@'); });
+  if (lastRow % 2 === 0) sheet.getRange(lastRow,1,1,CAB_RESPOSTAS.length).setBackground('#F5F0E8');
+  return {status:'ok', nome:d.nome, row:lastRow};
+}
 
-  // Forçar formato TEXTO nas colunas de string (evita conversão automática do Sheets)
-  TEXT_COLS.forEach(function(col) {
-    sheet.getRange(1, col, 1000, 1).setNumberFormat('@');
+// ── Salvar pontuação (UPSERT por key+rodada+atv_id) ──────────────────────────
+function doSavePontuacao(data) {
+  var ss    = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName(ABA_PONTUACAO);
+  if (!sheet) { configurarAbas(); sheet = ss.getSheetByName(ABA_PONTUACAO); }
+
+  var lancamentos = data.lancamentos || [];
+  if (!lancamentos.length) return {status:'ok', saved:0};
+
+  var ts      = new Date().toISOString();
+  var allRows = sheet.getDataRange().getValues();
+  var headers = allRows[0];
+  var keyIdx  = headers.indexOf('respondente_key');
+  var rodIdx  = headers.indexOf('rodada');
+  var atvIdx  = headers.indexOf('atv_id');
+
+  // Build set of keys to upsert
+  var toReplace = {};
+  lancamentos.forEach(function(l){ toReplace[l.key+'|'+l.rodada+'|'+l.atv_id] = true; });
+
+  // Delete matching rows from bottom
+  for (var i = allRows.length - 1; i >= 1; i--) {
+    var rk = allRows[i][keyIdx]+'|'+allRows[i][rodIdx]+'|'+allRows[i][atvIdx];
+    if (toReplace[rk]) sheet.deleteRow(i+1);
+  }
+
+  // Append new rows
+  var newRows = lancamentos.map(function(l) {
+    return [l.key||'', l.nome||'', l.email||'', l.turma||'', l.empresa||'',
+            l.rodada||'', l.atv_id||'', l.atv_nome||'', Number(l.pts)||0,
+            (l.marcado===true||l.marcado==='true') ? 'SIM' : 'NAO', ts];
   });
 
-  sheet.setColumnWidth(1, 180);
-  sheet.setColumnWidth(2, 200);
-  sheet.setColumnWidth(3, 200);
-  sheet.setColumnWidth(4, 200); // empresa
-  sheet.setColumnWidth(5, 220); // turma
-  for (var i = 6; i <= CABECALHOS.length; i++) sheet.setColumnWidth(i, 110);
+  if (newRows.length) {
+    var startRow = sheet.getLastRow() + 1;
+    sheet.getRange(startRow, 1, newRows.length, newRows[0].length).setValues(newRows);
+    // Force text on string columns
+    [1,2,3,4,5,6,7,8,10,11].forEach(function(col){
+      sheet.getRange(startRow, col, newRows.length, 1).setNumberFormat('@');
+    });
+  }
 
-  Logger.log('✅ Cabeçalhos configurados: ' + CABECALHOS.length + ' colunas — texto formatado como @');
+  return {status:'ok', saved:newRows.length};
 }
 
-// ── Funções de teste (executar manualmente no editor) ────────────────────────
-function testarInsercao() {
-  // Simula um POST com dados de teste
-  var mockEvent = {
-    postData: {
-      contents: JSON.stringify({
-        timestamp: new Date().toISOString(),
-        nome: 'TESTE — Apagar',
-        email: 'teste@il.com',
-        empresa: 'Instituto da Liderança',
-        turma: 'Geral',
-        fase: 'Pré-Treinamento',
-        disc_D: 18, disc_I: 12, disc_S: 8, disc_C: 5,
-        disc_primario: 'D', disc_secundario: 'I',
-        elem_FOGO: 12, elem_AR: 8, elem_TERRA: 4, elem_AGUA: 3,
-        elem_primario: 'FOGO',
-        ennea_tipo: '8', ennea_nome: 'O Desafiador', ennea_score: '4.20',
-        arquetipos: 'Herói', kolb_estilo: 'Convergente',
-        need_1a: 'Significância', need_2a: 'Crescimento',
-        need_certeza: '3.2', need_variedade: '4.0', need_significancia: '4.5',
-        need_conexao: '3.0', need_crescimento: '4.2', need_contribuicao: '3.8',
-        holland_codigo: 'EIS',
-        holland_tipo1: 'Empreendedor', holland_tipo2: 'Investigativo', holland_tipo3: 'Social',
-        holland_R: 5, holland_I: 8, holland_A: 4, holland_S: 7, holland_E: 9, holland_C: 6,
-      })
-    }
-  };
-  var result = doPost(mockEvent);
-  Logger.log('POST resultado: ' + result.getContent());
+// ── Salvar ranking ────────────────────────────────────────────────────────────
+function doSaveRanking(rows) {
+  if (!rows || !rows.length) return {status:'ok', saved:0};
+  var ss    = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName(ABA_RANKING);
+  if (!sheet) { configurarAbas(); sheet = ss.getSheetByName(ABA_RANKING); }
+  var ts   = new Date().toISOString();
+  var data = rows.map(function(r){
+    return [ts, r.nome||'', r.email||'', r.turma||'', r.empresa||'', r.disc||'',
+            r.rodada||'', r.posicao||0, r.pontos||0, r.nivel||''];
+  });
+  var start = sheet.getLastRow()+1;
+  sheet.getRange(start,1,data.length,data[0].length).setValues(data);
+  [1,2,3,4,5,6,7,9].forEach(function(col){
+    sheet.getRange(start,col,data.length,1).setNumberFormat('@');
+  });
+  return {status:'ok', saved:data.length};
+}
 
-  // Testar GET
-  var getResult = doGet({});
-  var parsed = JSON.parse(getResult.getContent());
-  Logger.log('GET resultado: total=' + parsed.total + ' registros');
+// ── Configurar abas ───────────────────────────────────────────────────────────
+function configurarAbas() {
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  function makeSheet(name, headers, textCols) {
+    var sh = ss.getSheetByName(name);
+    if (!sh) sh = ss.insertSheet(name);
+    if (sh.getLastRow() === 0) {
+      sh.getRange(1,1,1,headers.length).setValues([headers]);
+      var hr = sh.getRange(1,1,1,headers.length);
+      hr.setFontWeight('bold'); hr.setBackground('#0A0806'); hr.setFontColor('#C9A84C');
+      sh.setFrozenRows(1);
+    }
+    if (textCols) textCols.forEach(function(c){ sh.getRange(1,c,1000,1).setNumberFormat('@'); });
+    return sh;
+  }
+  makeSheet(ABA_RESPOSTAS, CAB_RESPOSTAS, TEXT_COLS_R);
+  makeSheet(ABA_PONTUACAO, CAB_PONTUACAO, null);
+  makeSheet(ABA_RANKING,   CAB_RANKING,   null);
+  Logger.log('Abas configuradas: Respostas, Pontuacao, Ranking');
+}
+
+// ── Testes (executar no editor) ───────────────────────────────────────────────
+function testarInsercao() {
+  var r = doSaveResposta({
+    timestamp:new Date().toISOString(), nome:'TESTE — Apagar', email:'teste@il.com',
+    empresa:'Instituto da Liderança', turma:'Geral', fase:'Pré-Treinamento',
+    disc_D:18,disc_I:12,disc_S:8,disc_C:5, disc_primario:'D',disc_secundario:'I',
+    elem_FOGO:12,elem_AR:8,elem_TERRA:4,elem_AGUA:3,elem_primario:'FOGO',
+    ennea_tipo:'8',ennea_nome:'O Desafiador',ennea_score:'4.2',
+    arquetipos:'Herói',kolb_estilo:'Convergente',
+    need_1a:'Significância',need_2a:'Crescimento',
+    need_certeza:'3.2',need_variedade:'4.0',need_significancia:'4.5',
+    need_conexao:'3.0',need_crescimento:'4.2',need_contribuicao:'3.8',
+    holland_codigo:'EIS',holland_tipo1:'Empreendedor',holland_tipo2:'Investigativo',holland_tipo3:'Social',
+    holland_R:5,holland_I:8,holland_A:4,holland_S:7,holland_E:9,holland_C:6
+  });
+  Logger.log('Resposta: ' + JSON.stringify(r));
+}
+
+function testarPontuacao() {
+  var r = doSavePontuacao({lancamentos:[
+    {key:'teste@il.com',nome:'TESTE',email:'teste@il.com',turma:'Geral',empresa:'Instituto da Liderança',
+     rodada:'1',atv_id:'a1',atv_nome:'Presença no encontro',pts:10,marcado:true},
+    {key:'teste@il.com',nome:'TESTE',email:'teste@il.com',turma:'Geral',empresa:'Instituto da Liderança',
+     rodada:'1',atv_id:'a2',atv_nome:'Missão da semana',pts:25,marcado:false}
+  ]});
+  Logger.log('Pontuação: ' + JSON.stringify(r));
+}
+
+function testarGetPontuacoes() {
+  var r = sheetToJson(ABA_PONTUACAO);
+  Logger.log('Pontuações: total=' + r.total);
 }
 
 function limparTeste() {
-  var ss    = SpreadsheetApp.openById(SHEET_ID);
-  var sheet = ss.getSheetByName(ABA);
-  if (!sheet) return;
-  var dados = sheet.getDataRange().getValues();
-  for (var i = dados.length - 1; i >= 1; i--) {
-    if (String(dados[i][1]).includes('TESTE')) sheet.deleteRow(i + 1);
-  }
-  Logger.log('Linhas de teste removidas.');
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  [ABA_RESPOSTAS,ABA_PONTUACAO,ABA_RANKING].forEach(function(n){
+    var sh = ss.getSheetByName(n); if(!sh) return;
+    var rows = sh.getDataRange().getValues();
+    for(var i=rows.length-1;i>=1;i--){
+      if(String(rows[i][0]).includes('TESTE')||String(rows[i][1]).includes('TESTE'))
+        sh.deleteRow(i+1);
+    }
+  });
+  Logger.log('Linhas de teste removidas');
 }
 
 function verEstatisticas() {
-  var getResult = doGet({});
-  var parsed = JSON.parse(getResult.getContent());
-  Logger.log('Total de respostas: ' + parsed.total);
-  if (parsed.data.length > 0) {
-    Logger.log('Último respondente: ' + parsed.data[parsed.data.length - 1].nome);
-    Logger.log('Empresa: ' + parsed.data[parsed.data.length - 1].empresa);
-  }
+  Logger.log('Respostas: '  + sheetToJson(ABA_RESPOSTAS).total);
+  Logger.log('Pontuacoes: ' + sheetToJson(ABA_PONTUACAO).total);
+  Logger.log('Ranking: '    + sheetToJson(ABA_RANKING).total);
 }
