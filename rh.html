@@ -245,6 +245,12 @@ body{font-family:'Syne',sans-serif;background:#F5F4F2;color:var(--ink);min-heigh
 /* ── UTILS ──────────────────────────────────────────────── */
 .no-print{}
 @media print{.no-print{display:none!important}}
+/* ── RANKING ── */
+.rank-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px}
+.rank-card-header{display:flex;align-items:center;gap:12px;padding:16px 22px;background:#F8F7F5;border-bottom:1px solid var(--border)}
+.rank-row{display:flex;align-items:center;gap:10px;padding:11px 18px;border-bottom:1px solid #F0EDE8;transition:background .15s}
+.rank-row:last-child{border-bottom:none}
+.rank-row:hover{background:#FDFCFA}
 </style>
 </head>
 <body>
@@ -291,6 +297,7 @@ body{font-family:'Syne',sans-serif;background:#F5F4F2;color:var(--ink);min-heigh
         <div class="nav-section">Dados</div>
         <div class="nav-item active" data-tab="respondentes" onclick="showTab('respondentes')"><span class="ni">👥</span> Respondentes</div>
         <div class="nav-item" data-tab="dashboard" onclick="showTab('dashboard')"><span class="ni">📊</span> Dashboard</div>
+        <div class="nav-item" data-tab="ranking" onclick="showTab('ranking')"><span class="ni">🥇</span> Ranking</div>
       </nav>
       <div class="sidebar-footer">
         <button class="logout-btn" onclick="doLogout()">↩ Sair</button>
@@ -381,6 +388,33 @@ body{font-family:'Syne',sans-serif;background:#F5F4F2;color:var(--ink);min-heigh
         </div>
       </div>
 
+      <!-- ░ RANKING ░ -->
+      <div id="tab-ranking" class="tab-panel">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Ranking Impact Leader</div>
+            <div class="page-sub" id="rank-subtitle">Pontuação acumulada da sua turma</div>
+          </div>
+          <button class="btn btn-gold btn-sm" onclick="exportRankingCSV()">⬇ Exportar CSV</button>
+        </div>
+        <div class="page-content">
+          <div class="controls">
+            <select class="filter-sel" id="rank-rodada" onchange="renderRanking()">
+              <option value="">Todas as rodadas (acumulado)</option>
+              <option value="1">Rodada 1</option>
+              <option value="2">Rodada 2</option>
+              <option value="3">Rodada 3</option>
+              <option value="4">Rodada 4</option>
+              <option value="5">Rodada 5</option>
+              <option value="6">Rodada 6</option>
+              <option value="7">Rodada 7</option>
+              <option value="8">Rodada 8</option>
+            </select>
+          </div>
+          <div id="ranking-body"></div>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>
@@ -411,8 +445,8 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzfakehpLWVm1HJYkyHH
 const SHEET_CSV  = 'https://docs.google.com/spreadsheets/d/1C8kfRIjc3caRCfCkIgFToudZJD6Ch_-_36JBW9Mr7ho/export?format=csv&gid=0';
 
 const USERS = {
-  'rh_senff': {senha:'Senff@2025',  empresa:'Senff',                   nome:'RH — Senff'},
-  'rh_assis': {senha:'Assis@2025',  empresa:'Assis Supermercados Ltda', nome:'RH — Assis'},
+  'rh_senff': {senha:'Senff@2026',  empresa:'Senff',                   nome:'RH — Senff'},
+  'rh_assis': {senha:'Assis@2026',  empresa:'Assis Supermercados Ltda', nome:'RH — Assis'},
 };
 
 let allData      = [];
@@ -592,9 +626,9 @@ function renderTable(){
       <td><span class="disc-badge" style="background:${dc}18;color:${dc}">${dn}</span></td>
       <td style="font-size:13px">${elem}</td>
       <td style="font-size:13px">${r.ennea_tipo ? 'T'+r.ennea_tipo : '—'}</td>
-      <td><span style="font-weight:800;color:${holC};font-family:'JetBrains Mono',monospace">${hol}</span></td>
+      <td><span style="font-weight:800;color:${holC};font-family:JetBrains Mono,monospace">${hol}</span></td>
       <td style="font-size:12px;color:var(--mid)">${r.fase||'—'}</td>
-      <td style="font-size:12px;color:var(--mid);font-family:'JetBrains Mono',monospace">${data}</td>
+      <td style="font-size:12px;color:var(--mid);font-family:JetBrains Mono,monospace">${data}</td>
       <td>
         <button class="btn btn-sm" onclick="openProfile(${r._id})">👁 Ver</button>
       </td>
@@ -730,19 +764,19 @@ function renderDashboard(){
         <div class="dash-card-title">📋 SWOT da Equipe — Perfil ${DISC_NAMES_RH[discPrimary]}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
           <div style="background:#F0FAF4;border:1px solid #C8EDD8;border-radius:8px;padding:12px">
-            <div style="font-size:9px;font-family:'JetBrains Mono',monospace;color:#22C55E;letter-spacing:.1em;margin-bottom:6px">✅ FORÇAS</div>
+            <div style="font-size:9px;font-family:JetBrains Mono,monospace;color:#22C55E;letter-spacing:.1em;margin-bottom:6px">✅ FORÇAS</div>
             <div style="font-size:12px;color:#1A4A2A;line-height:1.5">${swot.s}</div>
           </div>
           <div style="background:#FFF0EE;border:1px solid #FECACA;border-radius:8px;padding:12px">
-            <div style="font-size:9px;font-family:'JetBrains Mono',monospace;color:#EF4444;letter-spacing:.1em;margin-bottom:6px">⚠️ FRAQUEZAS</div>
+            <div style="font-size:9px;font-family:JetBrains Mono,monospace;color:#EF4444;letter-spacing:.1em;margin-bottom:6px">⚠️ FRAQUEZAS</div>
             <div style="font-size:12px;color:#7A0A0A;line-height:1.5">${swot.w}</div>
           </div>
           <div style="background:#EEF4FF;border:1px solid #B0C4E8;border-radius:8px;padding:12px">
-            <div style="font-size:9px;font-family:'JetBrains Mono',monospace;color:#4A70B0;letter-spacing:.1em;margin-bottom:6px">🚀 OPORTUNIDADES</div>
+            <div style="font-size:9px;font-family:JetBrains Mono,monospace;color:#4A70B0;letter-spacing:.1em;margin-bottom:6px">🚀 OPORTUNIDADES</div>
             <div style="font-size:12px;color:#1A2A5A;line-height:1.5">${swot.o}</div>
           </div>
           <div style="background:#FEFDE8;border:1px solid #E8E060;border-radius:8px;padding:12px">
-            <div style="font-size:9px;font-family:'JetBrains Mono',monospace;color:#C8A010;letter-spacing:.1em;margin-bottom:6px">⚡ AMEAÇAS</div>
+            <div style="font-size:9px;font-family:JetBrains Mono,monospace;color:#C8A010;letter-spacing:.1em;margin-bottom:6px">⚡ AMEAÇAS</div>
             <div style="font-size:12px;color:#5A4A0A;line-height:1.5">${swot.t}</div>
           </div>
         </div>
@@ -905,29 +939,29 @@ function generate360Report(id){
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Syne:wght@400;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Syne',sans-serif;background:#FFFFFF;color:#1A1612;line-height:1.6;font-size:14px}
+body{font-family:Syne,sans-serif;background:#FFFFFF;color:#1A1612;line-height:1.6;font-size:14px}
 .page{max-width:840px;margin:0 auto;padding:48px 40px}
 /* CAPA */
 .cover{background:linear-gradient(135deg,#0A0806 0%,#1A1612 100%);color:#FAF6EE;padding:56px 48px;border-radius:16px;margin-bottom:40px;position:relative;overflow:hidden}
 .cover::after{content:'';position:absolute;top:-40px;right:-40px;width:240px;height:240px;border-radius:50%;background:rgba(201,168,76,.08)}
-.cover-badge{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;color:#C9A84C;text-transform:uppercase;margin-bottom:20px;display:inline-block;border:1px solid rgba(201,168,76,.3);padding:5px 14px;border-radius:100px}
-.cover-title{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:700;line-height:1.15;margin-bottom:8px}
+.cover-badge{font-family:JetBrains Mono,monospace;font-size:10px;letter-spacing:.18em;color:#C9A84C;text-transform:uppercase;margin-bottom:20px;display:inline-block;border:1px solid rgba(201,168,76,.3);padding:5px 14px;border-radius:100px}
+.cover-title{font-family:Cormorant Garamond,serif;font-size:36px;font-weight:700;line-height:1.15;margin-bottom:8px}
 .cover-subtitle{font-size:14px;color:#C4B898;margin-bottom:32px;line-height:1.7}
 .cover-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:32px;padding-top:28px;border-top:1px solid rgba(201,168,76,.2)}
-.cover-meta-item .label{font-family:'JetBrains Mono',monospace;font-size:9px;color:#8A7A5A;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px}
+.cover-meta-item .label{font-family:JetBrains Mono,monospace;font-size:9px;color:#8A7A5A;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px}
 .cover-meta-item .value{font-size:15px;font-weight:700;color:#FAF6EE}
 .cover-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
-.cover-pill{font-family:'JetBrains Mono',monospace;font-size:10px;padding:4px 12px;border-radius:100px;border:1px solid rgba(201,168,76,.25);color:#C9A84C;letter-spacing:.08em}
+.cover-pill{font-family:JetBrains Mono,monospace;font-size:10px;padding:4px 12px;border-radius:100px;border:1px solid rgba(201,168,76,.25);color:#C9A84C;letter-spacing:.08em}
 /* SECTIONS */
 .section{margin-bottom:36px;background:#fff;border:1px solid #E8E0D0;border-radius:12px;overflow:hidden}
 .section-header{display:flex;align-items:center;gap:14px;padding:18px 24px;border-bottom:1px solid #F0E8D8;background:linear-gradient(90deg,#FAF6EE,#F5F0E8)}
-.section-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:#C9A84C;letter-spacing:.1em;background:rgba(201,168,76,.12);padding:4px 10px;border-radius:100px}
+.section-num{font-family:JetBrains Mono,monospace;font-size:11px;color:#C9A84C;letter-spacing:.1em;background:rgba(201,168,76,.12);padding:4px 10px;border-radius:100px}
 .section-icon{font-size:20px}
-.section-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:#0A0806}
-.section-badge{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;padding:5px 14px;border-radius:100px}
+.section-title{font-family:Cormorant Garamond,serif;font-size:20px;font-weight:700;color:#0A0806}
+.section-badge{margin-left:auto;font-family:JetBrains Mono,monospace;font-size:11px;font-weight:700;padding:5px 14px;border-radius:100px}
 .section-body{padding:22px 24px}
 /* TEXT */
-h3{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700;color:#0A0806;margin:16px 0 8px}
+h3{font-family:Cormorant Garamond,serif;font-size:16px;font-weight:700;color:#0A0806;margin:16px 0 8px}
 h3:first-child{margin-top:0}
 p{font-size:13px;color:#4A4038;line-height:1.75;margin-bottom:10px}
 strong{color:#0A0806;font-weight:700}
@@ -937,12 +971,12 @@ em{font-style:italic;color:#7A6E5A}
 .bar-name{font-size:12px;font-weight:700;width:100px;flex-shrink:0}
 .bar-track{flex:1;height:10px;background:#F0E8D8;border-radius:5px;overflow:hidden}
 .bar-fill{height:100%;border-radius:5px}
-.bar-pct{font-family:'JetBrains Mono',monospace;font-size:12px;width:38px;text-align:right;color:#7A6E5A}
+.bar-pct{font-family:JetBrains Mono,monospace;font-size:12px;width:38px;text-align:right;color:#7A6E5A}
 /* GRID */
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
 .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:14px 0}
 .card{background:#FAF6EE;border:1px solid #E8E0D0;border-radius:10px;padding:16px}
-.card-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
+.card-label{font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
 .card-value{font-size:14px;font-weight:700;color:#0A0806;margin-bottom:4px}
 .card-sub{font-size:12px;color:#7A6E5A;line-height:1.5}
 /* INSIGHT */
@@ -952,59 +986,59 @@ em{font-style:italic;color:#7A6E5A}
 .alert{background:rgba(239,68,68,.05);border-left:3px solid #EF4444;border-radius:0 8px 8px 0;padding:12px 16px;margin:10px 0;font-size:13px;color:#7A0A0A;line-height:1.7}
 /* TABLE */
 table{width:100%;border-collapse:collapse;font-size:12px;margin:12px 0}
-th{background:#0A0806;color:#C9A84C;padding:10px 12px;text-align:left;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase}
+th{background:#0A0806;color:#C9A84C;padding:10px 12px;text-align:left;font-family:JetBrains Mono,monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase}
 td{padding:10px 12px;border-bottom:1px solid #F0E8D8;color:#4A4038;vertical-align:top}
 tr:last-child td{border-bottom:none}
 tr:nth-child(even)td{background:#FDFAF5}
 /* PDI */
 .pdi-section{margin:14px 0}
-.pdi-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.pdi-title{font-family:JetBrains Mono,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
 .pdi-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:8px;margin-bottom:8px;font-size:13px;line-height:1.6}
 .pdi-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
 /* MATRIZ */
 .matriz-item{background:#FAF6EE;border:1px solid #E8E0D0;border-radius:10px;padding:16px;margin-bottom:12px}
-.matriz-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
+.matriz-label{font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
 .matriz-text{font-size:13px;color:#2A2018;line-height:1.7}
 /* FOOTER */
-.footer{text-align:center;padding:32px 0 0;border-top:1px solid #E8E0D0;margin-top:40px;font-family:'JetBrains Mono',monospace;font-size:10px;color:#B0A090;letter-spacing:.08em}
+.footer{text-align:center;padding:32px 0 0;border-top:1px solid #E8E0D0;margin-top:40px;font-family:JetBrains Mono,monospace;font-size:10px;color:#B0A090;letter-spacing:.08em}
 /* RANKING */
 .rank-card{background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px}
 .rank-card-header{display:flex;align-items:center;gap:12px;padding:14px 20px;background:rgba(201,168,76,.07);border-bottom:1px solid var(--border)}
-.rank-card-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700}
+.rank-card-title{font-family:Cormorant Garamond,serif;font-size:20px;font-weight:700}
 .rank-medal{font-size:22px;width:28px;text-align:center;flex-shrink:0}
 .rank-row{display:flex;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s}
 .rank-row:last-child{border-bottom:none}
 .rank-row:hover{background:rgba(255,255,255,.02)}
-.rank-pos{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;width:28px;text-align:center;flex-shrink:0}
+.rank-pos{font-family:JetBrains Mono,monospace;font-size:13px;font-weight:700;width:28px;text-align:center;flex-shrink:0}
 .rank-name{flex:1;font-size:14px;font-weight:600;color:var(--parch)}
 .rank-disc{font-size:11px;color:var(--mid);width:80px;flex-shrink:0}
-.rank-pts{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800;color:var(--gold);width:70px;text-align:right;flex-shrink:0}
-.rank-badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;flex-shrink:0;font-family:'JetBrains Mono',monospace}
+.rank-pts{font-family:JetBrains Mono,monospace;font-size:16px;font-weight:800;color:var(--gold);width:70px;text-align:right;flex-shrink:0}
+.rank-badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;flex-shrink:0;font-family:JetBrains Mono,monospace}
 .rank-bar-wrap{flex:1;height:6px;background:rgba(255,255,255,.06);border-radius:3px;margin:0 8px}
 .rank-bar{height:100%;border-radius:3px;transition:width .8s ease}
 /* PONTUACAO TABLE */
 .pts-table{width:100%;border-collapse:collapse;font-size:12px}
-.pts-table th{padding:9px 10px;text-align:left;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;background:rgba(201,168,76,.07);border-bottom:1px solid var(--border);white-space:nowrap}
+.pts-table th{padding:9px 10px;text-align:left;font-family:JetBrains Mono,monospace;font-size:9px;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;background:rgba(201,168,76,.07);border-bottom:1px solid var(--border);white-space:nowrap}
 .pts-table td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
 .pts-table tr:last-child td{border-bottom:none}
 .pts-table tr:hover td{background:rgba(255,255,255,.02)}
 .pts-check{width:18px;height:18px;accent-color:var(--gold);cursor:pointer}
-.pts-total{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:800;color:var(--gold)}
+.pts-total{font-family:JetBrains Mono,monospace;font-size:14px;font-weight:800;color:var(--gold)}
 /* ATIVIDADES */
 .atv-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:6px}
-.atv-pts-badge{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;color:var(--gold);background:rgba(201,168,76,.1);padding:4px 12px;border-radius:100px;border:1px solid rgba(201,168,76,.3);min-width:60px;text-align:center;flex-shrink:0}
+.atv-pts-badge{font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:var(--gold);background:rgba(201,168,76,.1);padding:4px 12px;border-radius:100px;border:1px solid rgba(201,168,76,.3);min-width:60px;text-align:center;flex-shrink:0}
 .nivel-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:6px}
 .nivel-badge{font-size:11px;font-weight:700;padding:4px 14px;border-radius:100px;flex-shrink:0;min-width:80px;text-align:center}
-.mgmt-input{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 12px;color:var(--parch);font-family:'Syne',sans-serif;font-size:13px;outline:none;flex:1;min-width:0}
+.mgmt-input{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 12px;color:var(--parch);font-family:Syne,sans-serif;font-size:13px;outline:none;flex:1;min-width:0}
 .mgmt-input:focus{border-color:var(--gold)}
-.mgmt-save-btn{padding:8px 14px;border-radius:var(--r-sm);background:linear-gradient(135deg,var(--gold-dk),var(--gold));color:var(--ink);border:none;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.mgmt-save-btn{padding:8px 14px;border-radius:var(--r-sm);background:linear-gradient(135deg,var(--gold-dk),var(--gold));color:var(--ink);border:none;font-family:Syne,sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
 .add-turma-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 /* RODADA TABS */
 .rodada-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px}
-.rod-tab{padding:5px 14px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--mid);font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:all .2s}
+.rod-tab{padding:5px 14px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--mid);font-size:12px;font-family:JetBrains Mono,monospace;cursor:pointer;transition:all .2s}
 .rod-tab.active{border-color:var(--gold);background:rgba(201,168,76,.12);color:var(--gold)}
 /* EDIT INLINE */
-.mgmt-edit-input{flex:1;background:rgba(255,255,255,.06);border:1px solid var(--gold);border-radius:5px;padding:3px 8px;color:var(--parch);font-family:'Syne',sans-serif;font-size:13px;outline:none}
+.mgmt-edit-input{flex:1;background:rgba(255,255,255,.06);border:1px solid var(--gold);border-radius:5px;padding:3px 8px;color:var(--parch);font-family:Syne,sans-serif;font-size:13px;outline:none}
   body{background:#fff}
   .cover{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .section{break-inside:avoid}
@@ -1024,6 +1058,12 @@ tr:nth-child(even)td{background:#FDFAF5}
 /* ── EXTRA PRINT FIDELITY ── */
 .cbar-fill,.bar-fill,.section,.pdi-item,.pdi-section{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 .section{break-inside:avoid!important;page-break-inside:avoid!important}
+/* ── RANKING ── */
+.rank-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px}
+.rank-card-header{display:flex;align-items:center;gap:12px;padding:16px 22px;background:#F8F7F5;border-bottom:1px solid var(--border)}
+.rank-row{display:flex;align-items:center;gap:10px;padding:11px 18px;border-bottom:1px solid #F0EDE8;transition:background .15s}
+.rank-row:last-child{border-bottom:none}
+.rank-row:hover{background:#FDFCFA}
 </style>
 </head>
 <body>
@@ -1031,8 +1071,8 @@ tr:nth-child(even)td{background:#FDFAF5}
 
 <!-- TOOLBAR -->
 <div class="no-print" style="position:fixed;top:20px;right:20px;z-index:100;display:flex;gap:8px">
-  <button onclick="window.print()" style="background:#C9A84C;color:#0A0806;border:none;border-radius:8px;padding:10px 18px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;font-size:13px">🖨️ Imprimir / Salvar PDF</button>
-  <button onclick="window.close()" style="background:rgba(255,255,255,.9);color:#555;border:1px solid #ddd;border-radius:8px;padding:10px 14px;font-family:'Syne',sans-serif;font-weight:600;cursor:pointer;font-size:13px">✕ Fechar</button>
+  <button onclick="window.print()" style="background:#C9A84C;color:#0A0806;border:none;border-radius:8px;padding:10px 18px;font-family:Syne,sans-serif;font-weight:700;cursor:pointer;font-size:13px">🖨️ Imprimir / Salvar PDF</button>
+  <button onclick="window.close()" style="background:rgba(255,255,255,.9);color:#555;border:1px solid #ddd;border-radius:8px;padding:10px 14px;font-family:Syne,sans-serif;font-weight:600;cursor:pointer;font-size:13px">✕ Fechar</button>
 </div>
 
 <!-- CAPA -->
@@ -1518,24 +1558,24 @@ function generateIndividualReport(id){
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Syne:wght@400;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Syne',sans-serif;background:#FFFFFF;color:#1A1612;font-size:13px;line-height:1.6}
+body{font-family:Syne,sans-serif;background:#FFFFFF;color:#1A1612;font-size:13px;line-height:1.6}
 .page{max-width:840px;margin:0 auto;padding:32px 28px 60px}
 .toolbar{position:fixed;top:16px;right:16px;z-index:100;display:flex;gap:8px}
-.tb-btn{padding:9px 18px;border-radius:8px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none}
+.tb-btn{padding:9px 18px;border-radius:8px;font-family:Syne,sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none}
 .tb-gold{background:#C9A84C;color:#0A0806}
 .tb-out{background:#fff;color:#555;border:1px solid #ddd!important}
 .capa{background:#0A0806;color:#FAF6EE;padding:40px;border-radius:14px;margin-bottom:28px}
-.capa-badge{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.16em;color:#C9A84C;text-transform:uppercase;border:1px solid rgba(201,168,76,.3);padding:4px 14px;border-radius:100px;display:inline-block;margin-bottom:14px}
-.capa-title{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;margin-bottom:4px}
+.capa-badge{font-family:JetBrains Mono,monospace;font-size:9px;letter-spacing:.16em;color:#C9A84C;text-transform:uppercase;border:1px solid rgba(201,168,76,.3);padding:4px 14px;border-radius:100px;display:inline-block;margin-bottom:14px}
+.capa-title{font-family:Cormorant Garamond,serif;font-size:30px;font-weight:700;margin-bottom:4px}
 .capa-sub{font-size:13px;color:#B0A090;margin-bottom:24px}
 .capa-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;border-top:1px solid rgba(201,168,76,.2);padding-top:20px}
-.capa-meta .lbl{font-family:'JetBrains Mono',monospace;font-size:9px;color:#8A7A5A;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}
+.capa-meta .lbl{font-family:JetBrains Mono,monospace;font-size:9px;color:#8A7A5A;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}
 .capa-meta .val{font-size:14px;font-weight:700}
 .section{background:#FFFFFF;border:1px solid #E0D8C8;border-radius:12px;margin-bottom:16px;overflow:hidden;page-break-inside:avoid}
 .sec-head{display:flex;align-items:center;gap:12px;padding:16px 22px;border-bottom:1px solid #EDE8DC;background:#F8F8F8}
-.sec-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:#C9A84C;letter-spacing:.1em;background:rgba(201,168,76,.12);padding:3px 10px;border-radius:100px}
+.sec-num{font-family:JetBrains Mono,monospace;font-size:10px;color:#C9A84C;letter-spacing:.1em;background:rgba(201,168,76,.12);padding:3px 10px;border-radius:100px}
 .sec-icon{font-size:18px;flex-shrink:0}
-.sec-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:#0A0806}
+.sec-title{font-family:Cormorant Garamond,serif;font-size:20px;font-weight:700;color:#0A0806}
 .sec-badge{margin-left:auto;padding:3px 12px;border-radius:100px;font-size:11px;font-weight:700;white-space:nowrap}
 .sec-body{padding:20px 22px}
 p{font-size:13px;color:#4A4038;line-height:1.7;margin-bottom:10px}
@@ -1543,10 +1583,10 @@ p{font-size:13px;color:#4A4038;line-height:1.7;margin-bottom:10px}
 .bar-lbl{font-size:12px;font-weight:700;width:130px;flex-shrink:0}
 .bar-track{flex:1;height:8px;background:#EDE8DC;border-radius:4px;overflow:hidden}
 .bar-fill{height:100%;border-radius:4px}
-.bar-val{font-family:'JetBrains Mono',monospace;font-size:11px;color:#C9A84C;width:28px;text-align:right}
+.bar-val{font-family:JetBrains Mono,monospace;font-size:11px;color:#C9A84C;width:28px;text-align:right}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
 .card{background:#F5F5F5;border:1px solid #E0D8C8;border-radius:10px;padding:14px}
-.card-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px}
+.card-lbl{font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px}
 .card-val{font-size:14px;font-weight:700;color:#0A0806;margin-bottom:3px}
 .card-sub{font-size:12px;color:#6A5A48;line-height:1.5}
 .insight{background:#F5F5F5;border-left:3px solid #C9A84C;padding:10px 14px;border-radius:0 8px 8px 0;font-size:12px;line-height:1.7;margin:10px 0;color:#2A2018}
@@ -1554,15 +1594,21 @@ p{font-size:13px;color:#4A4038;line-height:1.7;margin-bottom:10px}
 .alert-box{background:#FFF0EE;border-left:3px solid #EF4444;padding:10px 14px;border-radius:0 8px 8px 0;font-size:12px;line-height:1.7;margin:8px 0;color:#7A0A0A}
 .ok-box{background:#F0FAF4;border-left:3px solid #22C55E;padding:10px 14px;border-radius:0 8px 8px 0;font-size:12px;line-height:1.7;margin:8px 0;color:#0A4A1A}
 table{width:100%;border-collapse:collapse;font-size:12px;margin:10px 0}
-th{background:#0A0806;color:#C9A84C;padding:9px 12px;text-align:left;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase}
+th{background:#0A0806;color:#C9A84C;padding:9px 12px;text-align:left;font-family:JetBrains Mono,monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase}
 td{padding:9px 12px;border-bottom:1px solid #EDE8DC;color:#4A4038;vertical-align:top}
 tr:last-child td{border-bottom:none}
 tr:nth-child(even)td{background:#FAF6EE}
 .pdi-item{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;border-radius:8px;margin-bottom:6px;font-size:12px;line-height:1.6}
 .pdi-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
 .sugg-box{background:#EEF4FF;border:1px solid #B0C4E8;border-radius:10px;padding:14px;margin-top:12px}
-.footer{text-align:center;padding:24px 0 0;border-top:1px solid #E0D8C8;margin-top:32px;font-family:'JetBrains Mono',monospace;font-size:10px;color:#B0A090}
+.footer{text-align:center;padding:24px 0 0;border-top:1px solid #E0D8C8;margin-top:32px;font-family:JetBrains Mono,monospace;font-size:10px;color:#B0A090}
 @media print{body{background:#FFFFFF!important}.toolbar{display:none!important}.capa{-webkit-print-color-adjust:exact;print-color-adjust:exact}.section{break-inside:avoid}}
+/* ── RANKING ── */
+.rank-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px}
+.rank-card-header{display:flex;align-items:center;gap:12px;padding:16px 22px;background:#F8F7F5;border-bottom:1px solid var(--border)}
+.rank-row{display:flex;align-items:center;gap:10px;padding:11px 18px;border-bottom:1px solid #F0EDE8;transition:background .15s}
+.rank-row:last-child{border-bottom:none}
+.rank-row:hover{background:#FDFCFA}
 </style>
 </head>
 <body>
@@ -1587,43 +1633,43 @@ tr:nth-child(even)td{background:#FAF6EE}
 
 <!-- RESUMO DO PERFIL -->
 <div style="margin-bottom:20px">
-  <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px">Resumo do Perfil <span style="flex:1;height:1px;background:#E0D8C8;display:inline-block"></span></div>
+  <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px">Resumo do Perfil <span style="flex:1;height:1px;background:#E0D8C8;display:inline-block"></span></div>
   <div style="background:#FAF6EE;border:1px solid #E0D8C8;border-radius:10px;padding:18px">
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
       <div style="background:#fff;border:1px solid #E0D8C8;border-radius:8px;padding:12px">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">DISC</div>
+        <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">DISC</div>
         <div style="font-size:16px;font-weight:800;color:${discHex[disc]}">${discN[disc]||disc}</div>
         <div style="font-size:11px;color:#6A5A48;margin-top:2px">2º: ${discN[discSec]||discSec}</div>
       </div>
       <div style="background:#fff;border:1px solid #E0D8C8;border-radius:8px;padding:12px">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">TEMPERAMENTO</div>
+        <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">TEMPERAMENTO</div>
         <div style="font-size:15px;font-weight:700;color:${{FOGO:'#F07030',AR:'#A878E0',TERRA:'#9AB050','ÁGUA':'#4A90D4'}[r.elem_primario]||'#C9A84C'}">${{FOGO:'🔥',TERRA:'🌿','ÁGUA':'💧',AR:'💨'}[r.elem_primario]||''} ${r.elem_primario||'—'}</div>
       </div>
       <div style="background:#fff;border:1px solid #E0D8C8;border-radius:8px;padding:12px">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">ENEAGRAMA</div>
+        <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">ENEAGRAMA</div>
         <div style="font-size:14px;font-weight:700;color:#A878E0">Tipo ${ennea} · ${enneaNames[ennea]||'—'}</div>
       </div>
       <div style="background:#fff;border:1px solid #E0D8C8;border-radius:8px;padding:12px">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">ARQUÉTIPO</div>
+        <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">ARQUÉTIPO</div>
         <div style="font-size:14px;font-weight:700;color:#C9A84C">${r.arquetipos||'—'}</div>
       </div>
       <div style="background:#fff;border:1px solid #E0D8C8;border-radius:8px;padding:12px">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">KOLB</div>
+        <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">KOLB</div>
         <div style="font-size:14px;font-weight:700;color:#4A90D4">${r.kolb_estilo||'—'}</div>
       </div>
       <div style="background:#fff;border:1px solid #E0D8C8;border-radius:8px;padding:12px">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">NECESSIDADE 1ª</div>
+        <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">NECESSIDADE 1ª</div>
         <div style="font-size:14px;font-weight:700;color:#F0A050">${need1}</div>
       </div>
       <div style="background:#fff;border:1px solid #E0D8C8;border-radius:8px;padding:12px">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">HOLLAND RIASEC</div>
+        <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">HOLLAND RIASEC</div>
         <div style="font-size:18px;font-weight:800;color:#E8A840">${r.holland_codigo||'—'}</div>
       </div>
     </div>
   </div>
 </div>
 
-<div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px">Perfis Detalhados <span style="flex:1;height:1px;background:#E0D8C8;display:inline-block"></span></div>
+<div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px">Perfis Detalhados <span style="flex:1;height:1px;background:#E0D8C8;display:inline-block"></span></div>
 
 <!-- I. DISC -->
 <div class="section">
@@ -1716,7 +1762,7 @@ tr:nth-child(even)td{background:#FAF6EE}
       ${Object.entries(needAvgs).map(([k,v])=>`<div class="bar-row"><span class="bar-lbl">${k}</span><div class="bar-track"><div class="bar-fill" style="width:${v/needMax*100}%;background:#F0A050"></div></div><span class="bar-val">${v.toFixed(1)}</span></div>`).join('')}
     </div>
     ${sugg.gap?`<div class="sugg-box">
-      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#4A70B0;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">💡 Sugestão para Mudança de Padrão</div>
+      <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#4A70B0;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">💡 Sugestão para Mudança de Padrão</div>
       <p style="color:#2A3A5A;margin-bottom:8px">${sugg.gap}</p>
       <p style="color:#1A1612;margin-bottom:6px"><strong>Necessidades a desenvolver:</strong> ${(sugg.dev||[]).join(' + ')}</p>
       <p style="color:#4A4A6A;font-size:12px">${sugg.razao||''}</p>
@@ -1748,7 +1794,7 @@ tr:nth-child(even)td{background:#FAF6EE}
   </div>
   <div class="sec-body">
     <p>Este indicador quantifica o esforço mental invisível para sustentar comportamentos não naturais. Quanto maior o dreno, maior o risco de exaustão e menor a qualidade de decisão ao longo do tempo.</p>
-    <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin:14px 0 8px">CAPACIDADE GLOBAL — PERFIL ${discN[disc]}</div>
+    <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin:14px 0 8px">CAPACIDADE GLOBAL — PERFIL ${discN[disc]}</div>
     <div style="position:relative;height:38px;background:#EDE8DC;border-radius:10px;overflow:hidden;margin-bottom:6px;border:1px solid #D8D0C0">
       <div style="position:absolute;left:0;top:0;height:100%;width:${natPct}%;background:${discHex[disc]};border-radius:10px 0 0 10px;display:flex;align-items:center;padding-left:12px">
         <span style="font-size:12px;font-weight:700;color:#fff;white-space:nowrap">${natPct}% Natural</span>
@@ -1826,19 +1872,19 @@ tr:nth-child(even)td{background:#FAF6EE}
   </div>
   <div class="sec-body">
     <div style="margin-bottom:14px">
-      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#22C55E;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;font-weight:700">🟢 COMEÇAR</div>
+      <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#22C55E;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;font-weight:700">🟢 COMEÇAR</div>
       <div class="pdi-item" style="background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.2)"><div class="pdi-dot" style="background:#22C55E"></div><span><strong>Liderança situacional:</strong> Praticar a adaptação consciente do estilo ${discN[disc]} para situações que exigem o perfil ${discN[discSec]} — mapeie semanalmente 3 situações onde essa flexibilidade seria decisiva</span></div>
       <div class="pdi-item" style="background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.2)"><div class="pdi-dot" style="background:#22C55E"></div><span><strong>Liderança do eu:</strong> Trabalhar a virtude do Eneagrama Tipo ${ennea} (${enneaVirtude[ennea]||'—'}) como prática de presença — criar um ritual diário de 5 minutos de autoavaliação antes de reuniões importantes</span></div>
       <div class="pdi-item" style="background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.2)"><div class="pdi-dot" style="background:#22C55E"></div><span><strong>Liderança vocacional:</strong> Redesenhar 30% das atividades semanais para projetos alinhados ao código Holland ${r.holland_codigo||'—'} — registrar semanalmente quais atividades geram mais energia e quais drenam</span></div>
     </div>
     <div style="margin-bottom:14px">
-      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#EF4444;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;font-weight:700">🔴 PARAR</div>
+      <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#EF4444;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;font-weight:700">🔴 PARAR</div>
       <div class="pdi-item" style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2)"><div class="pdi-dot" style="background:#EF4444"></div><span><strong>Liderança reativa:</strong> Responder a partir da sombra do perfil ${discN[disc]} sem reconhecer o gatilho — criar uma palavra-âncora que sinalize quando o comportamento reativo está se instalando</span></div>
       <div class="pdi-item" style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2)"><div class="pdi-dot" style="background:#EF4444"></div><span><strong>Liderança dependente:</strong> Tomar todas as decisões no lugar da equipe — identificar as 3 principais decisões que poderiam ser delegadas esta semana sem comprometer a qualidade</span></div>
       <div class="pdi-item" style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2)"><div class="pdi-dot" style="background:#EF4444"></div><span><strong>Liderança incongruente:</strong> Atuar em ambientes que contradizem o código Holland ${r.holland_codigo||'—'} sem estratégia de compensação — incongruência vocacional é silenciosa mas acumula custo energético real</span></div>
     </div>
     <div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;font-weight:700">🟡 CONTINUAR</div>
+      <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;font-weight:700">🟡 CONTINUAR</div>
       <div class="pdi-item" style="background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.2)"><div class="pdi-dot" style="background:#C9A84C"></div><span><strong>Liderança autêntica:</strong> Cultivar o estilo ${discN[disc]} como principal diferencial de liderança — autenticidade comportamental é o ativo mais raro e menos replicável no mercado</span></div>
       <div class="pdi-item" style="background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.2)"><div class="pdi-dot" style="background:#C9A84C"></div><span><strong>Liderança multiplicadora:</strong> Desenvolver conscientemente líderes com perfis complementares ao seu — especialmente ${disc==='D'?'S e C':disc==='I'?'C e S':disc==='S'?'D e I':'D e I'} — porque liderar líderes exige mais que liderar tarefas</span></div>
       <div class="pdi-item" style="background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.2)"><div class="pdi-dot" style="background:#C9A84C"></div><span><strong>Liderança em crescimento:</strong> Manter o investimento em autoconhecimento estruturado — este diagnóstico é um ponto de partida; líderes de alto impacto revisitam seus mapas comportamentais a cada 6 meses</span></div>
@@ -1885,6 +1931,155 @@ function toast(msg, type='info'){
   setTimeout(()=>el.style.display='none',3500);
 }
 
+// ════════════════════════════════════════════════════
+// NAVIGATION — extended
+// ════════════════════════════════════════════════════
+const _origShowTab = window.showTab ? null : null;
+function showTab(id){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const panel=document.getElementById('tab-'+id);
+  if(panel)panel.classList.add('active');
+  const nav=document.querySelector('.nav-item[data-tab="'+id+'"]');
+  if(nav)nav.classList.add('active');
+  if(id==='dashboard')renderDashboard();
+  if(id==='ranking')renderRanking();
+}
+
+// ════════════════════════════════════════════════════
+// RANKING — lê pontuações do localStorage (mesmas do Admin)
+// ════════════════════════════════════════════════════
+function getAtividadesRH(){
+  try{
+    const a=JSON.parse(localStorage.getItem('il_atividades'));
+    return Array.isArray(a)&&a.length?a:[
+      {id:'a1',nome:'Presença no encontro',pts:10},
+      {id:'a2',nome:'Missão da semana concluída',pts:25},
+      {id:'a3',nome:'Ferramenta aplicada na equipe',pts:20},
+      {id:'a4',nome:'Resultado documentado',pts:30},
+      {id:'a5',nome:'Diário de Bordo preenchido',pts:20},
+      {id:'a6',nome:'Engajou alguém da equipe',pts:15},
+      {id:'a7',nome:'Reduziu indicador negativo',pts:40},
+    ];
+  }catch(e){return [];}
+}
+
+function getNiveisRH(){
+  try{
+    const n=JSON.parse(localStorage.getItem('il_niveis'));
+    return Array.isArray(n)&&n.length?n:[
+      {id:'n1',nome:'Bronze',min:0,max:200,cor:'#A0A0A0'},
+      {id:'n2',nome:'Prata',min:201,max:400,cor:'#60A8D4'},
+      {id:'n3',nome:'Ouro',min:401,max:9999,cor:'#F0C030'},
+      {id:'n4',nome:'Impact Leader Elite',min:'top1',max:'top1',cor:'#7040B0'},
+    ];
+  }catch(e){return [];}
+}
+
+function getPontuacoesRH(){
+  try{return JSON.parse(localStorage.getItem('il_pontuacoes'))||{};}catch(e){return {};}
+}
+
+function respKeyRH(r){return r.email||r.nome||String(r._id);}
+
+function calcPontosRH(r, rodadaFiltro){
+  const atividades=getAtividadesRH();
+  const pontuacoes=getPontuacoesRH();
+  const key=respKeyRH(r);
+  const rData=pontuacoes[key]||{};
+  let total=0;
+  Object.entries(rData).forEach(([rod,rdData])=>{
+    if(rodadaFiltro && rod!==String(rodadaFiltro)) return;
+    atividades.forEach(a=>{if(rdData[a.id])total+=a.pts;});
+  });
+  return total;
+}
+
+function getNivelRH(pts, isTop){
+  const niveis=getNiveisRH();
+  const top1=niveis.find(n=>n.min==='top1');
+  if(top1&&isTop) return top1;
+  const sorted=[...niveis].filter(n=>n.min!=='top1').sort((a,b)=>b.min-a.min);
+  return sorted.find(n=>pts>=n.min&&pts<=n.max)||null;
+}
+
+function renderRanking(){
+  const body=document.getElementById('ranking-body');
+  if(!body) return;
+  const rodada=document.getElementById('rank-rodada')?.value||'';
+
+  // Use only respondentes da empresa do usuário logado
+  const data=filteredData.map(r=>({r, total:calcPontosRH(r, rodada)}))
+    .sort((a,b)=>b.total-a.total);
+
+  if(!data.length){
+    body.innerHTML='<div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-title">Nenhum dado de pontuação disponível</div><p style="font-size:13px;color:var(--mid);margin-top:8px">Os pontos são lançados pelo facilitador no Painel Admin.</p></div>';
+    return;
+  }
+
+  const maxScore=data[0]?.total||0;
+  const medals=['🥇','🥈','🥉'];
+
+  // Group by turma
+  const byTurma={};
+  data.forEach(x=>{
+    const t=x.r.turma||'Sem turma';
+    if(!byTurma[t])byTurma[t]=[];
+    byTurma[t].push(x);
+  });
+
+  body.innerHTML=Object.entries(byTurma).map(([turma,items])=>{
+    const sorted=[...items].sort((a,b)=>b.total-a.total);
+    const tMax=sorted[0]?.total||1;
+    const turmaMax=sorted[0]?.total||0;
+    return '<div class="rank-card">'+
+      '<div class="rank-card-header">'+
+        '<span style="font-size:20px">🎓</span>'+
+        '<div>'+
+          '<div style="font-family:Cormorant Garamond,serif;font-size:19px;font-weight:700">'+turma+'</div>'+
+          '<div style="font-size:11px;color:var(--mid);font-family:JetBrains Mono,monospace">'+sorted.length+' participante(s) · '+(rodada?'Rodada '+rodada:'Acumulado')+'</div>'+
+        '</div>'+
+      '</div>'+
+      sorted.map((x,i)=>{
+        const isTop=turmaMax>0&&x.total===turmaMax;
+        const nivel=getNivelRH(x.total,isTop);
+        const barW=tMax>0?Math.max(4,Math.round(x.total/tMax*100)):0;
+        const pos=i<3?medals[i]:'<span style="font-family:JetBrains Mono,monospace;font-size:12px;color:var(--mid)">'+(i+1)+'º</span>';
+        const dc=DISC_HEX[x.r.disc_primario]||'#999';
+        const dn=(DISC_NAMES_RH[x.r.disc_primario]||x.r.disc_primario||'').slice(0,3);
+        return '<div class="rank-row">'+
+          '<div style="font-size:18px;width:28px;text-align:center;flex-shrink:0">'+pos+'</div>'+
+          '<div style="flex:1;font-size:14px;font-weight:600;color:var(--ink)">'+(x.r.nome||x.r.name||'—')+'</div>'+
+          '<div style="font-size:11px;font-weight:700;color:'+dc+';width:80px;flex-shrink:0;font-family:JetBrains Mono,monospace">'+dn+'</div>'+
+          '<div style="flex:1;height:6px;background:#F0EDE8;border-radius:3px;margin:0 8px">'+
+            '<div style="height:100%;width:'+barW+'%;background:'+(i===0?'var(--gold)':i===1?'#B0C0D8':'#D8D0C8')+';border-radius:3px"></div>'+
+          '</div>'+
+          '<div style="font-family:JetBrains Mono,monospace;font-size:16px;font-weight:800;color:var(--gold);width:60px;text-align:right;flex-shrink:0">'+x.total+'</div>'+
+          (nivel?'<div style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;background:'+nivel.cor+'22;color:'+nivel.cor+';border:1px solid '+nivel.cor+'44;margin-left:8px;flex-shrink:0;font-family:JetBrains Mono,monospace">'+nivel.nome+'</div>':'<div style="width:60px"></div>')+
+        '</div>';
+      }).join('')+
+    '</div>';
+  }).join('');
+}
+
+function exportRankingCSV(){
+  const rodada=document.getElementById('rank-rodada')?.value||'';
+  const data=filteredData.map(r=>({r,total:calcPontosRH(r,rodada)})).sort((a,b)=>b.total-a.total);
+  const byTurma={};
+  data.forEach(x=>{const t=x.r.turma||'Sem turma';if(!byTurma[t])byTurma[t]=[];byTurma[t].push(x);});
+  const rows=[['Posição','Nome','E-mail','Empresa','Turma','DISC','Pontos','Rodada']];
+  Object.values(byTurma).forEach(items=>{
+    items.sort((a,b)=>b.total-a.total).forEach((x,i)=>{
+      rows.push([i+1,x.r.nome||'',x.r.email||'',x.r.empresa||'',x.r.turma||'',x.r.disc_primario||'',x.total,rodada||'Acumulado']);
+    });
+  });
+  const csv=rows.map(r=>r.map(v=>JSON.stringify(String(v))).join(',')).join('\r\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download='ranking-'+currentUser.empresa.replace(/\s+/g,'-')+'-'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+  toast('Ranking exportado','info');
+}
 // ════════════════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════════════════
