@@ -796,14 +796,12 @@ function openProfile(id){
 // PDF EXPORT — abre relatório e exporta via html2pdf dinâmico
 // ════════════════════════════════════════════════════
 function exportRelatorioComPDF(htmlContent, filename){
-  // Open in new window via Blob
   const blob = new Blob([htmlContent], {type:'text/html;charset=utf-8'});
   const url  = URL.createObjectURL(blob);
   const w    = window.open(url,'_blank');
   if(!w){ toast('Permita pop-ups para gerar o relatório','warn'); URL.revokeObjectURL(url); return; }
 
-  // After window loads, inject html2pdf dynamically (via JS, not HTML tag)
-  w.addEventListener('load', function(){
+  function injectPDF(){
     URL.revokeObjectURL(url);
     const s = w.document.createElement('script');
     s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
@@ -865,7 +863,16 @@ function exportRelatorioComPDF(htmlContent, filename){
       }
     };
     w.document.head.appendChild(s);
-  }, {once:true});
+  }
+
+  // Use both load event AND delayed check (handles race condition with Blob URLs)
+  if(w.document.readyState === 'complete'){
+    injectPDF();
+  } else {
+    w.addEventListener('load', injectPDF, {once:true});
+    // Fallback: if load already fired, setTimeout catches it
+    setTimeout(function(){ if(w.html2pdf) return; injectPDF(); }, 1500);
+  }
 }
 
 function closeModal(){document.getElementById('modal').classList.remove('open')}
@@ -994,7 +1001,7 @@ tr:nth-child(even)td{background:#FAF6EE}
 </head>
 <body>
 <div class="toolbar no-print">
-  <button class="tb-btn tb-gold" onclick="gerarPDFInd()" id="pdf-btn">📄 Exportar PDF</button>
+  <button id="pdf-btn" class="tb-btn tb-gold">📄 Exportar PDF</button>
   <button class="tb-btn tb-out" onclick="window.close()">✕ Fechar</button>
 </div>
 <div class="page">
@@ -1377,10 +1384,10 @@ body{font-family:'Syne',sans-serif;background:#FFFFFF;color:#1A1612;line-height:
 .cover::after{content:'';position:absolute;top:-40px;right:-40px;width:240px;height:240px;border-radius:50%;background:rgba(201,168,76,.08)}
 .cover-badge{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;color:#C9A84C;text-transform:uppercase;margin-bottom:20px;display:inline-block;border:1px solid rgba(201,168,76,.3);padding:5px 14px;border-radius:100px}
 .cover-title{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:700;line-height:1.15;margin-bottom:8px}
-.cover-subtitle{font-size:14px;color:#C4B898;margin-bottom:32px;line-height:1.7}
+.cover-subtitle{font-size:14px;color:#6A5A48;margin-bottom:32px;line-height:1.7}
 .cover-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:32px;padding-top:28px;border-top:1px solid rgba(201,168,76,.2)}
 .cover-meta-item .label{font-family:'JetBrains Mono',monospace;font-size:9px;color:#8A7A5A;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px}
-.cover-meta-item .value{font-size:15px;font-weight:700;color:#FAF6EE}
+.cover-meta-item .value{font-size:15px;font-weight:700;color:#0A0806}
 .cover-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
 .cover-pill{font-family:'JetBrains Mono',monospace;font-size:10px;padding:4px 12px;border-radius:100px;border:1px solid rgba(201,168,76,.25);color:#C9A84C;letter-spacing:.08em}
 /* SECTIONS */
@@ -1496,7 +1503,7 @@ tr:nth-child(even)td{background:#FDFAF5}
 
 <!-- TOOLBAR -->
 <div class="no-print" style="position:fixed;top:20px;right:20px;z-index:100;display:flex;gap:8px">
-  <button onclick="gerarPDF360()" id="pdf-btn" style="background:#C9A84C;color:#0A0806;border:none;border-radius:8px;padding:10px 18px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;font-size:13px">📄 Exportar PDF</button>
+  <button id="pdf-btn" style="background:#C9A84C;color:#0A0806;border:none;border-radius:8px;padding:10px 18px;font-family:Syne,sans-serif;font-weight:700;cursor:pointer;font-size:13px">📄 Exportar PDF</button>
   <button onclick="window.close()" style="background:rgba(255,255,255,.9);color:#555;border:1px solid #ddd;border-radius:8px;padding:10px 14px;font-family:'Syne',sans-serif;font-weight:600;cursor:pointer;font-size:13px">✕ Fechar</button>
 </div>
 
@@ -1534,12 +1541,34 @@ tr:nth-child(even)td{background:#FDFAF5}
     <h3>Distribuição do Perfil</h3>
     ${Object.entries(discPct).map(([k,v])=>{
       const colors={D:'#F07030',I:'#F0C030',S:'#4A90D4',C:'#A878E0'};
-      const pct=Math.round(v/total*100);
+      const rawPct=Math.round(v/total*100);
+      const isNeg=rawPct<0;
+      const absPct=Math.abs(rawPct);
+      const fillStyle=isNeg
+        ? 'background:repeating-linear-gradient(45deg,'+colors[k]+'55,'+colors[k]+'55 4px,'+colors[k]+'22 4px,'+colors[k]+'22 8px);border:1px dashed '+colors[k]
+        : 'background:'+colors[k];
       return`<div class="bar-row">
         <span class="bar-name" style="color:${colors[k]}">${discN[k]}</span>
-        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${colors[k]}"></div></div>
-        <span class="bar-pct">${pct}%</span>
+        <div class="bar-track" style="position:relative">
+          <div class="bar-fill" style="width:${absPct}%;${fillStyle}"></div>
+          ${isNeg?`<span style="position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:9px;color:${colors[k]};font-family:'JetBrains Mono',monospace;font-weight:700">▼NEG</span>`:''}
+        </div>
+        <span class="bar-pct" style="color:${isNeg?colors[k]:'#7A6E5A'}">${isNeg?'':'+'}${rawPct}%</span>
       </div>`;}).join('')}
+
+    <!-- DISC Legend -->
+    <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:10px;font-family:'JetBrains Mono',monospace;color:#6A5A48;margin:12px 0 0 0;padding:10px 14px;background:#F8F5F0;border-radius:8px;border:1px solid #E8E0D0">
+      <span style="font-weight:700;color:#5A4A38;margin-right:4px">PERFIS DISC:</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:10px;background:#F07030;border-radius:2px"></span> D — Dominante</span>
+      <span style="color:#B0A090">·</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:10px;background:#F0C030;border-radius:2px"></span> I — Influente</span>
+      <span style="color:#B0A090">·</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:10px;background:#4A90D4;border-radius:2px"></span> S — Estável</span>
+      <span style="color:#B0A090">·</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:10px;background:#A878E0;border-radius:2px"></span> C — Conformidade</span>
+      <span style="color:#B0A090">·</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:10px;background:repeating-linear-gradient(45deg,#99955 3px,#99955 3px,#CCC 3px,#CCC 6px);border:1px dashed #999;border-radius:2px"></span> Valor negativo = comportamento reprimido</span>
+    </div>
 
     <div class="grid-2" style="margin-top:18px">
       <div class="card">
@@ -1765,10 +1794,13 @@ tr:nth-child(even)td{background:#FDFAF5}
             ${latentPct>5?`<span style="font-size:10px;color:#8A7A5A">${latentPct}% Latente</span>`:''}
           </div>
         </div>
-        <div style="display:flex;gap:14px;font-size:10px;font-family:monospace;color:#8A7A5A;margin-bottom:18px">
-          <span>🟢 Natural = perfil sustentável</span>
-          <span>🟠 Dreno = custo de adaptação</span>
-          <span>⬜ Latente = potencial ocioso</span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:10px;font-family:'JetBrains Mono',monospace;color:#6A5A48;margin-bottom:18px;background:#F8F5F0;padding:10px 14px;border-radius:8px;border:1px solid #E8E0D0">
+          <span style="font-weight:700;color:#5A4A38;margin-right:4px">LEGENDA:</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:14px;height:10px;background:var(--disc-color,#4A90D4);border-radius:2px"></span> Natural (cor do perfil)</span>
+          <span style="color:#B0A090">·</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:14px;height:10px;background:repeating-linear-gradient(45deg,#D4401A55,#D4401A55 3px,#D4401A22 3px,#D4401A22 6px);border:1px dashed #D4401A;border-radius:2px"></span> Dreno = custo de adaptação</span>
+          <span style="color:#B0A090">·</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:14px;height:10px;background:#E8E0D0;border:1px dashed #B0A090;border-radius:2px"></span> Potencial Latente = ocioso</span>
         </div>
         ${baterias.map(b=>{
           const t2=Math.min(b.nat+b.dreno,100);
