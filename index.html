@@ -133,10 +133,10 @@ h1.hero span{display:block;background:linear-gradient(135deg,var(--parch) 0%,var
 /* REPORT — LIGHT THEME */
 #s-report{background:#FFFFFF;min-height:100vh}
 #s-report .wrap{background:#FFFFFF}
-.report-hero{text-align:center;padding:44px 0 32px;border-bottom:2px solid #C9A84C;margin-bottom:36px;background:#0A0806;border-radius:16px;margin-bottom:28px;padding:36px 28px}
-.report-avatar{width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,#8A6520,#C9A84C);display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 14px;color:#0A0806}
-.report-name{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;margin-bottom:6px;color:#FAF6EE}
-.report-turma{font-size:12px;color:#B0A090;font-family:'JetBrains Mono',monospace;letter-spacing:.08em}
+.report-hero{text-align:center;padding:36px 28px 32px;border:2px solid #C9A84C;margin-bottom:28px;background:#FFFFFF;border-radius:16px}
+.report-avatar{width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,#8A6520,#C9A84C);display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 14px;color:#fff}
+.report-name{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;margin-bottom:6px;color:#0A0806}
+.report-turma{font-size:12px;color:#6A5A48;font-family:'JetBrains Mono',monospace;letter-spacing:.08em}
 .report-date{font-size:11px;color:#8A7A5A;margin-top:5px;font-family:'JetBrains Mono',monospace}
 .rmod{background:#fff;border:1px solid #E0D8C8;border-radius:var(--r);margin-bottom:16px;overflow:hidden}
 .rmod-header{display:flex;align-items:center;gap:14px;padding:16px 22px;border-bottom:1px solid #EDE8DC;background:#F8F8F8}
@@ -433,7 +433,7 @@ h1.hero span{display:block;background:linear-gradient(135deg,var(--parch) 0%,var
     <div id="report-body"></div>
     <div style="text-align:center;padding:28px 0;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
       <button class="btn-primary" onclick="exportPDF()">📄 Exportar PDF</button>
-      <button class="btn-secondary" onclick="window.print()">🖨️ Imprimir</button>
+
       <button class="btn-secondary" onclick="location.reload()">Novo Assessment</button>
     </div>
   </div>
@@ -727,7 +727,7 @@ const ELEM_DATA={
 };
 
 const DISC_NAMES={D:'Dominante',I:'Influente',S:'Estável',C:'Conformidade'};
-const DISC_COLORS={D:'var(--flame)',I:'#F0C030',S:'var(--sky)',C:'var(--mist)'};
+const DISC_COLORS={D:'#F07030',I:'#F0C030',S:'#4A90D4',C:'#A878E0'};
 const DISC_DESC={
   D:'Orientado a resultados, direto e decisivo. Age com rapidez, assume riscos e lidera pela força de vontade.',
   I:'Carismático, entusiasta e orientado a pessoas. Inspira equipes e cria ambientes de colaboração.',
@@ -1362,7 +1362,7 @@ function generateReport(){
     </div>
     <div class="rmod-body">
       <div style="margin-bottom:14px">
-        ${ennea.all.slice(0,5).map(t=>{const n=ENNEA_NAMES[t.num];return`<div class="rbar-row"><span class="rbar-label">Tipo ${t.num} · ${n.alias}</span><div class="rbar-track"><div class="rbar-fill" style="width:${t.avg/5*100}%;background:var(--mist)"></div></div><span class="rbar-val">${t.avg.toFixed(1)}</span></div>`;}).join('')}
+        ${ennea.all.slice(0,5).map(t=>{const n=ENNEA_NAMES[t.num];return`<div class="rbar-row"><span class="rbar-label">Tipo ${t.num} · ${n.alias}</span><div class="rbar-track"><div class="rbar-fill" style="width:${t.avg/5*100}%;background:#A878E0"></div></div><span class="rbar-val">${t.avg.toFixed(1)}</span></div>`;}).join('')}
       </div>
       <div class="rmod-insight"><strong>Tipo ${ennea.top.num} — ${enneaTop.name}:</strong> ${enneaTop.desc}</div>
       <div class="rmod-insight"><strong>2º tipo:</strong> Tipo ${ennea.second.num} — ${ENNEA_NAMES[ennea.second.num].name} (${ennea.second.avg.toFixed(1)}/5). Pode ser uma asa ou influência secundária significativa.</div>
@@ -1905,17 +1905,34 @@ function exportPDF(){
       el.style.display = 'none';
     });
 
+    // Apply explicit hex colors to rbar-fill elements (CSS vars break in html2canvas)
+    pdfContent.querySelectorAll('.rbar-fill').forEach(el => {
+      const bg = el.style.background || el.style.backgroundColor;
+      if(bg && bg.includes('var(--')) {
+        el.style.background = bg
+          .replace(/var\(--flame\)/g,'#F07030').replace(/var\(--fire\)/g,'#D4401A')
+          .replace(/var\(--sky\)/g,'#4A90D4').replace(/var\(--mist\)/g,'#A878E0')
+          .replace(/var\(--gold\)/g,'#C9A84C').replace(/var\(--moss\)/g,'#9AB050')
+          .replace(/var\(--success\)/g,'#22C55E');
+      }
+    });
+    // Also force bar tracks visible
+    pdfContent.querySelectorAll('.rbar-track').forEach(el => {
+      el.style.background = '#EDE8DC';
+      el.style.overflow = 'hidden';
+    });
+
     const opt = {
       margin: [8,8,8,8],
       filename: `Relatorio-Lideranca-${nome.replace(/\s+/g,'-')}.pdf`,
-      image: {type:'jpeg', quality:0.92},
+      image: {type:'jpeg', quality:0.97},
       html2canvas: {
         scale: 2,
         useCORS: true,
         allowTaint: true,
-        backgroundColor: '#FAF6EE',
+        backgroundColor: '#FFFFFF',
         logging: false,
-        width: overlay.scrollWidth,
+        removeContainer: true,
         windowWidth: 900,
       },
       jsPDF: {unit:'mm', format:'a4', orientation:'portrait'},
