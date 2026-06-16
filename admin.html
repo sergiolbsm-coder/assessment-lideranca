@@ -796,83 +796,92 @@ function openProfile(id){
 // PDF EXPORT — abre relatório e exporta via html2pdf dinâmico
 // ════════════════════════════════════════════════════
 function exportRelatorioComPDF(htmlContent, filename){
-  const blob = new Blob([htmlContent], {type:'text/html;charset=utf-8'});
-  const url  = URL.createObjectURL(blob);
-  const w    = window.open(url,'_blank');
-  if(!w){ toast('Permita pop-ups para gerar o relatório','warn'); URL.revokeObjectURL(url); return; }
+  // Open blank window and write HTML directly — avoids Blob URL race conditions
+  const w = window.open('','_blank');
+  if(!w){ toast('Permita pop-ups para gerar o relatório','warn'); return; }
+  w.document.open();
+  w.document.write(htmlContent);
+  w.document.close();
 
-  function injectPDF(){
-    URL.revokeObjectURL(url);
-    const s = w.document.createElement('script');
-    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-    s.onload = function(){
-      // Wire up the PDF button inside the opened window
-      const btn = w.document.getElementById('pdf-btn');
-      if(btn){
-        btn.addEventListener('click', function(){
-          btn.textContent = '⏳ Gerando PDF...';
-          btn.disabled = true;
-          // Hide toolbar before capture
-          w.document.querySelectorAll('.no-print,.toolbar').forEach(function(el){el.style.visibility='hidden';el.style.height='0';el.style.overflow='hidden';});
-          // Force body to fixed width so html2canvas captures from x=0
-          var body = w.document.body;
-          var pageEl = w.document.querySelector('.page');
-          var origBodyStyle = {margin:body.style.margin, width:body.style.width, padding:body.style.padding};
-          var origPageStyle = pageEl ? {margin:pageEl.style.margin, width:pageEl.style.width, maxWidth:pageEl.style.maxWidth} : null;
-          body.style.margin = '0';
-          body.style.padding = '0';
-          body.style.width = '794px';
-          if(pageEl){
-            pageEl.style.margin = '0';
-            pageEl.style.maxWidth = '794px';
-            pageEl.style.width = '794px';
+  // Give browser a moment to render, then wire up the PDF button
+  setTimeout(function(){
+    const btn = w.document.getElementById('pdf-btn');
+    if(!btn){ return; }
+
+    btn.addEventListener('click', function(){
+      btn.textContent = '⏳ Gerando PDF...';
+      btn.disabled = true;
+
+      // Hide toolbars
+      w.document.querySelectorAll('.no-print,.toolbar').forEach(function(el){
+        el.style.visibility='hidden'; el.style.height='0'; el.style.overflow='hidden';
+      });
+
+      // Fix layout for capture: remove margin:auto centering
+      var pageEl = w.document.querySelector('.page');
+      var body   = w.document.body;
+      var savedPage = pageEl ? {margin:pageEl.style.margin, maxWidth:pageEl.style.maxWidth, width:pageEl.style.width} : null;
+      var savedBody = {margin:body.style.margin, width:body.style.width};
+      body.style.margin  = '0';
+      body.style.width   = '794px';
+      if(pageEl){ pageEl.style.margin='0'; pageEl.style.maxWidth='794px'; pageEl.style.width='794px'; }
+
+      var el = pageEl || body;
+
+      // Use parent window's html2pdf (already loaded in admin <head>)
+      window.html2pdf().set({
+        margin: [10,10,10,10],
+        filename: filename,
+        image: {type:'jpeg', quality:0.97},
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#FFFFFF',
+          logging: false,
+          scrollX: 0,
+          scrollY: 0,
+          width: 794,
+          windowWidth: 794,
+          onclone: function(clonedDoc){
+            // Fix any remaining CSS var() colors in cloned doc
+            clonedDoc.querySelectorAll('[style]').forEach(function(el){
+              var st = el.getAttribute('style');
+              if(st && st.includes('var(--')){
+                el.setAttribute('style', st
+                  .replace(/var\(--flame\)/g,'#F07030').replace(/var\(--fire\)/g,'#D4401A')
+                  .replace(/var\(--sky\)/g,'#4A90D4').replace(/var\(--mist\)/g,'#A878E0')
+                  .replace(/var\(--gold\)/g,'#C9A84C').replace(/var\(--moss\)/g,'#9AB050')
+                  .replace(/var\(--success\)/g,'#22C55E').replace(/var\(--parch\)/g,'#FAFAFA')
+                  .replace(/var\(--mid\)/g,'#6A6258').replace(/var\(--ink\)/g,'#0A0806')
+                );
+              }
+            });
           }
-          var el = pageEl || body;
-          w.html2pdf().set({
-            margin:[12,12,12,12],
-            filename: filename,
-            image:{type:'jpeg',quality:0.97},
-            html2canvas:{
-              scale:2,
-              useCORS:true,
-              allowTaint:true,
-              backgroundColor:'#FFFFFF',
-              logging:false,
-              scrollX:0,
-              scrollY:0,
-              width:794,
-              windowWidth:794
-            },
-            jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
-            pagebreak:{mode:['avoid-all','css','legacy']}
-          }).from(el).save().then(function(){
-            // Restore styles
-            Object.assign(body.style, origBodyStyle);
-            if(pageEl && origPageStyle) Object.assign(pageEl.style, origPageStyle);
-            w.document.querySelectorAll('.no-print,.toolbar').forEach(function(el){el.style.visibility='';el.style.height='';el.style.overflow='';});
-            btn.textContent = '📄 Exportar PDF';
-            btn.disabled = false;
-          }).catch(function(){
-            Object.assign(body.style, origBodyStyle);
-            if(pageEl && origPageStyle) Object.assign(pageEl.style, origPageStyle);
-            w.document.querySelectorAll('.no-print,.toolbar').forEach(function(el){el.style.visibility='';el.style.height='';el.style.overflow='';});
-            btn.textContent = '📄 Exportar PDF';
-            btn.disabled = false;
-          });
+        },
+        jsPDF: {unit:'mm', format:'a4', orientation:'portrait'},
+        pagebreak: {mode:['avoid-all','css','legacy']}
+      }).from(el).save().then(function(){
+        // Restore
+        if(pageEl && savedPage) Object.assign(pageEl.style, savedPage);
+        Object.assign(body.style, savedBody);
+        w.document.querySelectorAll('.no-print,.toolbar').forEach(function(el){
+          el.style.visibility=''; el.style.height=''; el.style.overflow='';
         });
-      }
-    };
-    w.document.head.appendChild(s);
-  }
-
-  // Use both load event AND delayed check (handles race condition with Blob URLs)
-  if(w.document.readyState === 'complete'){
-    injectPDF();
-  } else {
-    w.addEventListener('load', injectPDF, {once:true});
-    // Fallback: if load already fired, setTimeout catches it
-    setTimeout(function(){ if(w.html2pdf) return; injectPDF(); }, 1500);
-  }
+        btn.textContent = '📄 Exportar PDF';
+        btn.disabled = false;
+      }).catch(function(e){
+        if(pageEl && savedPage) Object.assign(pageEl.style, savedPage);
+        Object.assign(body.style, savedBody);
+        w.document.querySelectorAll('.no-print,.toolbar').forEach(function(el){
+          el.style.visibility=''; el.style.height=''; el.style.overflow='';
+        });
+        btn.textContent = '📄 Exportar PDF';
+        btn.disabled = false;
+        console.error('PDF error:', e);
+      });
+    });
+  }, 600);
 }
 
 function closeModal(){document.getElementById('modal').classList.remove('open')}
@@ -1096,7 +1105,7 @@ tr:nth-child(even)td{background:#FAF6EE}
   <div class="sec-head">
     <span class="sec-num">III</span><span class="sec-icon">⬡</span>
     <span class="sec-title">Eneagrama — Tipo ${ennea}</span>
-    <span class="sec-badge" style="background:rgba(168,120,224,.12);color:#A878E0">Tipo ${ennea}</span>
+    <span class="sec-badge" style="background:rgba(168,120,224,.12);color:#A878E0">Tipo ${ennea} · ${enneaNome}</span>
   </div>
   <div class="sec-body">
     <div class="grid-2" style="margin-bottom:14px">
@@ -1607,6 +1616,35 @@ tr:nth-child(even)td{background:#FDFAF5}
       <div class="card-value" style="font-size:18px">${elemNames[elem]||elem}</div>
       <div class="card-sub" style="margin-top:8px">${elemDesc[elem]||''}</div>
     </div>
+
+    <!-- DISC: Fortes / Delegação / Comunicação / Motivadores -->
+    <div class="grid-2" style="margin-top:20px">
+      <div class="card" style="background:#F0FAF4;border-color:#C8EDD8">
+        <div class="card-label" style="color:#22C55E">✅ Pontos Fortes</div>
+        <div class="card-sub">${disc==='D'?'Orientação a resultados, assertividade, autonomia, decisão rápida, coragem e capacidade de mobilizar em crises.':disc==='I'?'Carisma, comunicação, engajamento de equipes, otimismo e criação de conexões genuínas.':disc==='S'?'Lealdade, paciência, empatia, consistência e criação de segurança psicológica.':'Análise crítica, precisão, planejamento rigoroso e garantia de qualidade.'}</div>
+      </div>
+      <div class="card" style="background:#FFF0EE;border-color:#FECACA">
+        <div class="card-label" style="color:#EF4444">⚠️ Pontos de Atenção</div>
+        <div class="card-sub">${disc==='D'?'Pode ser impaciente, autoritário e criar cultura de pressão. Dificuldade em ouvir e delegar.':disc==='I'?'Pode ser disperso e superficial. Dificuldade em manter foco e cumprir prazos.':disc==='S'?'Pode evitar conflitos necessários e resistir a mudanças bruscas.':'Pode entrar em paralisia analítica e ser excessivamente crítico.'}</div>
+      </div>
+      <div class="card">
+        <div class="card-label">📤 Como Delegar</div>
+        <div class="card-sub">${disc==='D'?'Dê a meta, liberdade de método e prazo curto. Cobre entregas, não processos.':disc==='I'?'Apresente a visão e o reconhecimento. Check-ins frequentes e energizantes.':disc==='S'?'Explique o contexto, dê tempo para perguntas. Responsabilidades claras e estáveis.':'Forneça critérios claros, dados suficientes e prazos bem definidos.'}</div>
+      </div>
+      <div class="card">
+        <div class="card-label">🗣️ Como Comunicar</div>
+        <div class="card-sub">${disc==='D'?'Direto, objetivo, foco em resultados. Reuniões curtas sem rodeios.':disc==='I'?'Entusiasmo, histórias, exemplos práticos. Prefere conversas dinâmicas.':disc==='S'?'Gentil, paciente, contextual. Prefere conversas individuais e transparentes.':'Preciso, fundamentado, lógico. Prefere comunicação escrita e estruturada.'}</div>
+      </div>
+      <div class="card" style="background:#F0FAF4;border-color:#C8EDD8">
+        <div class="card-label" style="color:#22C55E">⚡ O que Motiva</div>
+        <div class="card-sub">${disc==='D'?'Desafios, metas ambiciosas, autonomia, reconhecimento por conquistas e competição.':disc==='I'?'Reconhecimento público, visibilidade, projetos novos e feedback positivo.':disc==='S'?'Ambientes harmoniosos, relacionamentos sólidos e reconhecimento pela lealdade.':'Precisão, reconhecimento técnico e clareza de expectativas.'}</div>
+      </div>
+      <div class="card" style="background:#FFF0EE;border-color:#FECACA">
+        <div class="card-label" style="color:#EF4444">🚫 O que Desmotiva</div>
+        <div class="card-sub">${disc==='D'?'Microgestão, burocracia excessiva, ambientes lentos e decisões sem prazo.':disc==='I'?'Trabalho solitário, rotina repetitiva e falta de reconhecimento.':disc==='S'?'Conflitos frequentes, mudanças bruscas sem explicação e pressão excessiva.':'Improvisação, falta de dados e padrões baixos de qualidade.'}</div>
+      </div>
+    </div>
+
     <h3>Dinâmica Energética e Resiliência</h3>
     <p>${elem==='FOGO'?'Sua energia é <strong>expansiva e propulsiva</strong>. Você naturalmente ocupa o espaço — sua presença energiza e ao mesmo tempo pode sobrecarregar ambientes que precisam de pausa. Sua resiliência é alta em situações de adversidade, mas pode se tornar inflexibilidade em contextos que exigem adaptação gradual.':elem==='TERRA'?'Sua energia é <strong>concentrada e metódica</strong>. Você funciona com mais eficácia quando tem tempo e informação adequados. Sua resiliência está na consistência — você raramente desiste, mas pode tornar-se rígido quando os parâmetros mudam abruptamente.':elem==='ÁGUA'?'Sua energia é <strong>fluida e receptiva</strong>. Você tem capacidade natural de perceber o estado emocional do ambiente e adaptar-se. Sua resiliência está na conexão — você processa melhor os desafios quando tem apoio relacional, mas pode perder-se nas emoções dos outros.':'Sua energia é <strong>expansiva e exploratória</strong>. Você prospera em ambientes que permitem criatividade e movimento. Sua resiliência está na adaptação — você muda de direção com facilidade, mas pode dispersar energia em muitas frentes sem consolidar resultados.'}</p>
     <div class="insight">
@@ -1628,7 +1666,7 @@ tr:nth-child(even)td{background:#FDFAF5}
       <div class="card">
         <div class="card-label">Eneatipo</div>
         <div class="card-value">Tipo ${ennea}</div>
-        <div class="card-sub">${r.ennea_nome||'—'}</div>
+        <div class="card-sub" style="font-weight:700;color:#A878E0">${enneaNome}</div>
       </div>
       <div class="card">
         <div class="card-label">Vício Emocional</div>
