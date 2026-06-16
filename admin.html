@@ -814,18 +814,50 @@ function exportRelatorioComPDF(htmlContent, filename){
         btn.addEventListener('click', function(){
           btn.textContent = '⏳ Gerando PDF...';
           btn.disabled = true;
-          const el = w.document.querySelector('.page') || w.document.body;
+          // Hide toolbar before capture
+          w.document.querySelectorAll('.no-print,.toolbar').forEach(function(el){el.style.visibility='hidden';el.style.height='0';el.style.overflow='hidden';});
+          // Force body to fixed width so html2canvas captures from x=0
+          var body = w.document.body;
+          var pageEl = w.document.querySelector('.page');
+          var origBodyStyle = {margin:body.style.margin, width:body.style.width, padding:body.style.padding};
+          var origPageStyle = pageEl ? {margin:pageEl.style.margin, width:pageEl.style.width, maxWidth:pageEl.style.maxWidth} : null;
+          body.style.margin = '0';
+          body.style.padding = '0';
+          body.style.width = '794px';
+          if(pageEl){
+            pageEl.style.margin = '0';
+            pageEl.style.maxWidth = '794px';
+            pageEl.style.width = '794px';
+          }
+          var el = pageEl || body;
           w.html2pdf().set({
-            margin:[8,8,8,8],
+            margin:[12,12,12,12],
             filename: filename,
             image:{type:'jpeg',quality:0.97},
-            html2canvas:{scale:2,useCORS:true,allowTaint:true,backgroundColor:'#FFFFFF',logging:false,windowWidth:900,removeContainer:true},
+            html2canvas:{
+              scale:2,
+              useCORS:true,
+              allowTaint:true,
+              backgroundColor:'#FFFFFF',
+              logging:false,
+              scrollX:0,
+              scrollY:0,
+              width:794,
+              windowWidth:794
+            },
             jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
             pagebreak:{mode:['avoid-all','css','legacy']}
           }).from(el).save().then(function(){
+            // Restore styles
+            Object.assign(body.style, origBodyStyle);
+            if(pageEl && origPageStyle) Object.assign(pageEl.style, origPageStyle);
+            w.document.querySelectorAll('.no-print,.toolbar').forEach(function(el){el.style.visibility='';el.style.height='';el.style.overflow='';});
             btn.textContent = '📄 Exportar PDF';
             btn.disabled = false;
           }).catch(function(){
+            Object.assign(body.style, origBodyStyle);
+            if(pageEl && origPageStyle) Object.assign(pageEl.style, origPageStyle);
+            w.document.querySelectorAll('.no-print,.toolbar').forEach(function(el){el.style.visibility='';el.style.height='';el.style.overflow='';});
             btn.textContent = '📄 Exportar PDF';
             btn.disabled = false;
           });
