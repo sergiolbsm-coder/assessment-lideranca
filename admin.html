@@ -796,41 +796,64 @@ function openProfile(id){
 // PDF EXPORT — abre relatório e exporta via html2pdf dinâmico
 // ════════════════════════════════════════════════════
 function exportRelatorioComPDF(htmlContent, filename){
-  // Open blank window and write HTML directly — avoids Blob URL race conditions
-  const w = window.open('','_blank');
-  if(!w){ toast('Permita pop-ups para gerar o relatório','warn'); return; }
-  w.document.open();
-  w.document.write(htmlContent);
-  w.document.close();
+  // ── Render report in a fullscreen overlay on THIS page ──
+  // (avoids popup blocking from dynamic onclick buttons)
+  var overlay = document.getElementById('report-overlay');
+  if(!overlay){
+    overlay = document.createElement('div');
+    overlay.id = 'report-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#fff;overflow-y:auto;display:none';
+    document.body.appendChild(overlay);
+  }
 
-  // Give browser a moment to render, then wire up the PDF button
-  setTimeout(function(){
-    const btn = w.document.getElementById('pdf-btn');
-    if(!btn){ return; }
+  // Parse the HTML and extract just the <body> content + <style>
+  var parser = new DOMParser();
+  var doc = parser.parseFromString(htmlContent, 'text/html');
 
-    btn.addEventListener('click', function(){
-      btn.textContent = '⏳ Gerando PDF...';
-      btn.disabled = true;
+  // Extract styles from the report's <head>
+  var reportStyles = Array.from(doc.querySelectorAll('style'))
+    .map(function(s){ return s.outerHTML; }).join('\n');
 
-      // Hide toolbars
-      w.document.querySelectorAll('.no-print,.toolbar').forEach(function(el){
-        el.style.visibility='hidden'; el.style.height='0'; el.style.overflow='hidden';
-      });
+  // Extract body content (excluding the toolbar)
+  var bodyContent = doc.body.innerHTML;
 
-      // Fix layout for capture: remove margin:auto centering
-      var pageEl = w.document.querySelector('.page');
-      var body   = w.document.body;
-      var savedPage = pageEl ? {margin:pageEl.style.margin, maxWidth:pageEl.style.maxWidth, width:pageEl.style.width} : null;
-      var savedBody = {margin:body.style.margin, width:body.style.width};
-      body.style.margin  = '0';
-      body.style.width   = '794px';
-      if(pageEl){ pageEl.style.margin='0'; pageEl.style.maxWidth='794px'; pageEl.style.width='794px'; }
+  // Build overlay content: styles + toolbar + body
+  overlay.innerHTML = reportStyles +
+    '<div style="position:fixed;top:16px;right:16px;z-index:10001;display:flex;gap:8px;no-print" class="no-print">' +
+      '<button id="ov-pdf-btn" style="background:#C9A84C;color:#0A0806;border:none;border-radius:8px;padding:10px 20px;font-family:Syne,sans-serif;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.2)">📄 Exportar PDF</button>' +
+      '<button onclick="document.getElementById(\'report-overlay\').style.display=\'none\'" style="background:#fff;color:#555;border:1px solid #ddd;border-radius:8px;padding:10px 16px;font-family:Syne,sans-serif;font-size:14px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.1)">✕ Fechar</button>' +
+    '</div>' +
+    '<div class="page" style="max-width:840px;margin:0 auto;padding:40px 32px 80px">' +
+      bodyContent +
+    '</div>';
 
-      var el = pageEl || body;
+  // Remove any old toolbar from body content
+  var oldToolbar = overlay.querySelector('.toolbar, .no-print:not(div[style*="position:fixed"])');
+  if(oldToolbar) oldToolbar.remove();
 
-      // Use parent window's html2pdf (already loaded in admin <head>)
-      window.html2pdf().set({
-        margin: [10,10,10,10],
+  overlay.style.display = 'block';
+  document.body.style.overflow = 'hidden';
+
+  // Wire up PDF button
+  var pdfBtn = document.getElementById('ov-pdf-btn');
+  if(pdfBtn){
+    pdfBtn.addEventListener('click', function(){
+      pdfBtn.textContent = '⏳ Gerando PDF...';
+      pdfBtn.disabled = true;
+
+      // Hide overlay controls during capture
+      var controls = overlay.querySelector('div[style*="position:fixed"]');
+      if(controls) controls.style.display = 'none';
+
+      var pageEl = overlay.querySelector('.page') || overlay;
+      var origStyle = {margin:pageEl.style.margin, maxWidth:pageEl.style.maxWidth, width:pageEl.style.width};
+      pageEl.style.margin  = '0';
+      pageEl.style.maxWidth = '794px';
+      pageEl.style.width   = '794px';
+      pageEl.style.padding  = '32px 28px';
+
+      html2pdf().set({
+        margin: [8,8,8,8],
         filename: filename,
         image: {type:'jpeg', quality:0.97},
         html2canvas: {
@@ -839,13 +862,10 @@ function exportRelatorioComPDF(htmlContent, filename){
           allowTaint: true,
           backgroundColor: '#FFFFFF',
           logging: false,
-          scrollX: 0,
-          scrollY: 0,
-          width: 794,
-          windowWidth: 794,
-          onclone: function(clonedDoc){
-            // Fix any remaining CSS var() colors in cloned doc
-            clonedDoc.querySelectorAll('[style]').forEach(function(el){
+          scrollX: 0, scrollY: 0,
+          width: 794, windowWidth: 794,
+          onclone: function(clDoc){
+            clDoc.querySelectorAll('[style]').forEach(function(el){
               var st = el.getAttribute('style');
               if(st && st.includes('var(--')){
                 el.setAttribute('style', st
@@ -854,6 +874,7 @@ function exportRelatorioComPDF(htmlContent, filename){
                   .replace(/var\(--gold\)/g,'#C9A84C').replace(/var\(--moss\)/g,'#9AB050')
                   .replace(/var\(--success\)/g,'#22C55E').replace(/var\(--parch\)/g,'#FAFAFA')
                   .replace(/var\(--mid\)/g,'#6A6258').replace(/var\(--ink\)/g,'#0A0806')
+                  .replace(/var\(--border\)/g,'#E0D8C8')
                 );
               }
             });
@@ -861,27 +882,32 @@ function exportRelatorioComPDF(htmlContent, filename){
         },
         jsPDF: {unit:'mm', format:'a4', orientation:'portrait'},
         pagebreak: {mode:['avoid-all','css','legacy']}
-      }).from(el).save().then(function(){
-        // Restore
-        if(pageEl && savedPage) Object.assign(pageEl.style, savedPage);
-        Object.assign(body.style, savedBody);
-        w.document.querySelectorAll('.no-print,.toolbar').forEach(function(el){
-          el.style.visibility=''; el.style.height=''; el.style.overflow='';
-        });
-        btn.textContent = '📄 Exportar PDF';
-        btn.disabled = false;
+      }).from(pageEl).save().then(function(){
+        Object.assign(pageEl.style, origStyle);
+        if(controls) controls.style.display = 'flex';
+        pdfBtn.textContent = '📄 Exportar PDF';
+        pdfBtn.disabled = false;
+        toast('✅ PDF gerado com sucesso','success');
       }).catch(function(e){
-        if(pageEl && savedPage) Object.assign(pageEl.style, savedPage);
-        Object.assign(body.style, savedBody);
-        w.document.querySelectorAll('.no-print,.toolbar').forEach(function(el){
-          el.style.visibility=''; el.style.height=''; el.style.overflow='';
-        });
-        btn.textContent = '📄 Exportar PDF';
-        btn.disabled = false;
+        Object.assign(pageEl.style, origStyle);
+        if(controls) controls.style.display = 'flex';
+        pdfBtn.textContent = '📄 Exportar PDF';
+        pdfBtn.disabled = false;
         console.error('PDF error:', e);
+        toast('⚠️ Erro ao gerar PDF: '+e.message,'warn');
       });
     });
-  }, 600);
+  }
+
+  // Close on Escape key
+  var onEsc = function(e){
+    if(e.key==='Escape'){
+      overlay.style.display='none';
+      document.body.style.overflow='';
+      document.removeEventListener('keydown', onEsc);
+    }
+  };
+  document.addEventListener('keydown', onEsc);
 }
 
 function closeModal(){document.getElementById('modal').classList.remove('open')}
