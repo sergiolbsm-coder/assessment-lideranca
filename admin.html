@@ -1065,7 +1065,8 @@ tr:nth-child(even)td{background:#FAF6EE}
 @media print{body{background:#FFFFFF!important}.toolbar{display:none!important}.capa{-webkit-print-color-adjust:exact;print-color-adjust:exact}.section{break-inside:avoid}}
 
 /* ── PAGE BREAK CONTROL ── */
-.page-break-before{break-before:page;page-break-before:always}
+.page-break-before{break-before:page;page-break-before:always;margin-top:0;padding-top:0}
+.pdf-page-break{break-after:page;page-break-after:always;height:0;margin:0;padding:0;border:none;display:block}
 .capa{break-after:page;page-break-after:always}
 .sec-header{break-after:avoid;page-break-after:avoid}
 .card{break-inside:avoid;page-break-inside:avoid}
@@ -1298,7 +1299,7 @@ tr{break-inside:avoid;page-break-inside:avoid}
 </div>
 
 <!-- IX. SOMBRAS -->
-<div class="section page-break-before">
+<div class="pdf-page-break"></div><div class="section page-break-before">
   <div class="sec-head">
     <span class="sec-num">IX</span><span class="sec-icon">🌑</span>
     <span class="sec-title">Comportamentos de Sombra</span>
@@ -1604,7 +1605,7 @@ tr:nth-child(even)td{background:#FDFAF5}
 .pot-table th{background:#0A0806;color:#C9A84C;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase}
 
 /* ── PAGE BREAK CONTROL ── */
-.cover{break-after:page;page-break-after:always}
+.cover{break-after:page;page-break-after:always;margin-bottom:0}
 .section-header{break-after:avoid;page-break-after:avoid}
 .card{break-inside:avoid;page-break-inside:avoid}
 .grid-2{break-inside:avoid;page-break-inside:avoid}
@@ -1721,7 +1722,7 @@ h3{break-after:avoid;page-break-after:avoid}
     </div>
 
 <!-- II. TEMPERAMENTO -->
-<div class="section page-break-before">
+<div class="pdf-page-break"></div><div class="section page-break-before">
   <div class="section-header">
     <span class="section-num">II</span>
     <span class="section-icon">${{FOGO:'🔥',TERRA:'🌿','ÁGUA':'💧',AR:'💨'}[elem]||'🔥'}</span>
@@ -1778,7 +1779,7 @@ h3{break-after:avoid;page-break-after:avoid}
 </div>
 
 <!-- III. ENEAGRAMA -->
-<div class="section page-break-before">
+<div class="pdf-page-break"></div><div class="section page-break-before">
   <div class="section-header">
     <span class="section-num">III</span>
     <span class="section-icon">⬡</span>
@@ -1818,7 +1819,7 @@ h3{break-after:avoid;page-break-after:avoid}
 </div>
 
 <!-- IV. ARQUÉTIPOS -->
-<div class="section page-break-before">
+<div class="pdf-page-break"></div><div class="section page-break-before">
   <div class="section-header">
     <span class="section-num">IV</span>
     <span class="section-icon">⚔️</span>
@@ -1845,7 +1846,7 @@ h3{break-after:avoid;page-break-after:avoid}
 </div>
 
 <!-- V. KOLB -->
-<div class="section page-break-before">
+<div class="pdf-page-break"></div><div class="section page-break-before">
   <div class="section-header">
     <span class="section-num">V</span>
     <span class="section-icon">🔄</span>
@@ -1882,7 +1883,7 @@ h3{break-after:avoid;page-break-after:avoid}
 </div>
 
 <!-- VI. 6 NECESSIDADES -->
-<div class="section page-break-before">
+<div class="pdf-page-break"></div><div class="section page-break-before">
   <div class="section-header">
     <span class="section-num">VI</span>
     <span class="section-icon">💫</span>
@@ -1916,14 +1917,10 @@ h3{break-after:avoid;page-break-after:avoid}
     </div>
   </div>
 </div>
-
-    <div style="margin-top:16px;padding:16px 20px;background:linear-gradient(135deg,#FFF8F0,#FFF0E0);border-radius:10px;border-left:4px solid #F0A050">
-      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C06010;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px">📚 Fundamento Metodológico — As 6 Necessidades Humanas</div>
-      <p style="font-size:12px;color:#4A2A10;line-height:1.7;margin:0">O modelo das <strong>6 Necessidades Humanas</strong> de Tony Robbins — baseado em Maslow e nas teorias de desenvolvimento humano — mapeia os seis drivers motivacionais universais: <strong>Certeza</strong>, <strong>Variedade</strong>, <strong>Significância</strong>, <strong>Conexão</strong>, <strong>Crescimento</strong> e <strong>Contribuição</strong>. As duas primeiras necessidades predominantes formam o <em>motor motivacional primário</em> do líder — determinando que ambientes o energizam, que situações o drenam e que decisões ele toma automaticamente sob pressão. Compreender esta hierarquia é fundamental para engajamento sustentável e prevenção de burnout.</p>
-    </div>
+</div>
 
 <!-- VII. HOLLAND -->
-<div class="section page-break-before">
+<div class="pdf-page-break"></div><div class="section page-break-before">
   <div class="section-header">
     <span class="section-num">VII</span>
     <span class="section-icon">🧭</span>
@@ -1937,12 +1934,43 @@ h3{break-after:avoid;page-break-after:avoid}
       <div class="card-sub" style="margin-top:8px">Os 3 tipos com maior pontuação formam o código que representa as inclinações vocacionais naturais.</div>
     </div>
     <h3>Aderência ao Cargo Executivo</h3>
-    <table style="width:100%;table-layout:fixed;border-collapse:collapse;word-break:break-word;font-size:12px">
-      <tr><th style="width:35%;background:#0A0806;color:#C9A84C;padding:8px 10px;font-size:9px;letter-spacing:.1em;font-family:'JetBrains Mono',monospace">Dimensão</th><th style="width:65%;background:#0A0806;color:#C9A84C;padding:8px 10px;font-size:9px;letter-spacing:.1em;font-family:'JetBrains Mono',monospace">Análise</th></tr>
-      <tr><td><strong>Inclinações Naturais</strong></td><td>Ambientes e atividades onde ${nome} naturalmente prospera e se sente mais autêntico como líder.</td></tr>
-      <tr><td><strong>Alinhamento com DISC ${discN[disc]||disc}</strong></td><td>${holland.includes('E')||holland.includes('S')?'Alta congruência — código Holland com perfil Empreendedor ou Social alinha-se naturalmente com perfis de liderança direta.':holland.includes('I')||holland.includes('C')?'Possível tensão produtiva — código Holland analítico com perfil comportamental mais assertivo. Explore como integrar profundidade intelectual com velocidade de execução.':'Perfil equilibrado — o código Holland reflete versatilidade que pode ser tanto força quanto dispersão.'}</td></tr>
-      <tr><td><strong>Recomendação de Carreira</strong></td><td>Maximizar o desempenho garantindo que pelo menos 60% das atividades diárias estejam alinhadas com as inclinações do código ${holland}.</td></tr>
-    </table>
+    <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
+
+      <div style="border:1px solid #E0D8C8;border-radius:10px;overflow:hidden">
+        <div style="padding:9px 14px;background:#0A0806">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase">Inclinações Naturais</div>
+        </div>
+        <div style="padding:12px 14px;font-size:12px;color:#2A2018;line-height:1.65">
+          Ambientes e atividades onde <strong>${nome}</strong> naturalmente prospera e se sente mais energizado — código ${holland} indica preferência por tarefas ${ ({R:'técnicas e manuais',I:'investigativas e analíticas',A:'criativas e expressivas',S:'sociais e de suporte',E:'empreendedoras e persuasivas',C:'organizacionais e sistemáticas'})[holland.charAt(0)] }||'compatíveis com seu perfil'}.
+        </div>
+      </div>
+
+      <div style="border:1px solid #E0D8C8;border-radius:10px;overflow:hidden">
+        <div style="padding:9px 14px;background:#0A0806">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase">Alinhamento com DISC ${discN[disc]}</div>
+        </div>
+        <div style="padding:12px 14px;font-size:12px;color:#2A2018;line-height:1.65">
+          ${ disc==='S'&&(holland.includes('S')||holland.includes('E'))
+            ? 'Alta congruência — perfil <strong>Estável</strong> com vocação Social/Empreendedora cria liderança consultiva de alto impacto e baixo dreno adaptativo.'
+            : disc==='D'&&(holland.includes('E')||holland.includes('R'))
+            ? 'Alta congruência — perfil <strong>Dominante</strong> com vocação Empreendedora/Realista potencializa execução direta e tomada de decisão rápida.'
+            : disc==='I'&&(holland.includes('A')||holland.includes('S'))
+            ? 'Alta congruência — perfil <strong>Influente</strong> com vocação Artística/Social amplifica comunicação e capacidade de engajar e inspirar.'
+            : 'Possível tensão produtiva — o código Holland indica vocações que complementam o perfil DISC, exigindo gestão consciente de energia adaptativa.'
+          }
+        </div>
+      </div>
+
+      <div style="border:1px solid #E0D8C8;border-radius:10px;overflow:hidden">
+        <div style="padding:9px 14px;background:#0A0806">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase">Recomendação de Carreira</div>
+        </div>
+        <div style="padding:12px 14px;font-size:12px;color:#2A2018;line-height:1.65">
+          Maximizar o desempenho garantindo que pelo menos <strong>60%</strong> das atividades diárias estejam alinhadas com as inclinações do código <strong>${holland}</strong> — alinhamento vocacional é a maior alavanca de performance sustentável e a principal forma de reduzir o dreno energético.
+        </div>
+      </div>
+
+    </div>
 
 
     <div style="margin-top:16px;padding:16px 20px;background:linear-gradient(135deg,#F0F4FF,#E8EEFF);border-radius:10px;border-left:4px solid #4A60D4">
@@ -1953,7 +1981,7 @@ h3{break-after:avoid;page-break-after:avoid}
 </div>
 
 <!-- VIII. BATERIA DE ENERGIA -->
-<div class="section page-break-before">
+<div class="pdf-page-break"></div><div class="section page-break-before">
   <div class="section-header">
     <span class="section-num">VIII</span>
     <span class="section-icon">🔋</span>
@@ -2052,7 +2080,7 @@ h3{break-after:avoid;page-break-after:avoid}
 </div>
 
 <!-- X. POTENCIAL LATENTE -->
-<div class="section page-break-before">
+<div class="pdf-page-break"></div><div class="section page-break-before">
   <div class="section-header">
     <span class="section-num">X</span>
     <span class="section-icon">💎</span>
@@ -2066,17 +2094,17 @@ h3{break-after:avoid;page-break-after:avoid}
       <!-- DISC Secundário -->
       <div style="border:1px solid #C8EDD8;border-radius:10px;overflow:hidden">
         <div style="padding:10px 14px;background:#0A0806;display:flex;justify-content:space-between;align-items:center">
-          <span style="font-weight:800;color:${{D:'#F07030',I:'#F0C030',S:'#4A90D4',C:'#A878E0'}}[r.disc_secundario||'I']};font-size:13px">DISC ${discN[r.disc_secundario||'I']||'—'}</span>
+          <span style="font-weight:800;color:${ ({D:'#F07030',I:'#F0C030',S:'#4A90D4',C:'#A878E0'})[r.disc_secundario||'I'] };font-size:13px">DISC ${discN[r.disc_secundario||'I']||'—'}</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#22C55E;letter-spacing:.1em">POTENCIAL LATENTE</span>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr">
           <div style="padding:12px 14px;border-right:1px solid #C8EDD8">
             <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#22C55E;letter-spacing:.1em;margin-bottom:6px">OPORTUNIDADE</div>
-            <div style="font-size:12px;color:#1A4A2A;line-height:1.65">${{D:'Velocidade decisória e assertividade ainda subutilizadas',I:'Potencial de engajamento e influência de equipes maiores',S:'Habilidade natural de mentoria e criação de segurança psicológica',C:'Rigor analítico e qualidade como vantagem competitiva'}}[r.disc_secundario||'I']}</div>
+            <div style="font-size:12px;color:#1A4A2A;line-height:1.65">${ ({D:'Velocidade decisória e assertividade ainda subutilizadas',I:'Potencial de engajamento e influência de equipes maiores',S:'Habilidade natural de mentoria e criação de segurança psicológica',C:'Rigor analítico e qualidade como vantagem competitiva'})[r.disc_secundario||'I'] }</div>
           </div>
           <div style="padding:12px 14px;background:#F0FAF4">
             <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#22C55E;letter-spacing:.1em;margin-bottom:6px">AÇÃO PARA ATIVAR</div>
-            <div style="font-size:12px;color:#1A4A2A;line-height:1.65;font-weight:600">${{D:'Assumir projetos de transformação onde velocidade decisória é diferencial',I:'Liderar iniciativas de cultura e engajamento organizacional',S:'Delegar o operacional e assumir papel de desenvolvedor de talentos',C:'Estruturar processos de qualidade e governança como legado estratégico'}}[r.disc_secundario||'I']}</div>
+            <div style="font-size:12px;color:#1A4A2A;line-height:1.65;font-weight:600">${ ({D:'Assumir projetos de transformação onde velocidade decisória é diferencial',I:'Liderar iniciativas de cultura e engajamento organizacional',S:'Delegar o operacional e assumir papel de desenvolvedor de talentos',C:'Estruturar processos de qualidade e governança como legado estratégico'})[r.disc_secundario||'I'] }</div>
           </div>
         </div>
       </div>
@@ -2108,7 +2136,7 @@ h3{break-after:avoid;page-break-after:avoid}
         <div style="display:grid;grid-template-columns:1fr 1fr">
           <div style="padding:12px 14px;border-right:1px solid #C8EDD8">
             <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#22C55E;letter-spacing:.1em;margin-bottom:6px">OPORTUNIDADE</div>
-            <div style="font-size:12px;color:#1A4A2A;line-height:1.65">Virtude do Tipo ${ennea}: <strong>${{1:'Serenidade',2:'Humildade',3:'Autenticidade',4:'Equanimidade',5:'Desapego',6:'Coragem',7:'Sobriedade',8:'Inocência',9:'Ação'}}[ennea]}</strong> — ainda pouco expressa na liderança atual</div>
+            <div style="font-size:12px;color:#1A4A2A;line-height:1.65">Virtude do Tipo ${ennea}: <strong>${ ({1:'Serenidade',2:'Humildade',3:'Autenticidade',4:'Equanimidade',5:'Desapego',6:'Coragem',7:'Sobriedade',8:'Inocência',9:'Ação'})[ennea] }</strong> — ainda pouco expressa na liderança atual</div>
           </div>
           <div style="padding:12px 14px;background:#F0FAF4">
             <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#22C55E;letter-spacing:.1em;margin-bottom:6px">AÇÃO PARA ATIVAR</div>
