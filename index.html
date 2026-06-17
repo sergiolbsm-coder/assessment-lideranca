@@ -199,17 +199,17 @@ h1.hero span{display:block;background:linear-gradient(135deg,var(--parch) 0%,var
   .report-avatar{background:#C9A84C!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .report-name{font-size:26px}
   #report{padding:20px}
-  .rmod{border:1px solid #ccc;break-inside:avoid;background:#fff;margin-bottom:14px}
-  .rmod-header{background:#f8f5ee;border-bottom:1px solid #ddd}
-  .rmod-title{font-size:16px}
-  .rmod-insight{background:#f5f5f5;border-left:3px solid #999;color:#333}
+  .rmod{border:1px solid #ccc;page-break-inside:avoid!important;break-inside:avoid!important;background:#fff;margin-bottom:18px}
+  .rmod-header{background:#f8f5ee;border-bottom:1px solid #ddd;page-break-inside:avoid!important;break-inside:avoid!important}
+  .rmod-title{font-size:16px;page-break-after:avoid!important;break-after:avoid!important}
+  .rmod-insight{background:#f5f5f5;border-left:3px solid #999;color:#333;page-break-inside:avoid!important;break-inside:avoid!important}
   .rmod-insight strong{color:#555}
-  .report-hero{border-bottom:2px solid #C9A84C;margin-bottom:20px}
+  .report-hero{border-bottom:2px solid #C9A84C;margin-bottom:20px;page-break-inside:avoid!important;break-inside:avoid!important}
   .rbar-track{background:#eee}
-  .rmod-cell{border:1px solid #ddd;background:#fafafa}
-  .disc-detail-grid{grid-template-columns:1fr 1fr}
-  .needs-suggestion{background:#eef4ff;border:1px solid #aac}
-  .section-sep::after{background:#ccc}
+  .rmod-cell{border:1px solid #ddd;background:#fafafa;page-break-inside:avoid!important;break-inside:avoid!important}
+  .disc-detail-grid{grid-template-columns:1fr 1fr;page-break-inside:avoid!important;break-inside:avoid!important}
+  .needs-suggestion{background:#eef4ff;border:1px solid #aac;page-break-inside:avoid!important;break-inside:avoid!important}
+  .section-sep{page-break-after:avoid!important;break-after:avoid!important}.section-sep::after{background:#ccc}table{page-break-inside:avoid!important;break-inside:avoid!important;width:100%!important}thead{display:table-header-group!important;page-break-after:avoid!important;break-after:avoid!important}tbody{page-break-inside:avoid!important;break-inside:avoid!important}tr{page-break-inside:avoid!important;break-inside:avoid!important}td,th{page-break-inside:avoid!important;break-inside:avoid!important;overflow-wrap:break-word!important;word-break:break-word!important}.rbar-row{page-break-inside:avoid!important;break-inside:avoid!important}.divider{page-break-after:avoid!important;break-after:avoid!important}
 }
 </style>
 </head>
@@ -1923,9 +1923,9 @@ function exportPDF(){
     });
 
     const opt = {
-      margin: [8,8,8,8],
+      margin: [10,10,10,10],
       filename: `Relatorio-Lideranca-${nome.replace(/\s+/g,'-')}.pdf`,
-      image: {type:'jpeg', quality:0.97},
+      image: {type:'jpeg', quality:0.98},
       html2canvas: {
         scale: 2,
         useCORS: true,
@@ -1934,9 +1934,10 @@ function exportPDF(){
         logging: false,
         removeContainer: true,
         windowWidth: 900,
+        windowHeight: 1200,
       },
-      jsPDF: {unit:'mm', format:'a4', orientation:'portrait'},
-      pagebreak: {mode:['avoid-all','css','legacy']}
+      jsPDF: {unit:'mm', format:'a4', orientation:'portrait', compress:true},
+      pagebreak: {mode:['css','legacy'], before:'.page-break', after:'.page-break-after', avoid:['tr','table','.rmod','.card','.rbar-row']}
     };
 
     html2pdf().set(opt).from(overlay).save()

@@ -896,9 +896,9 @@ function exportRelatorioComPDF(htmlContent, filename){
     var captureEl = captureWrap.querySelector('div') || captureWrap;
 
     html2pdf().set({
-      margin: [8,8,8,8],
+      margin: [10,10,10,10],
       filename: filename,
-      image: {type:'jpeg', quality:0.97},
+      image: {type:'jpeg', quality:0.98},
       html2canvas: {
         scale: 2,
         useCORS: true,
@@ -910,10 +910,11 @@ function exportRelatorioComPDF(htmlContent, filename){
         x: 0,
         y: 0,
         width: 794,
-        windowWidth: 794
+        windowWidth: 794,
+        windowHeight: 1123
       },
-      jsPDF: {unit:'mm', format:'a4', orientation:'portrait'},
-      pagebreak: {mode:['avoid-all','css','legacy']}
+      jsPDF: {unit:'mm', format:'a4', orientation:'portrait', compress:true},
+      pagebreak: {mode:['css','legacy'], before:'.page-break', after:'.page-break-after', avoid:['tr','table','.section','.rmod','.card','.grid-2','.rbar-row']}
     }).from(captureEl).save().then(function(){
       document.body.removeChild(captureWrap);
       controls.style.display = 'flex';
@@ -1062,7 +1063,7 @@ tr:nth-child(even)td{background:#FAF6EE}
 .pdi-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
 .sugg-box{background:#EEF4FF;border:1px solid #B0C4E8;border-radius:10px;padding:14px;margin-top:12px}
 .footer{text-align:center;padding:24px 0 0;border-top:1px solid #E0D8C8;margin-top:32px;font-family:'JetBrains Mono',monospace;font-size:10px;color:#B0A090}
-@media print{body{background:#FFFFFF!important}.toolbar{display:none!important}.capa{-webkit-print-color-adjust:exact;print-color-adjust:exact}.section{break-inside:avoid}}
+@media print{body{background:#FFFFFF!important;color:#0A0806;font-size:12px;margin:0;padding:0}.toolbar{display:none!important}.capa{-webkit-print-color-adjust:exact;print-color-adjust:exact;page-break-after:always!important;break-after:page!important}.section,.rmod,.page,table,.grid-2,.rmod-grid,.disc-detail-grid,.bar-row,.pdi-item,.needs-suggestion,.insight,.alert-box,.ok-box{page-break-inside:avoid!important;break-inside:avoid!important}table{page-break-inside:avoid!important;break-inside:avoid!important;width:100%!important;border-collapse:collapse!important}thead{display:table-header-group!important;page-break-after:avoid!important;break-after:avoid!important}tbody{page-break-inside:avoid!important;break-inside:avoid!important}tr{page-break-inside:avoid!important;break-inside:avoid!important}td,th{page-break-inside:avoid!important;break-inside:avoid!important;overflow-wrap:break-word!important;word-break:break-word!important}.rbar-row,.bar-row,.rmod-cell,.card{page-break-inside:avoid!important;break-inside:avoid!important}.section-title,.sec-title,.rmod-title,h1,h2,h3,h4,h5,h6{page-break-after:avoid!important;break-after:avoid!important}.section{margin-bottom:20px!important;padding-bottom:16px!important}.rmod{margin-bottom:18px!important}.page-break{page-break-after:always!important;break-after:page!important}.page-break-before{page-break-before:always!important;break-before:page!important}.no-print,.toolbar,#pdf-btn,.nav-buttons,.btn-primary,.btn-secondary,#ov-controls{display:none!important}.report-hero{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;page-break-inside:avoid!important;break-inside:avoid!important}.grid-2,.rmod-grid,.disc-detail-grid{grid-template-columns:1fr 1fr!important;page-break-inside:avoid!important;break-inside:avoid!important}.footer{page-break-before:always!important;break-before:page!important;margin-top:40px!important;padding-top:20px!important;border-top:1px solid #E0D8C8!important}.divider,.section-sep{page-break-after:avoid!important;break-after:avoid!important}}
 </style>
 </head>
 <body>
