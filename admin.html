@@ -1134,7 +1134,21 @@ tr:nth-child(even)td{background:#FAF6EE}
   </div>
   <div class="sec-body">
     <div style="margin-bottom:16px">
-      ${Object.entries(discPcts).map(([k,v])=>`<div class="bar-row"><span class="bar-lbl" style="color:${discHex[k]}">${discN[k]||k}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.round(v/discTotal*100)}%;background:${discHex[k]}"></div></div><span class="bar-val">${Math.round(v/discTotal*100)}%</span></div>`).join('')}
+      ${Object.entries(discPcts).map(([k,v])=>{
+      const rawPct=Math.round(v/discTotal*100);
+      const isNeg=rawPct<0;
+      const absPct=Math.abs(rawPct);
+      const fillStyle=isNeg
+        ? `background:repeating-linear-gradient(45deg,${discHex[k]}55,${discHex[k]}55 4px,${discHex[k]}22 4px,${discHex[k]}22 8px);border:1px dashed ${discHex[k]}`
+        : `background:${discHex[k]}`;
+      return `<div class="bar-row">
+        <span class="bar-lbl" style="color:${discHex[k]}">${discN[k]||k}</span>
+        <div class="bar-track" style="position:relative">
+          <div class="bar-fill" style="width:${absPct}%;${fillStyle}"></div>
+          ${isNeg?`<span style="position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:9px;color:${discHex[k]};font-family:'JetBrains Mono',monospace;font-weight:700">▼NEG</span>`:''}
+        </div>
+        <span class="bar-val" style="color:${isNeg?discHex[k]:'#C9A84C'}">${isNeg?'':'+'}${rawPct}%</span>
+      </div>`;}).join('')}
     </div>
     <div class="grid-2">
       ${[['✅ Pontos Fortes',dp.fortes],['⚠️ Pontos de Atenção',dp.atencao],['📤 Forma de Delegação',dp.delegacao],['🗣️ Comunicação',dp.comunicacao],['⚡ O que Motiva',dp.motivacao],['🚫 O que Desmotiva',dp.desmotivacao]].filter(([,v])=>v).map(([l,v])=>`<div class="card"><div class="card-lbl">${l}</div><div class="card-sub">${v}</div></div>`).join('')}
