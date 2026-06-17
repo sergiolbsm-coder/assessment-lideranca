@@ -1296,18 +1296,24 @@ tr:nth-child(even)td{background:#FAF6EE}
     <span class="sec-badge" style="background:rgba(239,68,68,.1);color:#EF4444">Zona de Risco</span>
   </div>
   <div class="sec-body">
-    <table>
-      <tr><th>Estilo em Sombra</th><th>Comportamento Oculto</th><th>Gap de Performance</th></tr>
-      ${[
+    <table style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:12px;margin-top:12px;word-break:break-word">
+      <colgroup><col style="width:28%"><col style="width:40%"><col style="width:32%"></colgroup>
+      <thead><tr style="background:#0A0806">
+        <th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em">ESTILO EM SOMBRA</th>
+        <th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em">COMPORTAMENTO OCULTO</th>
+        <th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em">GAP DE PERFORMANCE</th>
+      </tr></thead>
+      <tbody>${[
         {k:'D',label:'Sombra da Dominância',comp:'Pavio curto e surdez seletiva — deixa de ouvir especialistas por pressa de decidir.',gap:'Perda de Capital Intelectual: turnover e desmotivação de talentos-chave.'},
-        {k:'I',label:'Sombra da Influência',comp:'Desorganização e impulsividade — promete prazos impossíveis para ser popular.',gap:'Quebra de Confiança: falhas em entregas críticas e falta de rigor nos processos.'},
-        {k:'S',label:'Sombra da Estabilidade',comp:'Resistência passiva — mantém o status quo por medo da mudança necessária.',gap:'Obsolescência Operacional: perde agilidade e para de inovar.'},
-        {k:'C',label:'Sombra da Conformidade',comp:'Crítica excessiva — foca no detalhe e perde a visão estratégica do todo.',gap:'Paralisia por Análise: projetos travam em revisões infinitas.'},
-      ].map(s=>`<tr style="${s.k===disc?'background:#FFF5F0;':''}">
-        <td style="font-weight:700;color:${discHex[s.k]};white-space:nowrap">${s.label}${s.k===disc?` <span style="font-size:9px;background:#FFEAEA;color:#EF4444;padding:2px 6px;border-radius:100px">SEU PERFIL</span>`:''}</td>
-        <td>${s.comp}</td><td>${s.gap}</td>
+        {k:'I',label:'Sombra da Influência',comp:'Desorganização e impulsividade — promete prazos impossíveis para ser popular.',gap:'Quebra de Confiança: falhas em entregas críticas e falta de rigidez nos processos.'},
+        {k:'S',label:'Sombra da Estabilidade',comp:'Resistência passiva — mantém o status quo por medo da mudança necessária.',gap:'Obsolescência Operacional: a empresa perde agilidade e para de inovar.'},
+        {k:'C',label:'Sombra da Conformidade',comp:'Crítica excessiva — foca no detalhe e perde a visão estratégica do todo.',gap:'Paralisia por Análise: projetos travam em burocracias e revisões infinitas.'},
+      ].map(s=>`<tr style="${s.k===disc?'background:#FFF5F0':''}">
+        <td style="padding:9px 12px;border-bottom:1px solid #F0E8D8;font-weight:700;color:${discHex[s.k]};word-break:break-word;vertical-align:top">${s.label}${s.k===disc?` <span style="font-size:9px;background:#FFEAEA;color:#EF4444;padding:2px 6px;border-radius:100px;font-family:monospace">SEU PERFIL</span>`:''}</td>
+        <td style="padding:9px 12px;border-bottom:1px solid #F0E8D8;color:#6A5A48;vertical-align:top;word-break:break-word">${s.comp}</td>
+        <td style="padding:9px 12px;border-bottom:1px solid #F0E8D8;color:#6A5A48;vertical-align:top;word-break:break-word">${s.gap}</td>
       </tr>`).join('')}
-    </table>
+      </tbody></table>
   </div>
 </div>
 
@@ -1319,13 +1325,14 @@ tr:nth-child(even)td{background:#FAF6EE}
     <span class="sec-badge" style="background:rgba(34,197,94,.1);color:#22C55E">Oportunidades</span>
   </div>
   <div class="sec-body">
-    <table>
-      <tr><th>Instrumento</th><th>Potencial Latente</th><th>Ação para Ativar</th></tr>
-      <tr><td style="font-weight:700;color:${discHex[discSec]}">DISC ${discN[discSec]||discSec}</td><td>${{D:'Velocidade decisória e assertividade',I:'Engajamento e influência de equipes maiores',S:'Mentoria e criação de segurança psicológica',C:'Rigor analítico e qualidade como vantagem'}[discSec]||'—'}</td><td>${{D:'Assumir projetos de transformação onde velocidade é diferencial',I:'Liderar iniciativas de cultura e engajamento',S:'Delegar o operacional e desenvolver talentos',C:'Estruturar processos e governança como legado'}[discSec]||'—'}</td></tr>
-      <tr><td style="font-weight:700;color:#E8A840">Holland ${r.holland_codigo||'—'}</td><td>Inclinação vocacional — ambientes de alto alinhamento onde opera com energia natural e zero esforço de adaptação</td><td>Redirecionar 30%+ das atividades para projetos alinhados ao código ${r.holland_codigo||'—'}</td></tr>
-      <tr><td style="font-weight:700;color:#A878E0">Eneagrama T${ennea}</td><td>Virtude do Tipo ${ennea}: <strong>${enneaVirtude[ennea]||'—'}</strong> — ainda pouco expressa na liderança atual</td><td>Praticar a virtude como âncora de liderança consciente — ela converte o vício emocional em força genuína</td></tr>
-      <tr><td style="font-weight:700;color:#F0A050">Necessidade ${need1}</td><td>Quando plenamente atendida, opera no melhor estado — criativo, presente e de alto impacto</td><td>Mapear quais atividades alimentam ${need1} e priorizar estrategicamente esses contextos</td></tr>
-    </table>
+    <table style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:12px;margin-top:12px;word-break:break-word">
+      <colgroup><col style="width:22%"><col style="width:40%"><col style="width:38%"></colgroup>
+      <thead><tr style="background:#0A0806"><th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#22C55E;letter-spacing:.1em">INSTRUMENTO</th><th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#22C55E;letter-spacing:.1em">POTENCIAL LATENTE</th><th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#22C55E;letter-spacing:.1em">AÇÃO PARA ATIVAR</th></tr></thead><tbody>
+      <tr><td style="font-weight:700;color:${discHex[discSec]};word-break:break-word;padding:9px 12px;border-bottom:1px solid #EEF8F2;vertical-align:top">DISC ${discN[discSec]||discSec}</td><td style="word-break:break-word;padding:9px 12px;border-bottom:1px solid #EEF8F2;vertical-align:top;color:#4A5A48">${{D:'Velocidade decisória e assertividade',I:'Engajamento e influência de equipes maiores',S:'Mentoria e criação de segurança psicológica',C:'Rigor analítico e qualidade como vantagem'}[discSec]||'—'}</td><td style="word-break:break-word;padding:9px 12px;border-bottom:1px solid #EEF8F2;vertical-align:top;color:#4A5A48">${{D:'Assumir projetos de transformação onde velocidade é diferencial',I:'Liderar iniciativas de cultura e engajamento',S:'Delegar o operacional e desenvolver talentos',C:'Estruturar processos e governança como legado'}[discSec]||'—'}</td></tr>
+      <tr><td style="font-weight:700;color:#E8A840;word-break:break-word;padding:9px 12px;border-bottom:1px solid #EEF8F2;vertical-align:top">Holland ${r.holland_codigo||'—'}</td><td style="word-break:break-word;padding:9px 12px;border-bottom:1px solid #EEF8F2;vertical-align:top;color:#4A5A48">Inclinação vocacional — ambientes de alto alinhamento onde opera com energia natural e zero esforço de adaptação</td><td style="word-break:break-word;padding:9px 12px;border-bottom:1px solid #EEF8F2;vertical-align:top;color:#4A5A48">Redirecionar 30%+ das atividades para projetos alinhados ao código ${r.holland_codigo||'—'}</td></tr>
+      <tr><td style="font-weight:700;color:#A878E0;word-break:break-word;padding:9px 12px;border-bottom:1px solid #EEF8F2;vertical-align:top">Eneagrama T${ennea}</td><td style="word-break:break-word;padding:9px 12px;border-bottom:1px solid #EEF8F2;vertical-align:top;color:#4A5A48">Virtude do Tipo ${ennea}: <strong>${enneaVirtude[ennea]||'—'}</strong> — ainda pouco expressa na liderança atual</td><td style="word-break:break-word;padding:9px 12px;border-bottom:1px solid #EEF8F2;vertical-align:top;color:#4A5A48">Praticar a virtude como âncora de liderança consciente — ela converte o vício emocional em força genuína</td></tr>
+      <tr><td style="font-weight:700;color:#F0A050;word-break:break-word;padding:9px 12px;border-bottom:1px solid #EEF8F2;vertical-align:top">Necessidade ${need1}</td><td style="word-break:break-word;padding:9px 12px;border-bottom:1px solid #EEF8F2;vertical-align:top;color:#4A5A48">Quando plenamente atendida, opera no melhor estado — criativo, presente e de alto impacto</td><td style="word-break:break-word;padding:9px 12px;border-bottom:1px solid #EEF8F2;vertical-align:top;color:#4A5A48">Mapear quais atividades alimentam ${need1} e priorizar estrategicamente esses contextos</td></tr>
+    </tbody></table>
     <div class="ok-box" style="margin-top:12px"><strong>Diagnóstico Ativacional:</strong> Ativar os potenciais latentes não exige mais esforço — exige <em>melhor direcionamento de quem você já é</em>.</div>
   </div>
 </div>
@@ -1947,10 +1954,11 @@ tr:nth-child(even)td{background:#FDFAF5}
   <div class="section-body">
     <p>As <strong>Zonas de Sombra</strong> ocorrem quando um estilo é utilizado de forma excessiva sob estresse — transformando um ponto forte em prejuízo crítico para o negócio.</p>
     <table style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:12px;margin-top:12px;word-break:break-word">
-      <thead><tr style="background:#F5F0E8">
-        <th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;border-bottom:2px solid #E0D8C8">ESTILO EM SOMBRA</th>
-        <th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;border-bottom:2px solid #E0D8C8">COMPORTAMENTO OCULTO</th>
-        <th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;border-bottom:2px solid #E0D8C8">GAP DE PERFORMANCE</th>
+      <colgroup><col style="width:28%"><col style="width:40%"><col style="width:32%"></colgroup>
+      <thead><tr style="background:#0A0806">
+        <th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;border-bottom:2px solid #3A3028">ESTILO EM SOMBRA</th>
+        <th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;border-bottom:2px solid #3A3028">COMPORTAMENTO OCULTO</th>
+        <th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;border-bottom:2px solid #3A3028">GAP DE PERFORMANCE</th>
       </tr></thead>
       <tbody>
         ${[
