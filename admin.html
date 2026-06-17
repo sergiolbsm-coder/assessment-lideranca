@@ -861,7 +861,7 @@ function exportRelatorioComPDF(htmlContent, filename){
 
     captureWrap.innerHTML =
       cloneStyles +
-      '<div style="width:794px;padding:32px 28px;box-sizing:border-box;background:#fff">' +
+      '<div style="width:794px;padding:28px 20px;box-sizing:border-box;background:#fff">' +
         cloneHTML +
       '</div>';
 
@@ -913,7 +913,7 @@ function exportRelatorioComPDF(htmlContent, filename){
         windowWidth: 794
       },
       jsPDF: {unit:'mm', format:'a4', orientation:'portrait'},
-      pagebreak: {mode:['css'], before:'.section-break-before', avoid:'.section,.cover,.capa,.pdi-section,.grid-2,.card,.insight,.alert'}
+      pagebreak: {mode:['css'], avoid:'.card,.grid-2,.insight,.alert,.insight-box,.pdi-item,tr,.section-header'}
     }).from(captureEl).save().then(function(){
       document.body.removeChild(captureWrap);
       controls.style.display = 'flex';
@@ -1065,12 +1065,11 @@ tr:nth-child(even)td{background:#FAF6EE}
 @media print{body{background:#FFFFFF!important}.toolbar{display:none!important}.capa{-webkit-print-color-adjust:exact;print-color-adjust:exact}.section{break-inside:avoid}}
 
 /* ── PAGE BREAK CONTROL ── */
-.section{break-inside:avoid;page-break-inside:avoid}
-.sec-header{break-inside:avoid;page-break-inside:avoid}
-.capa{break-inside:avoid;page-break-inside:avoid;break-after:page;page-break-after:always}
-.card,.grid-2{break-inside:avoid;page-break-inside:avoid}
+.capa{break-after:page;page-break-after:always}
+.sec-header{break-after:avoid;page-break-after:avoid}
+.card{break-inside:avoid;page-break-inside:avoid}
+.grid-2{break-inside:avoid;page-break-inside:avoid}
 .insight,.pdi-item{break-inside:avoid;page-break-inside:avoid}
-table{break-inside:auto}
 tr{break-inside:avoid;page-break-inside:avoid}
 </style>
 </head>
@@ -1604,14 +1603,12 @@ tr:nth-child(even)td{background:#FDFAF5}
 .pot-table th{background:#0A0806;color:#C9A84C;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase}
 
 /* ── PAGE BREAK CONTROL ── */
-.section{break-inside:avoid;page-break-inside:avoid}
-.section-header{break-inside:avoid;page-break-inside:avoid}
-.cover,.capa{break-inside:avoid;page-break-inside:avoid;break-after:page;page-break-after:always}
-.grid-2{break-inside:avoid;page-break-inside:avoid}
+.cover{break-after:page;page-break-after:always}
+.section-header{break-after:avoid;page-break-after:avoid}
 .card{break-inside:avoid;page-break-inside:avoid}
-.pdi-section{break-inside:avoid;page-break-inside:avoid}
-.insight,.alert,.insight-box{break-inside:avoid;page-break-inside:avoid}
-table{break-inside:auto}
+.grid-2{break-inside:avoid;page-break-inside:avoid}
+.pdi-item{break-inside:avoid;page-break-inside:avoid}
+.insight,.alert,.insight-box,.pdi-dot-row{break-inside:avoid;page-break-inside:avoid}
 tr{break-inside:avoid;page-break-inside:avoid}
 h3{break-after:avoid;page-break-after:avoid}
 </style>
@@ -1708,8 +1705,19 @@ h3{break-after:avoid;page-break-after:avoid}
     <div class="alert">
       <strong>Comportamentos sob pressão:</strong> ${disc==='D'?'Impulsividade, autoritarismo e dificuldade em ouvir perspectivas alternativas. A velocidade de decisão pode atropelhar pessoas e processos importantes.':disc==='I'?'Dispersão, promessas não cumpridas e fuga de conflitos necessários. O entusiasmo pode sobrepor o planejamento e a execução consistente.':disc==='S'?'Passividade, acúmulo de ressentimentos e evitação de conversas difíceis. A busca por harmonia pode sufocar o crescimento e a inovação.':'Paralisia analítica, hipercriticidade e dificuldade em agir sem informação completa. O perfeccionismo pode travar decisões e desmotivar equipes.'}
     </div>
+
+
+    <div style="margin-top:16px;padding:16px 20px;background:linear-gradient(135deg,#FFF8E8,#FFF3D4);border-radius:10px;border-left:4px solid #C9A84C">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#8A6520;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px">📚 Fundamento Metodológico — DISC</div>
+      <p style="font-size:12px;color:#4A3A28;line-height:1.7;margin:0">O modelo <strong>DISC</strong>, desenvolvido por William Moulton Marston (1928) e estruturado por Walter Clarke, mapeia quatro dimensões comportamentais observáveis: <strong>Dominância</strong> (orientação a resultados), <strong>Influência</strong> (orientação a pessoas), <strong>Estabilidade</strong> (orientação à consistência) e <strong>Conformidade</strong> (orientação a processos). Diferente de testes de personalidade, o DISC mede <em>comportamento observável</em> — como a pessoa age, não quem ela é no nível mais profundo. Valores <strong>negativos</strong> indicam comportamentos ativamente reprimidos: o líder não apenas não os expressa, mas consome energia contendo-os, gerando dreno comportamental.</p>
+    </div>
   </div>
 </div>
+
+    <div style="margin-top:16px;padding:16px 20px;background:linear-gradient(135deg,#FFF8E8,#FFF3D4);border-radius:10px;border-left:4px solid #C9A84C">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#8A6520;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px">📚 Fundamento Metodológico — DISC</div>
+      <p style="font-size:12px;color:#4A3A28;line-height:1.7;margin:0">O modelo <strong>DISC</strong>, desenvolvido por William Moulton Marston (1928) e estruturado por Walter Clarke, mapeia quatro dimensões comportamentais observáveis: <strong>Dominância</strong> (orientação a resultados), <strong>Influência</strong> (orientação a pessoas), <strong>Estabilidade</strong> (orientação à consistência) e <strong>Conformidade</strong> (orientação a processos). Diferente de testes de personalidade, o DISC mede <em>comportamento observável</em> — como a pessoa age, não quem ela é no nível mais profundo. Valores <strong>negativos</strong> indicam comportamentos ativamente reprimidos: o líder não apenas não os expressa, mas consome energia contendo-os, gerando dreno comportamental.</p>
+    </div>
 
 <!-- II. TEMPERAMENTO -->
 <div class="section">
@@ -1759,6 +1767,12 @@ h3{break-after:avoid;page-break-after:avoid}
     <div class="insight">
       <strong>Equilíbrio:</strong> ${elem==='FOGO'?'Incorporar práticas de pausa e escuta ativa complementa a força natural de comando. A liderança de impacto duradouro une velocidade com cuidado.':elem==='TERRA'?'Desenvolver tolerância à ambiguidade e velocidade decisória em contextos de incerteza eleva o impacto da liderança analítica.':elem==='ÁGUA'?'Cultivar assertividade e capacidade de sustentar posições sob pressão transforma a naturalidade diplomática em influência estratégica.':'Criar sistemas de foco e conclusão transforma a energia criativa em resultados concretos e escaláveis.'}
     </div>
+
+
+    <div style="margin-top:16px;padding:16px 20px;background:linear-gradient(135deg,#F0F8FF,#E8F4FF);border-radius:10px;border-left:4px solid #4A90D4">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#2A5A9A;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px">📚 Fundamento Metodológico — Temperamento</div>
+      <p style="font-size:12px;color:#1A2A4A;line-height:1.7;margin:0">A teoria dos <strong>Quatro Temperamentos</strong> — remontando a Hipócrates (séc. V a.C.) e sistematizada por Galeno — descreve padrões energéticos fundamentais que influenciam ritmo, relacionamento e tomada de decisão. Na adaptação contemporânea dos Elementos da Natureza: <strong>Fogo</strong> (ação, decisão), <strong>Ar</strong> (comunicação, visão), <strong>Água</strong> (harmonia, conexão) e <strong>Terra</strong> (estrutura, qualidade). Enquanto o DISC mapeia <em>como</em> o líder age, o Temperamento revela <em>o ritmo energético natural</em> — o custo energético de cada ambiente e tipo de interação.</p>
+    </div>
   </div>
 </div>
 
@@ -1793,6 +1807,12 @@ h3{break-after:avoid;page-break-after:avoid}
     <div class="insight">
       <strong>Sinal de Estresse (DISC × Eneagrama):</strong> Quando seu perfil <strong>${discN[disc]}</strong> encontra o padrão reativo do <strong>Tipo ${ennea}</strong>, o comportamento tende a ${disc==='D'&&ennea===8?'intensidade máxima — confronto direto e controle absoluto do ambiente':disc==='I'&&ennea===7?'dispersão acelerada — muitas ideias, pouca execução e fuga dos problemas':disc==='S'&&ennea===9?'invisibilidade — concordância sem ação e acúmulo silencioso de ressentimentos':'amplificar os padrões de saída — a qualidade das decisões diminui e os relacionamentos são impactados primeiro'}. Reconhecer este padrão é o primeiro passo para interrompê-lo.
     </div>
+
+
+    <div style="margin-top:16px;padding:16px 20px;background:linear-gradient(135deg,#FAF0FF,#F5E8FF);border-radius:10px;border-left:4px solid #A878E0">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#7040B0;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px">📚 Fundamento Metodológico — Eneagrama</div>
+      <p style="font-size:12px;color:#2A1A4A;line-height:1.7;margin:0">O <strong>Eneagrama</strong> é um sistema de 9 arquétipos motivacionais que mapeia a estrutura inconsciente da personalidade — os medos centrais, os desejos profundos e os padrões automáticos que emergem sob pressão. Com raízes no sufismo e sistematizado por Oscar Ichazo e Claudio Naranjo no séc. XX, o Eneagrama responde à pergunta que o DISC não consegue: <em>por que</em> o líder age como age. O <strong>vício emocional</strong> é o padrão que se ativa sob estresse, enquanto a <strong>virtude</strong> representa o estado de integração e alto desempenho sustentável.</p>
+    </div>
   </div>
 </div>
 
@@ -1813,6 +1833,12 @@ h3{break-after:avoid;page-break-after:avoid}
     <p>${arch==='Herói'?'O <strong>Herói</strong> lidera pela ação e pela superação de obstáculos. Sua autoridade vem da coragem demonstrada, não do título. Usa metáforas de batalha e conquista — cada desafio organizacional é uma missão a ser cumprida. Projeta visão através do exemplo.':arch==='Mago'?'O <strong>Mago</strong> lidera pela transformação e pela capacidade de ver o que outros não veem. Usa linguagem de possibilidade e visão — transforma realidades com palavras e frameworks. Projeta autoridade através do conhecimento aplicado.':arch==='Sábio'?'O <strong>Sábio</strong> lidera pelo conhecimento e pela orientação. Usa dados, frameworks e princípios para guiar decisões. Projeta autoridade como referência técnica e intelectual — as pessoas o buscam quando precisam entender algo complexo.':arch==='Cuidador'?'O <strong>Cuidador</strong> lidera pelo serviço e pelo desenvolvimento das pessoas. Projeta autoridade através da generosidade — as pessoas o seguem porque se sentem genuinamente vistas e apoiadas.':arch==='Rei/Rainha'?'O <strong>Soberano</strong> lidera pela ordem e pela visão de longo prazo. Usa estruturas, rituais e tradições para criar estabilidade. Projeta autoridade pela capacidade de criar e manter sistemas que geram prosperidade.':'O <strong>Guerreiro</strong> lidera pela integridade e pelo comprometimento com a missão. Usa linguagem de disciplina e propósito — cada pessoa da equipe tem um papel na vitória coletiva. Projeta autoridade pela consistência e pelo exemplo ético.'}</p>
     <div class="insight">
       <strong>Sombra do Arquétipo:</strong> O ${arch} pode exagerar ${arch==='Herói'||arch==='Guerreiro'?'a necessidade de estar sempre em batalha — dificultando a delegação e criando dependência da sua presença':arch==='Mago'?'o uso da visão sem ancoragem em resultados concretos — gerando expectativas que a realidade nem sempre acompanha':arch==='Sábio'?'o acúmulo de informação antes da ação — criando gargalos de decisão e cultura de análise sem execução':arch==='Cuidador'?'o cuidado com os outros às custas de si mesmo — esgotamento e dificuldade em estabelecer limites necessários':'a estrutura e o controle — criando rigidez e dificuldade de adaptação em ambientes voláteis'}. Integrar a sombra é o caminho para uma liderança completa.
+    </div>
+
+
+    <div style="margin-top:16px;padding:16px 20px;background:linear-gradient(135deg,#F8F4E8,#F0E8D0);border-radius:10px;border-left:4px solid #C9A84C">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#8A6520;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px">📚 Fundamento Metodológico — Arquétipos de Liderança</div>
+      <p style="font-size:12px;color:#4A3A18;line-height:1.7;margin:0">Os <strong>Arquétipos de Liderança</strong> — baseados na psicologia analítica de Carl Gustav Jung e expandidos por Carol Pearson — representam os padrões simbólicos universais que organizam a forma como um líder projeta autoridade e inspira seguidores. Cada arquétipo carrega uma <em>sombra</em>: a versão excessiva ou reprimida do mesmo padrão. Integrar a sombra do arquétipo — reconhecer e transformar os excessos — é o que distingue uma liderança reativa de uma liderança ativacional consciente.</p>
     </div>
   </div>
 </div>
@@ -1845,6 +1871,12 @@ h3{break-after:avoid;page-break-after:avoid}
         <td>${kolb==='Convergente'?'Pode pular etapas de reflexão':kolb==='Divergente'?'Pode evitar a experimentação direta':kolb==='Assimilador'?'Pode ficar na teoria sem aplicar':'Pode agir sem plano suficiente'}</td>
       </tr>
     </table>
+
+
+    <div style="margin-top:16px;padding:16px 20px;background:linear-gradient(135deg,#F0F8F4,#E8F4EC);border-radius:10px;border-left:4px solid #48C864">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#1A7A2A;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px">📚 Fundamento Metodológico — Ciclo de Aprendizagem de Kolb</div>
+      <p style="font-size:12px;color:#1A3A28;line-height:1.7;margin:0">O <strong>Ciclo de Aprendizagem Experiencial</strong> de David Kolb (1984) descreve como indivíduos processam experiências e transformam informação em conhecimento aplicado. Os quatro estilos — <strong>Divergente</strong> (sente e observa), <strong>Assimilador</strong> (pensa e observa), <strong>Convergente</strong> (pensa e faz) e <strong>Acomodador</strong> (sente e faz) — determinam como o líder aprende, toma decisões sob pressão e desenvolve novas competências. Conhecer o estilo de aprendizagem é estratégico para o design de formação, mentoria e delegação.</p>
+    </div>
   </div>
 </div>
 
@@ -1875,8 +1907,19 @@ h3{break-after:avoid;page-break-after:avoid}
     <div class="insight">
       <strong>Conexão com DISC:</strong> Sua necessidade de <strong>${need1}</strong> potencializa e ao mesmo tempo pode exagerar o perfil <strong>${discN[disc]}</strong>. ${need1==='Significância'&&disc==='D'?'A combinação cria um perfil de alta performance, mas com risco de ego e competitividade disfuncional.':need1==='Conexão'&&disc==='I'?'A combinação cria um líder que energiza ambientes, mas que pode ter dificuldade em tomar decisões impopulares.':need1==='Certeza'&&disc==='C'?'A combinação cria rigor e qualidade excepcionais, mas com risco real de paralisia analítica.':need1==='Crescimento'?'A combinação cria um líder que aprende rapidamente e inspira desenvolvimento, mas que pode perder a paciência com ritmos diferentes.':'Esta combinação cria padrões de liderança únicos que merecem exploração em sessão de devolutiva individual.'}
     </div>
+
+
+    <div style="margin-top:16px;padding:16px 20px;background:linear-gradient(135deg,#FFF8F0,#FFF0E0);border-radius:10px;border-left:4px solid #F0A050">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C06010;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px">📚 Fundamento Metodológico — As 6 Necessidades Humanas</div>
+      <p style="font-size:12px;color:#4A2A10;line-height:1.7;margin:0">O modelo das <strong>6 Necessidades Humanas</strong> de Tony Robbins — baseado em Maslow e nas teorias de desenvolvimento humano — mapeia os seis drivers motivacionais universais: <strong>Certeza</strong>, <strong>Variedade</strong>, <strong>Significância</strong>, <strong>Conexão</strong>, <strong>Crescimento</strong> e <strong>Contribuição</strong>. As duas primeiras necessidades predominantes formam o <em>motor motivacional primário</em> do líder — determinando que ambientes o energizam, que situações o drenam e que decisões ele toma automaticamente sob pressão. Compreender esta hierarquia é fundamental para engajamento sustentável e prevenção de burnout.</p>
+    </div>
   </div>
 </div>
+
+    <div style="margin-top:16px;padding:16px 20px;background:linear-gradient(135deg,#FFF8F0,#FFF0E0);border-radius:10px;border-left:4px solid #F0A050">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C06010;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px">📚 Fundamento Metodológico — As 6 Necessidades Humanas</div>
+      <p style="font-size:12px;color:#4A2A10;line-height:1.7;margin:0">O modelo das <strong>6 Necessidades Humanas</strong> de Tony Robbins — baseado em Maslow e nas teorias de desenvolvimento humano — mapeia os seis drivers motivacionais universais: <strong>Certeza</strong>, <strong>Variedade</strong>, <strong>Significância</strong>, <strong>Conexão</strong>, <strong>Crescimento</strong> e <strong>Contribuição</strong>. As duas primeiras necessidades predominantes formam o <em>motor motivacional primário</em> do líder — determinando que ambientes o energizam, que situações o drenam e que decisões ele toma automaticamente sob pressão. Compreender esta hierarquia é fundamental para engajamento sustentável e prevenção de burnout.</p>
+    </div>
 
 <!-- VII. HOLLAND -->
 <div class="section">
@@ -1899,6 +1942,12 @@ h3{break-after:avoid;page-break-after:avoid}
       <tr><td><strong>Alinhamento com DISC ${discN[disc]||disc}</strong></td><td>${holland.includes('E')||holland.includes('S')?'Alta congruência — código Holland com perfil Empreendedor ou Social alinha-se naturalmente com perfis de liderança direta.':holland.includes('I')||holland.includes('C')?'Possível tensão produtiva — código Holland analítico com perfil comportamental mais assertivo. Explore como integrar profundidade intelectual com velocidade de execução.':'Perfil equilibrado — o código Holland reflete versatilidade que pode ser tanto força quanto dispersão.'}</td></tr>
       <tr><td><strong>Recomendação de Carreira</strong></td><td>Maximizar o desempenho garantindo que pelo menos 60% das atividades diárias estejam alinhadas com as inclinações do código ${holland}.</td></tr>
     </table>
+
+
+    <div style="margin-top:16px;padding:16px 20px;background:linear-gradient(135deg,#F0F4FF,#E8EEFF);border-radius:10px;border-left:4px solid #4A60D4">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#2A3A9A;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px">📚 Fundamento Metodológico — Tipologia Holland RIASEC</div>
+      <p style="font-size:12px;color:#1A2A5A;line-height:1.7;margin:0">O modelo <strong>RIASEC</strong> de John Holland (1959) mapeia seis tipos de inclinações vocacionais e ambientais: <strong>R</strong>ealista, <strong>I</strong>nvestigativo, <strong>A</strong>rtístico, <strong>S</strong>ocial, <strong>E</strong>mpreendedor e <strong>C</strong>onvencional. O código de 3 letras representa as três inclinações mais fortes do líder — os contextos onde ele opera com energia natural e menor custo adaptativo. A convergência entre o código Holland, o perfil DISC e o Eneagrama revela o <em>potencial latente</em>: competências disponíveis que ainda não são plenamente exploradas na posição atual.</p>
+    </div>
   </div>
 </div>
 
