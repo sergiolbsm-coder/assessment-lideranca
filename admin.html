@@ -823,8 +823,7 @@ function exportRelatorioComPDF(htmlContent, filename){
     '</style>' +
     reportStyles +
     '<div id="ov-controls" style="position:fixed;top:16px;right:16px;z-index:10001;display:flex;gap:8px">' +
-      '<button id="ov-pdf-btn" style="background:#C9A84C;color:#0A0806;border:none;border-radius:8px;padding:10px 20px;font-family:Syne,sans-serif;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.25)">📄 Exportar PDF</button>' +
-      '<button id="ov-close-btn" style="background:#fff;color:#555;border:1px solid #ccc;border-radius:8px;padding:10px 16px;font-family:Syne,sans-serif;font-size:14px;cursor:pointer">✕ Fechar</button>' +
+      '<button id="ov-pdf-btn" style="background:#C9A84C;color:#0A0806;border:none;border-radius:8px;padding:10px 20px;font-family:Syne,sans-serif;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.25)">📄 Exportar PDF</button>' +'<button id="ov-word-btn" style="background:#2B5797;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-family:Syne,sans-serif;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.25)">📘 Exportar Word</button>' +'<button id="ov-print-btn" style="background:#666;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-family:Syne,sans-serif;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.25)">🖨️ Imprimir</button>' +'<button id="ov-close-btn" style="background:#fff;color:#555;border:1px solid #ccc;border-radius:8px;padding:10px 16px;font-family:Syne,sans-serif;font-size:14px;cursor:pointer">✕ Fechar</button>' +
     '</div>' +
     bodyHTML;
 
@@ -3588,6 +3587,95 @@ document.addEventListener('DOMContentLoaded',()=>{
     if((respActive||dashActive) && getCfg('csv_url',''))loadData();
   },90000);
 });
+
+// ════════════════════════════════════════════════════
+// EXPORTAR PARA WORD
+// ════════════════════════════════════════════════════
+function exportarParaWord(filename) {
+  const overlay = document.getElementById('report-overlay');
+  const pageEl = overlay.querySelector('.page');
+  const htmlContent = pageEl ? pageEl.innerHTML : overlay.innerHTML;
+  
+  // Remover elementos que não devem ir para Word
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = htmlContent;
+  tempDiv.querySelectorAll('.no-print, .toolbar, #pdf-btn, #ov-controls').forEach(el => el.remove());
+  
+  // Converter HTML para conteúdo Word (simplificado)
+  const wordContent = tempDiv.innerText;
+  
+  // Criar um blob com o conteúdo
+  const blob = new Blob([wordContent], { type: 'application/msword' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename.replace('.pdf', '.doc');
+  document.body.appendChild(a);
+  a.click();
+  window.URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+  
+  toast('✅ Documento Word gerado com sucesso', 'success');
+}
+
+// ════════════════════════════════════════════════════
+// IMPRIMIR RELATÓRIO
+// ════════════════════════════════════════════════════
+function imprimirRelatorio() {
+  const overlay = document.getElementById('report-overlay');
+  const pageEl = overlay.querySelector('.page');
+  const htmlContent = pageEl ? pageEl.innerHTML : overlay.innerHTML;
+  
+  // Remover elementos que não devem ir para impressão
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = htmlContent;
+  tempDiv.querySelectorAll('.no-print, .toolbar, #pdf-btn, #ov-controls').forEach(el => el.remove());
+  
+  // Obter estilos
+  const styles = Array.from(document.querySelectorAll('style'))
+    .map(s => s.outerHTML).join('\n');
+  
+  // Criar janela de impressão
+  const printWindow = window.open('', '', 'width=800,height=600');
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Impressão</title>
+      ${styles}
+      <style>
+        body { margin: 0; padding: 20px; font-family: Syne, sans-serif; }
+        @media print {
+          body { margin: 0; padding: 0; }
+          .no-print { display: none !important; }
+        }
+      </style>
+    </head>
+    <body>
+      ${tempDiv.innerHTML}
+      <script>
+        window.print();
+        window.close();
+      </script>
+    </body>
+    </html>
+  `);
+  printWindow.document.close();
+}
+
+
+  // Event listeners para os novos botões
+  document.addEventListener('click', function(e) {
+    if(e.target.id === 'ov-word-btn') {
+      const filename = document.querySelector('[data-relatorio-nome]')?.textContent || 'Relatorio-360';
+      exportarParaWord(filename + '.pdf');
+    }
+    if(e.target.id === 'ov-print-btn') {
+      imprimirRelatorio();
+    }
+  });
+
 </script>
 </body>
 </html>function renderPontuacaoTable(){
