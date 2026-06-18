@@ -1025,7 +1025,7 @@ body{font-family:'Syne',sans-serif;background:#FFFFFF;color:#1A1612;font-size:13
 .tb-btn{padding:9px 18px;border-radius:8px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none}
 .tb-gold{background:#C9A84C;color:#0A0806}
 .tb-out{background:#fff;color:#555;border:1px solid #ddd!important}
-.capa{background:#FFFFFF;color:#0A0806;padding:40px;border-radius:14px;margin-bottom:28px;break-after:page;page-break-after:always}
+.capa{background:#FFFFFF;color:#0A0806;padding:40px;border-radius:14px;margin-bottom:28px;break-after:avoid;page-break-after:avoid}
 .capa-badge{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.16em;color:#8A6520;text-transform:uppercase;border:1px solid rgba(201,168,76,.5);background:#FFF8E8;padding:4px 14px;border-radius:100px;display:inline-block;margin-bottom:14px}
 .capa-title{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;margin-bottom:4px;color:#0A0806}
 .capa-sub{font-size:13px;color:#6A5A48;margin-bottom:24px}
@@ -1068,7 +1068,7 @@ tr:nth-child(even)td{background:#FAF6EE}
 /* ── PAGE BREAK CONTROL ── */
 .page-break-before{break-before:page;page-break-before:always;margin-top:0;padding-top:0}
 .pdf-page-break{break-after:page;page-break-after:always;height:0;margin:0;padding:0;border:none;display:block}
-.capa{break-after:page;page-break-after:always}
+.capa{break-after:avoid;page-break-after:avoid}
 .sec-head,.sec-header{break-after:avoid;page-break-after:avoid}
 .sec-body,.section-body{break-before:avoid;page-break-before:avoid}
 .section{break-inside:avoid;page-break-inside:avoid}
@@ -1559,7 +1559,7 @@ function generate360Report(id){
 body{font-family:'Syne',sans-serif;background:#FFFFFF;color:#1A1612;line-height:1.6;font-size:14px}
 .page{max-width:840px;margin:0 auto;padding:32px 28px}
 /* CAPA */
-.cover{background:#FFFFFF;color:#0A0806;padding:48px;border-radius:16px;margin-bottom:0;position:relative;overflow:hidden;break-after:page;page-break-after:always}
+.cover{background:#FFFFFF;color:#0A0806;padding:48px;border-radius:16px;margin-bottom:0;position:relative;overflow:hidden;break-after:avoid;page-break-after:avoid}
 .cover::after{content:'';position:absolute;top:-40px;right:-40px;width:240px;height:240px;border-radius:50%;background:rgba(201,168,76,.08)}
 .cover-badge{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;color:#C9A84C;text-transform:uppercase;margin-bottom:20px;display:inline-block;border:1px solid rgba(201,168,76,.3);padding:5px 14px;border-radius:100px}
 .cover-title{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:700;line-height:1.15;margin-bottom:8px}
@@ -1570,7 +1570,7 @@ body{font-family:'Syne',sans-serif;background:#FFFFFF;color:#1A1612;line-height:
 .cover-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
 .cover-pill{font-family:'JetBrains Mono',monospace;font-size:10px;padding:4px 12px;border-radius:100px;border:1px solid rgba(201,168,76,.25);color:#C9A84C;letter-spacing:.08em}
 /* SECTIONS */
-.section{background:#fff;border:none;border-radius:12px;overflow:hidden;page-break-after:always;break-after:page;break-inside:avoid;page-break-inside:avoid;margin-bottom:0;margin-top:0}
+.section{background:#fff;border:none;border-radius:12px;overflow:hidden;page-break-after:avoid;break-after:avoid;break-inside:avoid;page-break-inside:avoid;margin-bottom:0;margin-top:0}
 .section-header{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:none;background:linear-gradient(90deg,#FAF6EE,#F5F0E8)}
 .section-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:#C9A84C;letter-spacing:.1em;background:rgba(201,168,76,.12);padding:4px 10px;border-radius:100px}
 .section-icon{font-size:20px}
