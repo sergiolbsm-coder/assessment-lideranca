@@ -914,7 +914,7 @@ function exportRelatorioComPDF(htmlContent, filename){
         windowHeight: 1122
       },
       jsPDF: {unit:'mm', format:'a4', orientation:'portrait', compress:true},
-      pagebreak: {mode:'css'}
+      pagebreak: {mode:'avoid-all'}
     }).from(captureEl).save().then(function(){
       document.body.removeChild(captureWrap);
       controls.style.display = 'flex';
