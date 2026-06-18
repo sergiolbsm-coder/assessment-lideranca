@@ -896,7 +896,7 @@ function exportRelatorioComPDF(htmlContent, filename){
     var captureEl = captureWrap.querySelector('div') || captureWrap;
 
     captureWrap.scrollTop=0; html2pdf().set({
-      margin: [10,10,10,10],
+      margin: [8,8,8,8],
       filename: filename,
       image: {type:'jpeg', quality:0.97},
       html2canvas: {
@@ -909,14 +909,12 @@ function exportRelatorioComPDF(htmlContent, filename){
         scrollY: 0,
         x: 0,
         y: 0,
-        width: 780,
-        windowWidth: 780
+        width: 794,
+        windowWidth: 794,
+        windowHeight: 1122
       },
-      jsPDF: {unit:'mm', format:'a4', orientation:'portrait'},
-      pagebreak: {
-        mode: ['css','legacy'],
-        avoid: ['.card','.grid-2','.grid-3','.sec-head','.sec-body','.section-body','.insight','.alert','.insight-box','.alert-box','.ok-box','.sugg-box','.pdi-item','.pdi-section','.capa','.cover','.cover-meta','.bar-row','.matriz-item','.profile-grid','.profile-cell','tr','h3']
-      }
+      jsPDF: {unit:'mm', format:'a4', orientation:'portrait', compress:true},
+      pagebreak: {mode:'css'}
     }).from(captureEl).save().then(function(){
       document.body.removeChild(captureWrap);
       controls.style.display = 'flex';
@@ -1572,29 +1570,29 @@ body{font-family:'Syne',sans-serif;background:#FFFFFF;color:#1A1612;line-height:
 .cover-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
 .cover-pill{font-family:'JetBrains Mono',monospace;font-size:10px;padding:4px 12px;border-radius:100px;border:1px solid rgba(201,168,76,.25);color:#C9A84C;letter-spacing:.08em}
 /* SECTIONS */
-.section{background:#fff;border:none;border-radius:12px;overflow:hidden;break-before:page;page-break-before:always;break-inside:avoid;page-break-inside:avoid;margin-bottom:0}
+.section{background:#fff;border:none;border-radius:12px;overflow:hidden;page-break-after:always;break-after:page;break-inside:avoid;page-break-inside:avoid;margin-bottom:0;margin-top:0}
 .section-header{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:none;background:linear-gradient(90deg,#FAF6EE,#F5F0E8)}
 .section-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:#C9A84C;letter-spacing:.1em;background:rgba(201,168,76,.12);padding:4px 10px;border-radius:100px}
 .section-icon{font-size:20px}
 .section-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:#0A0806}
 .section-badge{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;padding:5px 14px;border-radius:100px}
-.section-body{padding:14px 20px}
+.section-body{padding:10px 16px}
 /* TEXT */
-h3{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:700;color:#0A0806;margin:10px 0 6px}
+h3{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:700;color:#0A0806;margin:8px 0 4px}
 h3:first-child{margin-top:0}
-p{font-size:12px;color:#4A4038;line-height:1.65;margin-bottom:6px}
+p{font-size:12px;color:#4A4038;line-height:1.6;margin-bottom:4px}
 strong{color:#0A0806;font-weight:700}
 em{font-style:italic;color:#7A6E5A}
 /* BARS */
-.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.bar-row{display:flex;align-items:center;gap:6px;margin-bottom:4px}
 .bar-name{font-size:12px;font-weight:700;width:100px;flex-shrink:0}
 .bar-track{flex:1;height:10px;background:#F0E8D8;border-radius:5px;overflow:hidden}
 .bar-fill{height:100%;border-radius:5px}
 .bar-pct{font-family:'JetBrains Mono',monospace;font-size:12px;width:38px;text-align:right;color:#7A6E5A}
 /* GRID */
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
-.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:8px 0}
-.card{background:#FAF6EE;border:none;border-radius:10px;padding:10px 12px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:6px 0}
+.card{background:#FAF6EE;border:none;border-radius:10px;padding:8px 10px}
 .card-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
 .card-value{font-size:14px;font-weight:700;color:#0A0806;margin-bottom:4px}
 .card-sub{font-size:11px;color:#7A6E5A;line-height:1.4}
@@ -1688,6 +1686,9 @@ tr:nth-child(even)td{background:#FDFAF5}
 
 /* ── PAGE BREAK CONTROL ── */
 .cover{break-after:page;page-break-after:always;margin-bottom:0}
+body{orphans:3;widows:3}
+p{orphans:2;widows:2}
+h3{page-break-after:avoid}
 .section-header{break-after:avoid;page-break-after:avoid}
 .section-body{break-before:avoid;page-break-before:avoid}
 .card{break-inside:avoid;page-break-inside:avoid}
@@ -1797,7 +1798,7 @@ h3{break-after:avoid;page-break-after:avoid}
   <div style="margin-top:16px;padding:14px 18px;background:rgba(201,168,76,.06);border-left:3px solid rgba(201,168,76,.4);border-radius:0 8px 8px 0">
     <div style="font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:700;color:#0A0806;margin-bottom:8px;letter-spacing:.01em">Sua Liderança em Alta Definição</div>
     <p style="font-size:11px;color:#6A5A48;line-height:1.75;margin:0 0 7px 0">O Assessment 360° do Líder não é apenas um teste de perfil; é um diagnóstico de alta precisão que unifica a ciência do comportamento, a psicologia profunda e a estratégia corporativa. Ao cruzar 7 matrizes essenciais — <strong style="color:#0A0806">DISC</strong> (seu estilo de comunicação), <strong style="color:#0A0806">Temperamentos</strong> (sua essência emocional sob pressão), <strong style="color:#0A0806">6 Necessidades Humanas</strong> (seus drivers de motivação), <strong style="color:#0A0806">Arquétipos</strong> (sua presença executiva e imagem de poder), <strong style="color:#0A0806">Ciclo de Kolb</strong> (sua tomada de decisão e aprendizado) e o <strong style="color:#0A0806">Código de Holland</strong> (sua orientação estratégica de carreira) —, nós eliminamos completamente os seus pontos cegos.</p>
-    <p style="font-size:11px;color:#6A5A48;line-height:1.75;margin:0"><em>A liderança eficaz não nasce do acaso, nasce da intencionalidade.</em> Nenhum instrumento isolado define quem você é. É a convergência exata dessas 7 lentes que revela a sua identidade mais autêntica e destrava o seu verdadeiro poder de influência e estratégia.</p>
+
   </div>
 </div>
 
