@@ -915,7 +915,8 @@ function exportRelatorioComPDF(htmlContent, filename){
       jsPDF: {unit:'mm', format:'a4', orientation:'portrait'},
       pagebreak: {
         mode: ['css','legacy'],
-        avoid: '.card,.grid-2,.grid-3,.insight,.alert,.insight-box,.alert-box,.ok-box,.sugg-box,.pdi-item,.pdi-section,tr,.section,.section-header,.section-body,.sec-head,.sec-body,.capa,.cover,.cover-meta,.bar-row,.matriz-item,.profile-grid,.profile-cell,h3'
+        before: '.section,.section-header',
+        avoid: '.card,.grid-2,.grid-3,.insight,.alert,.insight-box,.alert-box,.ok-box,.sugg-box,.pdi-item,.pdi-section,tr,.section-body,.sec-head,.sec-body,.cover-meta,.bar-row,.matriz-item,.profile-grid,.profile-cell,h3'
       }
     }).from(captureEl).save().then(function(){
       document.body.removeChild(captureWrap);
@@ -1034,7 +1035,7 @@ body{font-family:'Syne',sans-serif;background:#FFFFFF;color:#1A1612;font-size:13
 .capa-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;border-top:2px solid rgba(201,168,76,.3);padding-top:20px}
 .capa-meta .lbl{font-family:'JetBrains Mono',monospace;font-size:9px;color:#8A6520;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}
 .capa-meta .val{font-size:14px;font-weight:700;color:#0A0806}
-.section{background:#FFFFFF;border:1px solid #E0D8C8;border-radius:12px;margin-bottom:16px;overflow:hidden;page-break-inside:avoid}
+.section{background:#FFFFFF;border:1px solid #E0D8C8;border-radius:12px;margin-bottom:0;overflow:hidden;break-before:page;page-break-before:always;break-inside:avoid;page-break-inside:avoid}
 .sec-head{display:flex;align-items:center;gap:12px;padding:16px 22px;border-bottom:1px solid #EDE8DC;background:#F8F8F8}
 .sec-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:#C9A84C;letter-spacing:.1em;background:rgba(201,168,76,.12);padding:3px 10px;border-radius:100px}
 .sec-icon{font-size:18px;flex-shrink:0}
@@ -1073,6 +1074,7 @@ tr:nth-child(even)td{background:#FAF6EE}
 .capa{break-after:page;page-break-after:always}
 .sec-head,.sec-header{break-after:avoid;page-break-after:avoid}
 .sec-body,.section-body{break-before:avoid;page-break-before:avoid}
+.section{break-before:page;page-break-before:always;break-inside:avoid;page-break-inside:avoid}
 .card{break-inside:avoid;page-break-inside:avoid}
 .grid-2,.grid-3{break-inside:avoid;page-break-inside:avoid}
 .insight,.pdi-item,.sugg-box,.alert-box,.ok-box{break-inside:avoid;page-break-inside:avoid}
@@ -1494,7 +1496,7 @@ body{font-family:'Syne',sans-serif;background:#FFFFFF;color:#1A1612;line-height:
 .cover-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
 .cover-pill{font-family:'JetBrains Mono',monospace;font-size:10px;padding:4px 12px;border-radius:100px;border:1px solid rgba(201,168,76,.25);color:#C9A84C;letter-spacing:.08em}
 /* SECTIONS */
-.section{margin-bottom:36px;background:#fff;border:1px solid #E8E0D0;border-radius:12px;overflow:hidden}
+.section{background:#fff;border:1px solid #E8E0D0;border-radius:12px;overflow:hidden;break-before:page;page-break-before:always;break-inside:avoid;page-break-inside:avoid;margin-bottom:0}
 .section-header{display:flex;align-items:center;gap:14px;padding:18px 24px;border-bottom:1px solid #F0E8D8;background:linear-gradient(90deg,#FAF6EE,#F5F0E8)}
 .section-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:#C9A84C;letter-spacing:.1em;background:rgba(201,168,76,.12);padding:4px 10px;border-radius:100px}
 .section-icon{font-size:20px}
@@ -1591,14 +1593,14 @@ tr:nth-child(even)td{background:#FDFAF5}
   body{background:#FFFFFF!important}
   .no-print{display:none!important}
   .cover{background:linear-gradient(135deg,#0A0806 0%,#1A1612 100%)!important;-webkit-print-color-adjust:exact!important}
-  .section{break-inside:avoid;page-break-inside:avoid}
+  .section{break-before:page;page-break-before:always;break-inside:avoid;page-break-inside:avoid}
   .pdi-section{break-inside:avoid}
 }
 
 
 /* ── EXTRA PRINT FIDELITY ── */
 .cbar-fill,.bar-fill,.section,.pdi-item,.pdi-section{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-.section{break-inside:avoid!important;page-break-inside:avoid!important}
+.section{break-before:page!important;page-break-before:always!important;break-inside:avoid!important;page-break-inside:avoid!important}
 
 /* ── TABLE OVERFLOW FIX ── */
 .matriz-table{width:100%;table-layout:fixed;border-collapse:collapse;word-break:break-word}
