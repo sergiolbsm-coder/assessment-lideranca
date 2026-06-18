@@ -896,9 +896,9 @@ function exportRelatorioComPDF(htmlContent, filename){
     var captureEl = captureWrap.querySelector('div') || captureWrap;
 
     captureWrap.scrollTop=0; html2pdf().set({
-      margin: 0,
+      margin: [8,8,8,8],
       filename: filename,
-      image: {type:'jpeg', quality:0.98},
+      image: {type:'jpeg', quality:0.97},
       html2canvas: {
         scale: 2,
         useCORS: true,
@@ -914,7 +914,7 @@ function exportRelatorioComPDF(htmlContent, filename){
         windowHeight: 1122
       },
       jsPDF: {unit:'mm', format:'a4', orientation:'portrait', compress:true},
-      pagebreak: {mode:'css',avoid:['tr','td']}
+      pagebreak: {mode:'css'}
     }).from(captureEl).save().then(function(){
       document.body.removeChild(captureWrap);
       controls.style.display = 'flex';
@@ -1556,9 +1556,8 @@ function generate360Report(id){
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Syne:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Syne',sans-serif;background:#FFFFFF;color:#1A1612;line-height:1.6;font-size:14px;margin:0;padding:0}
-.page{width:210mm;height:297mm;margin:0;padding:20px;box-sizing:border-box;page-break-after:always;break-after:page;overflow:hidden;display:flex;flex-direction:column}
-.pdf-page{width:210mm;height:297mm;page-break-after:always;break-after:page;overflow:hidden;display:flex;flex-direction:column;box-sizing:border-box;padding:20px;background:#FFFFFF;margin:0;position:relative}
+body{font-family:'Syne',sans-serif;background:#FFFFFF;color:#1A1612;line-height:1.6;font-size:14px}
+.page{max-width:840px;margin:0 auto;padding:32px 28px}
 /* CAPA */
 .cover{background:#FFFFFF;color:#0A0806;padding:48px;border-radius:16px;margin-bottom:0;position:relative;overflow:hidden;break-after:page;page-break-after:always}
 .cover::after{content:'';position:absolute;top:-40px;right:-40px;width:240px;height:240px;border-radius:50%;background:rgba(201,168,76,.08)}
@@ -1571,13 +1570,13 @@ body{font-family:'Syne',sans-serif;background:#FFFFFF;color:#1A1612;line-height:
 .cover-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
 .cover-pill{font-family:'JetBrains Mono',monospace;font-size:10px;padding:4px 12px;border-radius:100px;border:1px solid rgba(201,168,76,.25);color:#C9A84C;letter-spacing:.08em}
 /* SECTIONS */
-.section{background:#fff;border:none;border-radius:12px;overflow:visible;break-inside:avoid;page-break-inside:avoid;margin-bottom:0;margin-top:0;flex:1;display:flex;flex-direction:column}
+.section{background:#fff;border:none;border-radius:12px;overflow:hidden;page-break-after:always;break-after:page;break-inside:avoid;page-break-inside:avoid;margin-bottom:0;margin-top:0}
 .section-header{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:none;background:linear-gradient(90deg,#FAF6EE,#F5F0E8)}
 .section-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:#C9A84C;letter-spacing:.1em;background:rgba(201,168,76,.12);padding:4px 10px;border-radius:100px}
 .section-icon{font-size:20px}
 .section-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:#0A0806}
 .section-badge{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;padding:5px 14px;border-radius:100px}
-.section-body{padding:10px 16px;flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.section-body{padding:10px 16px}
 /* TEXT */
 h3{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:700;color:#0A0806;margin:8px 0 4px}
 h3:first-child{margin-top:0}
@@ -1665,14 +1664,11 @@ tr:nth-child(even)td{background:#FDFAF5}
 /* ── PRINT / PDF FIDELITY ─────────────────────────── */
 *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
 @media print{
-  body{background:#FFFFFF!important;margin:0!important;padding:0!important}
+  body{background:#FFFFFF!important}
   .no-print{display:none!important}
-  .page{width:210mm!important;height:297mm!important;margin:0!important;padding:20px!important;page-break-after:always!important}
-  .pdf-page{width:100%!important;height:100%!important;page-break-after:always!important;break-after:page!important;overflow:visible!important}
-  .cover{background:linear-gradient(135deg,#0A0806 0%,#1A1612 100%)!important;-webkit-print-color-adjust:exact!important;page-break-after:always!important}
-  .section{break-inside:avoid!important;page-break-inside:avoid!important;overflow:visible!important}
-  .section-body{overflow:visible!important}
-  .pdi-section{break-inside:avoid!important}
+  .cover{background:linear-gradient(135deg,#0A0806 0%,#1A1612 100%)!important;-webkit-print-color-adjust:exact!important}
+  .section{break-inside:avoid;page-break-inside:avoid}
+  .pdi-section{break-inside:avoid}
 }
 
 
@@ -1809,7 +1805,6 @@ h3{break-after:avoid;page-break-after:avoid}
 <!-- ═══════════════════════════════════════════
   PÁGINA 2 — DISC
 ═══════════════════════════════════════════ -->
-<div class="pdf-page" style="page-break-after:always">
 <div class="section">
   <div class="section-header">
     <span class="section-num">I</span>
@@ -1894,13 +1889,10 @@ h3{break-after:avoid;page-break-after:avoid}
     </div>
   </div>
 </div>
-</div>
-<!-- Fim Página 2 -->
 
 <!-- ═══════════════════════════════════════════
   PÁGINA 3 — TEMPERAMENTO
 ═══════════════════════════════════════════ -->
-<div class="pdf-page" style="page-break-after:always">
 <div class="section">
   <div class="section-header">
     <span class="section-num">II</span>
@@ -1943,13 +1935,10 @@ h3{break-after:avoid;page-break-after:avoid}
     </div>
   </div>
 </div>
-</div>
-<!-- Fim Página 3 -->
 
 <!-- ═══════════════════════════════════════════
   PÁGINA 4 — ENEAGRAMA
 ═══════════════════════════════════════════ -->
-<div class="pdf-page" style="page-break-after:always">
 <div class="section">
   <div class="section-header">
     <span class="section-num">III</span>
@@ -1998,14 +1987,9 @@ h3{break-after:avoid;page-break-after:avoid}
   </div>
 </div>
 
-</div>
-</div>
-<!-- Fim Página 4 -->
-
 <!-- ═══════════════════════════════════════════
   PÁGINA 5 — ARQUÉTIPOS
 ═══════════════════════════════════════════ -->
-<div class="pdf-page" style="page-break-after:always">
 <div class="section">
   <div class="section-header">
     <span class="section-num">IV</span>
@@ -2045,14 +2029,9 @@ h3{break-after:avoid;page-break-after:avoid}
   </div>
 </div>
 
-</div>
-</div>
-<!-- Fim Página 5 -->
-
 <!-- ═══════════════════════════════════════════
   PÁGINA 6 — CICLO DE APRENDIZAGEM (KOLB)
 ═══════════════════════════════════════════ -->
-<div class="pdf-page" style="page-break-after:always">
 <div class="section">
   <div class="section-header">
     <span class="section-num">V</span>
@@ -2108,14 +2087,9 @@ h3{break-after:avoid;page-break-after:avoid}
   </div>
 </div>
 
-</div>
-</div>
-<!-- Fim Página 6 -->
-
 <!-- ═══════════════════════════════════════════
   PÁGINA 7 — AS 6 NECESSIDADES HUMANAS
 ═══════════════════════════════════════════ -->
-<div class="pdf-page" style="page-break-after:always">
 <div class="section">
   <div class="section-header">
     <span class="section-num">VI</span>
@@ -2160,14 +2134,9 @@ h3{break-after:avoid;page-break-after:avoid}
   </div>
 </div>
 
-</div>
-</div>
-<!-- Fim Página 7 -->
-
 <!-- ═══════════════════════════════════════════
   PÁGINA 8 — TIPOLOGIA HOLLAND RIASEC
 ═══════════════════════════════════════════ -->
-<div class="pdf-page" style="page-break-after:always">
 <div class="section">
   <div class="section-header">
     <span class="section-num">VII</span>
@@ -2256,14 +2225,9 @@ h3{break-after:avoid;page-break-after:avoid}
   </div>
 </div>
 
-</div>
-</div>
-<!-- Fim Página 8 -->
-
 <!-- ═══════════════════════════════════════════
   PÁGINA 9 — BATERIA DE ENERGIA COMPORTAMENTAL
 ═══════════════════════════════════════════ -->
-<div class="pdf-page" style="page-break-after:always">
 <div class="section">
   <div class="section-header">
     <span class="section-num">VIII</span>
@@ -2504,8 +2468,6 @@ h3{break-after:avoid;page-break-after:avoid}
   </div>
 </div>
 
-</div>
-<!-- Fim Página 9 -->
 </div>
 </body>
 </html>`;
