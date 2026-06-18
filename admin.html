@@ -915,7 +915,8 @@ function exportRelatorioComPDF(htmlContent, filename){
       jsPDF: {unit:'mm', format:'a4', orientation:'portrait'},
       pagebreak: {
         mode: ['css','legacy'],
-        avoid: ['.card','.grid-2','.grid-3','.sec-head','.sec-body','.section-body','.insight','.alert','.insight-box','.alert-box','.ok-box','.sugg-box','.pdi-item','.pdi-section','.capa','.cover','.cover-meta','.bar-row','.matriz-item','.profile-grid','.profile-cell','tr','h3']
+        before: ['.section','.section-header','.sec-head'],
+        avoid: ['.card','.grid-2','.grid-3','.sec-body','.section-body','.insight','.alert','.insight-box','.alert-box','.ok-box','.sugg-box','.pdi-item','.pdi-section','.cover-meta','.bar-row','.matriz-item','.profile-grid','.profile-cell','tr','h3']
       }
     }).from(captureEl).save().then(function(){
       document.body.removeChild(captureWrap);
@@ -1307,7 +1308,8 @@ tr,h3{break-inside:avoid;page-break-inside:avoid}
 </div>
 
 <!-- IX. SOMBRAS -->
-<div class="pdf-page-break"></div><div class="section page-break-before">
+<div class="pdf-page-break"></div>
+<div class="section">
   <div class="sec-head">
     <span class="sec-num">IX</span><span class="sec-icon">🌑</span>
     <span class="sec-title">Comportamentos de Sombra — Gaps de Performance</span>
@@ -1800,7 +1802,7 @@ h3{break-after:avoid;page-break-after:avoid}
   PÁGINA 2 — DISC
 ═══════════════════════════════════════════ -->
 <div class="pdf-page-break"></div>
-<div class="section page-break-before">
+<div class="section">
   <div class="section-header">
     <span class="section-num">I</span>
     <span class="section-icon">🎯</span>
@@ -1889,7 +1891,7 @@ h3{break-after:avoid;page-break-after:avoid}
   PÁGINA 3 — TEMPERAMENTO
 ═══════════════════════════════════════════ -->
 <div class="pdf-page-break"></div>
-<div class="section page-break-before">
+<div class="section">
   <div class="section-header">
     <span class="section-num">II</span>
     <span class="section-icon">${ ({FOGO:'🔥',AR:'💨','ÁGUA':'💧',TERRA:'🌿'})[elem]||'🌊' }</span>
@@ -1936,7 +1938,7 @@ h3{break-after:avoid;page-break-after:avoid}
   PÁGINA 4 — ENEAGRAMA
 ═══════════════════════════════════════════ -->
 <div class="pdf-page-break"></div>
-<div class="section page-break-before">
+<div class="section">
   <div class="section-header">
     <span class="section-num">III</span>
     <span class="section-icon">⭕</span>
@@ -1988,7 +1990,7 @@ h3{break-after:avoid;page-break-after:avoid}
   PÁGINA 5 — ARQUÉTIPOS
 ═══════════════════════════════════════════ -->
 <div class="pdf-page-break"></div>
-<div class="section page-break-before">
+<div class="section">
   <div class="section-header">
     <span class="section-num">IV</span>
     <span class="section-icon">⚔️</span>
@@ -2031,7 +2033,7 @@ h3{break-after:avoid;page-break-after:avoid}
   PÁGINA 6 — CICLO DE APRENDIZAGEM (KOLB)
 ═══════════════════════════════════════════ -->
 <div class="pdf-page-break"></div>
-<div class="section page-break-before">
+<div class="section">
   <div class="section-header">
     <span class="section-num">V</span>
     <span class="section-icon">🔄</span>
@@ -2090,7 +2092,7 @@ h3{break-after:avoid;page-break-after:avoid}
   PÁGINA 7 — AS 6 NECESSIDADES HUMANAS
 ═══════════════════════════════════════════ -->
 <div class="pdf-page-break"></div>
-<div class="section page-break-before">
+<div class="section">
   <div class="section-header">
     <span class="section-num">VI</span>
     <span class="section-icon">🧲</span>
@@ -2138,7 +2140,7 @@ h3{break-after:avoid;page-break-after:avoid}
   PÁGINA 8 — TIPOLOGIA HOLLAND RIASEC
 ═══════════════════════════════════════════ -->
 <div class="pdf-page-break"></div>
-<div class="section page-break-before">
+<div class="section">
   <div class="section-header">
     <span class="section-num">VII</span>
     <span class="section-icon">🧭</span>
@@ -2230,7 +2232,7 @@ h3{break-after:avoid;page-break-after:avoid}
   PÁGINA 9 — BATERIA DE ENERGIA COMPORTAMENTAL
 ═══════════════════════════════════════════ -->
 <div class="pdf-page-break"></div>
-<div class="section page-break-before">
+<div class="section">
   <div class="section-header">
     <span class="section-num">VIII</span>
     <span class="section-icon">🔋</span>
@@ -2290,7 +2292,7 @@ h3{break-after:avoid;page-break-after:avoid}
   PÁGINA 10 — COMPORTAMENTOS DE SOMBRA
 ═══════════════════════════════════════════ -->
 <div class="pdf-page-break"></div>
-<div class="section page-break-before">
+<div class="section">
   <div class="section-header">
     <span class="section-num">IX</span>
     <span class="section-icon">⚫</span>
@@ -2332,7 +2334,7 @@ h3{break-after:avoid;page-break-after:avoid}
   PÁGINA 11 — POTENCIAL LATENTE
 ═══════════════════════════════════════════ -->
 <div class="pdf-page-break"></div>
-<div class="section page-break-before">
+<div class="section">
   <div class="section-header">
     <span class="section-num">X</span>
     <span class="section-icon">💎</span>
@@ -2422,7 +2424,7 @@ h3{break-after:avoid;page-break-after:avoid}
   PÁGINA 12 — MATRIZ DE DESENVOLVIMENTO INTEGRADA
 ═══════════════════════════════════════════ -->
 <div class="pdf-page-break"></div>
-<div class="section page-break-before">
+<div class="section">
   <div class="section-header">
     <span class="section-num">∞</span>
     <span class="section-icon">🎯</span>
