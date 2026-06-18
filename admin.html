@@ -1027,7 +1027,7 @@ body{font-family:'Syne',sans-serif;background:#FFFFFF;color:#1A1612;font-size:13
 .tb-btn{padding:9px 18px;border-radius:8px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none}
 .tb-gold{background:#C9A84C;color:#0A0806}
 .tb-out{background:#fff;color:#555;border:1px solid #ddd!important}
-.capa{background:#FFFFFF;color:#0A0806;padding:40px;border-radius:14px;margin-bottom:28px;border:2px solid #C9A84C;break-after:page;page-break-after:always}
+.capa{background:#FFFFFF;color:#0A0806;padding:40px;border-radius:14px;margin-bottom:28px;break-after:page;page-break-after:always}
 .capa-badge{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.16em;color:#8A6520;text-transform:uppercase;border:1px solid rgba(201,168,76,.5);background:#FFF8E8;padding:4px 14px;border-radius:100px;display:inline-block;margin-bottom:14px}
 .capa-title{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;margin-bottom:4px;color:#0A0806}
 .capa-sub{font-size:13px;color:#6A5A48;margin-bottom:24px}
@@ -1310,28 +1310,37 @@ tr,h3{break-inside:avoid;page-break-inside:avoid}
 <div class="pdf-page-break"></div><div class="section page-break-before">
   <div class="sec-head">
     <span class="sec-num">IX</span><span class="sec-icon">🌑</span>
-    <span class="sec-title">Comportamentos de Sombra</span>
+    <span class="sec-title">Comportamentos de Sombra — Gaps de Performance</span>
     <span class="sec-badge" style="background:rgba(239,68,68,.1);color:#EF4444">Zona de Risco</span>
   </div>
   <div class="sec-body">
-    <table style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:12px;margin-top:12px;word-break:break-word">
-      <colgroup><col style="width:28%"><col style="width:40%"><col style="width:32%"></colgroup>
-      <thead><tr style="background:#0A0806">
-        <th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em">ESTILO EM SOMBRA</th>
-        <th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em">COMPORTAMENTO OCULTO</th>
-        <th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em">GAP DE PERFORMANCE</th>
-      </tr></thead>
-      <tbody>${[
+    <p style="font-size:13px;color:#4A3A28;margin-bottom:4px">As <strong>Zonas de Sombra</strong> ocorrem quando um estilo é utilizado de forma excessiva sob estresse — transformando um ponto forte em prejuízo crítico para o negócio.</p>
+    <div style="margin-top:14px">
+      ${[
         {k:'D',label:'Sombra da Dominância',comp:'Pavio curto e surdez seletiva — deixa de ouvir especialistas por pressa de decidir.',gap:'Perda de Capital Intelectual: turnover e desmotivação de talentos-chave.'},
         {k:'I',label:'Sombra da Influência',comp:'Desorganização e impulsividade — promete prazos impossíveis para ser popular.',gap:'Quebra de Confiança: falhas em entregas críticas e falta de rigidez nos processos.'},
         {k:'S',label:'Sombra da Estabilidade',comp:'Resistência passiva — mantém o status quo por medo da mudança necessária.',gap:'Obsolescência Operacional: a empresa perde agilidade e para de inovar.'},
         {k:'C',label:'Sombra da Conformidade',comp:'Crítica excessiva — foca no detalhe e perde a visão estratégica do todo.',gap:'Paralisia por Análise: projetos travam em burocracias e revisões infinitas.'},
-      ].map(s=>`<tr style="${s.k===disc?'background:#FFF5F0':''}">
-        <td style="padding:9px 12px;border-bottom:1px solid #F0E8D8;font-weight:700;color:${discHex[s.k]};word-break:break-word;vertical-align:top">${s.label}${s.k===disc?` <span style="font-size:9px;background:#FFEAEA;color:#EF4444;padding:2px 6px;border-radius:100px;font-family:monospace">SEU PERFIL</span>`:''}</td>
-        <td style="padding:9px 12px;border-bottom:1px solid #F0E8D8;color:#6A5A48;vertical-align:top;word-break:break-word">${s.comp}</td>
-        <td style="padding:9px 12px;border-bottom:1px solid #F0E8D8;color:#6A5A48;vertical-align:top;word-break:break-word">${s.gap}</td>
-      </tr>`).join('')}
-      </tbody></table>
+      ].map(s=>`<div style="border:1px solid ${s.k===disc?'rgba(239,68,68,.4)':'#E8E0D0'};border-radius:10px;margin-bottom:10px;overflow:hidden">
+        <div style="padding:10px 14px;border-bottom:1px solid ${s.k===disc?'rgba(239,68,68,.2)':'#E8E0D0'};background:${s.k===disc?'#FFF5F0':'#F8F5F0'};display:flex;align-items:center;gap:10px">
+          <span style="font-weight:800;font-size:13px;color:${{D:'#F07030',I:'#E8B830',S:'#4A90D4',C:'#A878E0'}[s.k]}">${s.label}</span>
+          ${s.k===disc?'<span style="font-size:9px;background:#EF4444;color:#fff;padding:2px 8px;border-radius:100px;font-family:monospace;letter-spacing:.06em">SEU PERFIL</span>':''}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr">
+          <div style="padding:10px 14px;border-right:1px solid #E8E0D0">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px">COMPORTAMENTO OCULTO</div>
+            <div style="font-size:12px;color:#4A3A28;line-height:1.65">${s.comp}</div>
+          </div>
+          <div style="padding:10px 14px;background:#FFF8F5">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#EF4444;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px">GAP DE PERFORMANCE</div>
+            <div style="font-size:12px;color:#7A2A18;line-height:1.65;font-weight:600">${s.gap}</div>
+          </div>
+        </div>
+      </div>`).join('')}
+    </div>
+    <div class="insight" style="margin-top:6px">
+      <strong>Sinal de Alerta Principal:</strong> Com perfil <strong>${discN[disc]}</strong>, a sombra primária se manifesta em situações de pressão intensa, prazo curto ou conflito não resolvido. Reconhecer este padrão em tempo real é o principal diferencial entre liderança reativa e liderança ativacional.
+    </div>
   </div>
 </div>
 
@@ -1339,19 +1348,83 @@ tr,h3{break-inside:avoid;page-break-inside:avoid}
 <div class="section">
   <div class="sec-head">
     <span class="sec-num">X</span><span class="sec-icon">💎</span>
-    <span class="sec-title">Potencial Latente</span>
-    <span class="sec-badge" style="background:rgba(34,197,94,.1);color:#22C55E">Oportunidades</span>
+    <span class="sec-title">Potencial Latente — Oportunidades de Ganho</span>
+    <span class="sec-badge" style="background:rgba(34,197,94,.1);color:#22C55E">Competências Ociosas</span>
   </div>
   <div class="sec-body">
-    <table style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:12px;margin-top:12px;word-break:break-word">
-      <colgroup><col style="width:22%"><col style="width:40%"><col style="width:38%"></colgroup>
-      <thead><tr style="background:#0A0806"><th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#22C55E;letter-spacing:.1em">INSTRUMENTO</th><th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#22C55E;letter-spacing:.1em">POTENCIAL LATENTE</th><th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#22C55E;letter-spacing:.1em">AÇÃO PARA ATIVAR</th></tr></thead><tbody>
-      <tr><td style="font-weight:700;color:${discHex[discSec]};word-break:break-word;padding:9px 12px;border-bottom:1px solid #EEF8F2;vertical-align:top">DISC ${discN[discSec]||discSec}</td><td style="word-break:break-word;padding:9px 12px;border-bottom:1px solid #EEF8F2;vertical-align:top;color:#4A5A48">${{D:'Velocidade decisória e assertividade',I:'Engajamento e influência de equipes maiores',S:'Mentoria e criação de segurança psicológica',C:'Rigor analítico e qualidade como vantagem'}[discSec]||'—'}</td><td style="word-break:break-word;padding:9px 12px;border-bottom:1px solid #EEF8F2;vertical-align:top;color:#4A5A48">${{D:'Assumir projetos de transformação onde velocidade é diferencial',I:'Liderar iniciativas de cultura e engajamento',S:'Delegar o operacional e desenvolver talentos',C:'Estruturar processos e governança como legado'}[discSec]||'—'}</td></tr>
-      <tr><td style="font-weight:700;color:#E8A840;word-break:break-word;padding:9px 12px;border-bottom:1px solid #EEF8F2;vertical-align:top">Holland ${r.holland_codigo||'—'}</td><td style="word-break:break-word;padding:9px 12px;border-bottom:1px solid #EEF8F2;vertical-align:top;color:#4A5A48">Inclinação vocacional — ambientes de alto alinhamento onde opera com energia natural e zero esforço de adaptação</td><td style="word-break:break-word;padding:9px 12px;border-bottom:1px solid #EEF8F2;vertical-align:top;color:#4A5A48">Redirecionar 30%+ das atividades para projetos alinhados ao código ${r.holland_codigo||'—'}</td></tr>
-      <tr><td style="font-weight:700;color:#A878E0;word-break:break-word;padding:9px 12px;border-bottom:1px solid #EEF8F2;vertical-align:top">Eneagrama T${ennea}</td><td style="word-break:break-word;padding:9px 12px;border-bottom:1px solid #EEF8F2;vertical-align:top;color:#4A5A48">Virtude do Tipo ${ennea}: <strong>${enneaVirtude[ennea]||'—'}</strong> — ainda pouco expressa na liderança atual</td><td style="word-break:break-word;padding:9px 12px;border-bottom:1px solid #EEF8F2;vertical-align:top;color:#4A5A48">Praticar a virtude como âncora de liderança consciente — ela converte o vício emocional em força genuína</td></tr>
-      <tr><td style="font-weight:700;color:#F0A050;word-break:break-word;padding:9px 12px;border-bottom:1px solid #EEF8F2;vertical-align:top">Necessidade ${need1}</td><td style="word-break:break-word;padding:9px 12px;border-bottom:1px solid #EEF8F2;vertical-align:top;color:#4A5A48">Quando plenamente atendida, opera no melhor estado — criativo, presente e de alto impacto</td><td style="word-break:break-word;padding:9px 12px;border-bottom:1px solid #EEF8F2;vertical-align:top;color:#4A5A48">Mapear quais atividades alimentam ${need1} e priorizar estrategicamente esses contextos</td></tr>
-    </tbody></table>
-    <div class="ok-box" style="margin-top:12px"><strong>Diagnóstico Ativacional:</strong> Ativar os potenciais latentes não exige mais esforço — exige <em>melhor direcionamento de quem você já é</em>.</div>
+    <p style="font-size:13px;color:#4A3A28;margin-bottom:4px">Onde <strong>${nome}</strong> está perdendo performance e resultado por não usar plenamente quem é. Cada potencial latente identificado representa uma alavanca de crescimento imediata e de alto retorno.</p>
+    <div style="margin-top:14px;display:flex;flex-direction:column;gap:10px">
+
+      <div style="border:1px solid #C8EDD8;border-radius:10px;overflow:hidden">
+        <div style="padding:10px 14px;background:#0A0806;display:flex;justify-content:space-between;align-items:center">
+          <span style="font-weight:800;color:${ ({D:'#F07030',I:'#F0C030',S:'#4A90D4',C:'#A878E0'})[discSec]||'#C9A84C' };font-size:13px">DISC ${discN[discSec]||discSec}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#22C55E;letter-spacing:.1em">POTENCIAL LATENTE</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr">
+          <div style="padding:12px 14px;border-right:1px solid #C8EDD8">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#22C55E;letter-spacing:.1em;margin-bottom:6px">OPORTUNIDADE</div>
+            <div style="font-size:12px;color:#1A4A2A;line-height:1.65">${ ({D:'Velocidade decisória e assertividade ainda subutilizadas',I:'Potencial de engajamento e influência de equipes maiores',S:'Habilidade natural de mentoria e criação de segurança psicológica',C:'Rigor analítico e qualidade como vantagem competitiva'})[discSec]||'Competências do 2º estilo DISC ainda não plenamente ativadas' }</div>
+          </div>
+          <div style="padding:12px 14px;background:#F0FAF4">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#22C55E;letter-spacing:.1em;margin-bottom:6px">AÇÃO PARA ATIVAR</div>
+            <div style="font-size:12px;color:#1A4A2A;line-height:1.65;font-weight:600">${ ({D:'Assumir projetos de transformação onde velocidade decisória é diferencial',I:'Liderar iniciativas de cultura e engajamento organizacional',S:'Delegar o operacional e assumir papel de desenvolvedor de talentos',C:'Estruturar processos de qualidade e governança como legado estratégico'})[discSec]||'Criar oportunidades deliberadas de usar o 2º estilo DISC em contextos de baixo risco' }</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="border:1px solid #C8EDD8;border-radius:10px;overflow:hidden">
+        <div style="padding:10px 14px;background:#0A0806;display:flex;justify-content:space-between;align-items:center">
+          <span style="font-weight:800;color:#E8A840;font-size:13px">Holland ${r.holland_codigo||'—'}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#22C55E;letter-spacing:.1em">VOCACIONAL</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr">
+          <div style="padding:12px 14px;border-right:1px solid #C8EDD8">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#22C55E;letter-spacing:.1em;margin-bottom:6px">OPORTUNIDADE</div>
+            <div style="font-size:12px;color:#1A4A2A;line-height:1.65">Inclinação vocacional — ambiente onde opera com energia natural e zero esforço de adaptação. Atualmente explorando abaixo do potencial.</div>
+          </div>
+          <div style="padding:12px 14px;background:#F0FAF4">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#22C55E;letter-spacing:.1em;margin-bottom:6px">AÇÃO PARA ATIVAR</div>
+            <div style="font-size:12px;color:#1A4A2A;line-height:1.65;font-weight:600">Redirecionar 30%+ das atividades para projetos alinhados ao código ${r.holland_codigo||'—'} — alinhamento vocacional é a maior alavanca de performance sustentável.</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="border:1px solid #C8EDD8;border-radius:10px;overflow:hidden">
+        <div style="padding:10px 14px;background:#0A0806;display:flex;justify-content:space-between;align-items:center">
+          <span style="font-weight:800;color:#A878E0;font-size:13px">Eneagrama T${ennea}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#22C55E;letter-spacing:.1em">VIRTUDE</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr">
+          <div style="padding:12px 14px;border-right:1px solid #C8EDD8">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#22C55E;letter-spacing:.1em;margin-bottom:6px">OPORTUNIDADE</div>
+            <div style="font-size:12px;color:#1A4A2A;line-height:1.65">Virtude do Tipo ${ennea}: <strong>${enneaVirtude[ennea]||'—'}</strong> — ainda pouco expressa na liderança atual. Cada momento de virtude aumenta o acesso às forças naturais.</div>
+          </div>
+          <div style="padding:12px 14px;background:#F0FAF4">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#22C55E;letter-spacing:.1em;margin-bottom:6px">AÇÃO PARA ATIVAR</div>
+            <div style="font-size:12px;color:#1A4A2A;line-height:1.65;font-weight:600">Praticar a virtude do Tipo ${ennea} como âncora — ela converte o vício emocional em força genuína e amplia o acesso ao melhor do perfil.</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="border:1px solid #C8EDD8;border-radius:10px;overflow:hidden">
+        <div style="padding:10px 14px;background:#0A0806;display:flex;justify-content:space-between;align-items:center">
+          <span style="font-weight:800;color:#F0A050;font-size:13px">Necessidade · ${need1}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#22C55E;letter-spacing:.1em">MOTIVACIONAL</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr">
+          <div style="padding:12px 14px;border-right:1px solid #C8EDD8">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#22C55E;letter-spacing:.1em;margin-bottom:6px">OPORTUNIDADE</div>
+            <div style="font-size:12px;color:#1A4A2A;line-height:1.65">Quando plenamente atendida, opera no melhor estado — criativo, presente e de alto impacto. O não atendimento drena energia e decisões.</div>
+          </div>
+          <div style="padding:12px 14px;background:#F0FAF4">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#22C55E;letter-spacing:.1em;margin-bottom:6px">AÇÃO PARA ATIVAR</div>
+            <div style="font-size:12px;color:#1A4A2A;line-height:1.65;font-weight:600">Mapear quais atividades alimentam ${need1} e priorizar estrategicamente esses contextos no dia a dia.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="ok-box" style="margin-top:10px"><strong>Diagnóstico Ativacional:</strong> Ativar os potenciais latentes não exige mais esforço — exige <em>melhor direcionamento de quem você já é</em>.</div>
   </div>
 </div>
 
@@ -1490,7 +1563,7 @@ function generate360Report(id){
 body{font-family:'Syne',sans-serif;background:#FFFFFF;color:#1A1612;line-height:1.6;font-size:14px}
 .page{max-width:840px;margin:0 auto;padding:48px 40px}
 /* CAPA */
-.cover{background:#FFFFFF;color:#0A0806;padding:48px;border-radius:16px;margin-bottom:40px;position:relative;overflow:hidden;border:2px solid #C9A84C}
+.cover{background:#FFFFFF;color:#0A0806;padding:48px;border-radius:16px;margin-bottom:40px;position:relative;overflow:hidden}
 .cover::after{content:'';position:absolute;top:-40px;right:-40px;width:240px;height:240px;border-radius:50%;background:rgba(201,168,76,.08)}
 .cover-badge{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;color:#C9A84C;text-transform:uppercase;margin-bottom:20px;display:inline-block;border:1px solid rgba(201,168,76,.3);padding:5px 14px;border-radius:100px}
 .cover-title{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:700;line-height:1.15;margin-bottom:8px}
@@ -1805,8 +1878,8 @@ h3{break-after:avoid;page-break-after:avoid}
         <div class="card-sub">${disc==='D'?'Microgestão, burocracia excessiva, ambientes lentos e decisões sem prazo.':disc==='I'?'Trabalho solitário, rotina repetitiva e falta de reconhecimento.':disc==='S'?'Conflitos frequentes, mudanças bruscas sem explicação e pressão excessiva.':'Improvisação, falta de dados e padrões baixos de qualidade.'}</div>
       </div>
     </div>
-    <div class="insight-box" style="margin-top:16px;padding:16px 20px;background:linear-gradient(135deg,#FFF8E8,#FFF3D4);border-radius:10px;border-left:4px solid #C9A84C">
-      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#8A6520;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px">📚 Fundamento Metodológico — DISC</div>
+    <div class="insight-box" style="margin-top:6px;padding:12px 16px;background:linear-gradient(135deg,#FFF8E8,#FFF3D4);border-radius:10px;border-left:4px solid #C9A84C">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#8A6520;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">📚 Fundamento Metodológico — DISC</div>
       <p style="font-size:12px;color:#4A3A28;line-height:1.7;margin:0">O modelo <strong>DISC</strong> — desenvolvido por William Moulton Marston (1928) — mapeia quatro dimensões comportamentais observáveis: <strong>Dominância</strong>, <strong>Influência</strong>, <strong>Estabilidade</strong> e <strong>Conformidade</strong>. Diferente de testes de personalidade, o DISC mede <em>comportamento observável</em>. Valores <strong>negativos</strong> indicam comportamentos ativamente reprimidos: o líder consome energia contendo-os, gerando dreno comportamental.</p>
     </div>
   </div>
