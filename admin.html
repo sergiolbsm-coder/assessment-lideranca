@@ -893,20 +893,6 @@ function exportRelatorioComPDF(htmlContent, filename){
       td.style.maxWidth = '0'; // forces table-layout:fixed to distribute evenly
     });
 
-    // === NOVO: Envolver cada seção em página A4 para paginação correta ===
-    var sections = captureWrap.querySelectorAll('.section');
-    sections.forEach(function(section) {
-      var pageWrapper = document.createElement('div');
-      pageWrapper.style.cssText = 'page-break-after:always;break-after:page;overflow:visible;margin:0;padding:0';
-      section.parentNode.insertBefore(pageWrapper, section);
-      pageWrapper.appendChild(section);
-    });
-    
-    // Adicionar CSS de impressão otimizado
-    var printStyle = document.createElement('style');
-    printStyle.textContent = '@media print { .section{page-break-inside:avoid;break-inside:avoid;overflow:visible} .section-body{overflow:visible} .card,.grid-2,.grid-3,table{page-break-inside:avoid;break-inside:avoid} h3{page-break-after:avoid;break-after:avoid} .insight-box{page-break-inside:avoid;break-inside:avoid} }';
-    captureWrap.appendChild(printStyle);
-
     var captureEl = captureWrap.querySelector('div') || captureWrap;
 
     captureWrap.scrollTop=0; html2pdf().set({
