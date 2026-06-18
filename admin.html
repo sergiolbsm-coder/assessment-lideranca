@@ -150,6 +150,9 @@ tr:hover td{background:rgba(255,255,255,.02)}
 @media(max-width:900px){.sidebar{display:none}.main{padding:20px}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>var jspdf_lib = window.jspdf || (typeof jspdf !== "undefined" ? jspdf : {jsPDF: window.jsPDF});</script>
 </head>
 <body>
 <div class="bg"></div>
@@ -895,40 +898,153 @@ function exportRelatorioComPDF(htmlContent, filename){
 
     var captureEl = captureWrap.querySelector('div') || captureWrap;
 
-    captureWrap.scrollTop=0; html2pdf().set({
-      margin: [8,8,8,8],
-      filename: filename,
-      image: {type:'jpeg', quality:0.97},
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#FFFFFF',
-        logging: false,
-        scrollX: 0,
-        scrollY: 0,
-        x: 0,
-        y: 0,
-        width: 794,
-        windowWidth: 794,
-        windowHeight: 1122
-      },
-      jsPDF: {unit:'mm', format:'a4', orientation:'portrait', compress:true},
-      pagebreak: {mode:'avoid-all'}
-    }).from(captureEl).save().then(function(){
-      document.body.removeChild(captureWrap);
-      controls.style.display = 'flex';
-      btn.textContent = '📄 Exportar PDF';
-      btn.disabled = false;
-      toast('✅ PDF gerado com sucesso','success');
-    }).catch(function(e){
-      if(document.body.contains(captureWrap)) document.body.removeChild(captureWrap);
-      controls.style.display = 'flex';
-      btn.textContent = '📄 Exportar PDF';
-      btn.disabled = false;
-      console.error('PDF error:', e);
-      toast('⚠️ Erro ao gerar PDF','warn');
-    });
+    // ════════════════════════════════════════════════════
+    // EXPORTAÇÃO MULTI-PÁGINA: cada seção em sua página
+    // com linhas de anotação preenchendo o espaço restante
+    // ════════════════════════════════════════════════════
+    var PDF_W = 210; // A4 mm width
+    var PDF_H = 297; // A4 mm height
+    var MARGIN = 10; // mm all sides
+    var CONTENT_H = PDF_H - MARGIN * 2; // 277mm usable height
+    var CONTENT_W = PDF_W - MARGIN * 2; // 190mm usable width
+    var PX_PER_MM = 3.7795; // 96dpi
+
+    var jspdf = new jspdf_lib.jsPDF({unit:'mm', format:'a4', orientation:'portrait', compress:true});
+
+    // Helper: render element to canvas then to PDF page
+    async function renderElToPage(jsPDF, el, yOffset, isFirst) {
+      var canvas = await html2canvas(el, {
+        scale: 2, useCORS: true, allowTaint: true,
+        backgroundColor: '#FFFFFF', logging: false,
+        scrollX: 0, scrollY: 0
+      });
+      var imgW = CONTENT_W;
+      var imgH = (canvas.height / canvas.width) * imgW;
+      var imgData = canvas.toDataURL('image/jpeg', 0.95);
+      return { imgData, imgW, imgH };
+    }
+
+    // Helper: draw ruled annotation lines for remaining space
+    function drawAnnotationLines(jsPDF, yStart, yEnd, xLeft, xRight) {
+      var lineSpacing = 7; // mm between lines
+      var labelH = 5;
+      if (yEnd - yStart < labelH + lineSpacing) return;
+      // Label
+      jsPDF.setFont('helvetica','italic');
+      jsPDF.setFontSize(7);
+      jsPDF.setTextColor(180, 170, 155);
+      jsPDF.text('Anotações', xLeft, yStart + 3.5);
+      // Lines
+      jsPDF.setDrawColor(220, 212, 198);
+      jsPDF.setLineWidth(0.2);
+      var y = yStart + labelH + 2;
+      while (y + 2 < yEnd) {
+        jsPDF.line(xLeft, y, xRight, y);
+        y += lineSpacing;
+      }
+    }
+
+    (async function() {
+      try {
+        // Get all sections in order
+        var sections = Array.from(captureEl.querySelectorAll(
+          '.cover, .capa, .section, .section-header ~ .section-body, .pdi-section'
+        ));
+
+        // Better: get top-level page sections
+        var allSections = [];
+
+        // Cover/capa
+        var cover = captureEl.querySelector('.cover, .capa');
+        if (cover) allSections.push({el: cover, type:'cover'});
+
+        // Individual report: sections with sec-head
+        // 360 report: sections with section-header
+        captureEl.querySelectorAll('.section').forEach(function(s){
+          if (!cover || !cover.contains(s)) allSections.push({el:s, type:'section'});
+        });
+
+        // PDI block if separate
+        var pdi = captureEl.querySelector('.pdi-wrap, [class*="pdi"]:not(.pdi-item):not(.pdi-section)');
+        if (pdi && !allSections.find(s=>s.el===pdi)) {
+          allSections.push({el:pdi, type:'section'});
+        }
+
+        if (allSections.length === 0) {
+          // Fallback: whole page
+          allSections = [{el: captureEl, type:'cover'}];
+        }
+
+        var jsPDF = new jspdf_lib.jsPDF({unit:'mm', format:'a4', orientation:'portrait', compress:true});
+        var xL = MARGIN, xR = PDF_W - MARGIN;
+        var yPos = MARGIN;
+        var isFirstPage = true;
+
+        for (var i = 0; i < allSections.length; i++) {
+          var sec = allSections[i];
+
+          // Render section
+          var canvas = await html2canvas(sec.el, {
+            scale: 2, useCORS: true, allowTaint: true,
+            backgroundColor: '#FFFFFF', logging: false,
+            scrollX: 0, scrollY: 0,
+            width: sec.el.offsetWidth || 740,
+            windowWidth: 780
+          });
+
+          var imgW = CONTENT_W;
+          var imgH = (canvas.height / canvas.width) * imgW;
+          var imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+          // If section is taller than a full page, scale it down
+          if (imgH > CONTENT_H) {
+            imgW = imgW * (CONTENT_H / imgH);
+            imgH = CONTENT_H;
+          }
+
+          // Cover always gets its own full page
+          if (sec.type === 'cover' || i === 0) {
+            if (!isFirstPage) jsPDF.addPage();
+            jsPDF.addImage(imgData, 'JPEG', xL, MARGIN, imgW, imgH);
+            var remaining = CONTENT_H - imgH;
+            if (remaining > 12) {
+              drawAnnotationLines(jsPDF, MARGIN + imgH + 2, PDF_H - MARGIN, xL, xR);
+            }
+            isFirstPage = false;
+            continue;
+          }
+
+          // For regular sections: always start on new page (instrumento no topo)
+          jsPDF.addPage();
+          jsPDF.addImage(imgData, 'JPEG', xL, MARGIN, imgW, imgH);
+
+          // Fill remaining space with annotation lines
+          var usedH = MARGIN + imgH;
+          var remaining = PDF_H - MARGIN - usedH;
+          if (remaining > 12) {
+            drawAnnotationLines(jsPDF, usedH + 3, PDF_H - MARGIN, xL, xR);
+          }
+        }
+
+        // Filename
+        jsPDF.save(filename);
+
+        document.body.removeChild(captureWrap);
+        controls.style.display = 'flex';
+        btn.textContent = '📄 Exportar PDF';
+        btn.disabled = false;
+        toast('✅ PDF gerado com sucesso','success');
+
+      } catch(e) {
+        if(document.body.contains(captureWrap)) document.body.removeChild(captureWrap);
+        controls.style.display = 'flex';
+        btn.textContent = '📄 Exportar PDF';
+        btn.disabled = false;
+        console.error('PDF error:', e);
+        toast('⚠️ Erro ao gerar PDF','warn');
+      }
+    })();
+
   });
 
   var onEsc = function(e){
