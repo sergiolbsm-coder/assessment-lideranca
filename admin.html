@@ -848,7 +848,7 @@ function exportRelatorioComPDF(htmlContent, filename){
     var captureWrap = document.createElement('div');
     captureWrap.style.cssText = [
       'position:fixed', 'top:0', 'left:0',
-      'width:794px', 'min-height:100px',
+      'width:780px', 'min-height:100px',
       'background:#fff', 'z-index:-1',
       'overflow:visible', 'box-sizing:border-box',
       'font-family:Syne,sans-serif'
@@ -861,7 +861,7 @@ function exportRelatorioComPDF(htmlContent, filename){
 
     captureWrap.innerHTML =
       cloneStyles +
-      '<div style="width:794px;padding:28px 20px;box-sizing:border-box;background:#fff">' +
+      '<div style="width:780px;padding:20px 18px;box-sizing:border-box;background:#fff">' +
         cloneHTML +
       '</div>';
 
@@ -896,7 +896,7 @@ function exportRelatorioComPDF(htmlContent, filename){
     var captureEl = captureWrap.querySelector('div') || captureWrap;
 
     html2pdf().set({
-      margin: [8,8,8,8],
+      margin: [10,10,10,10],
       filename: filename,
       image: {type:'jpeg', quality:0.97},
       html2canvas: {
@@ -909,11 +909,14 @@ function exportRelatorioComPDF(htmlContent, filename){
         scrollY: 0,
         x: 0,
         y: 0,
-        width: 794,
-        windowWidth: 794
+        width: 780,
+        windowWidth: 780
       },
       jsPDF: {unit:'mm', format:'a4', orientation:'portrait'},
-      pagebreak: {mode:['css'], avoid:'.card,.grid-2,.insight,.alert,.insight-box,.pdi-item,tr,.section-header,.section-body'}
+      pagebreak: {
+        mode: ['css','legacy'],
+        avoid: '.card,.grid-2,.grid-3,.insight,.alert,.insight-box,.alert-box,.ok-box,.sugg-box,.pdi-item,.pdi-section,tr,.section,.section-header,.section-body,.sec-head,.sec-body,.capa,.cover,.cover-meta,.bar-row,.matriz-item,.profile-grid,.profile-cell,h3'
+      }
     }).from(captureEl).save().then(function(){
       document.body.removeChild(captureWrap);
       controls.style.display = 'flex';
@@ -1068,11 +1071,15 @@ tr:nth-child(even)td{background:#FAF6EE}
 .page-break-before{break-before:page;page-break-before:always;margin-top:0;padding-top:0}
 .pdf-page-break{break-after:page;page-break-after:always;height:0;margin:0;padding:0;border:none;display:block}
 .capa{break-after:page;page-break-after:always}
-.sec-header{break-after:avoid;page-break-after:avoid}
+.sec-head,.sec-header{break-after:avoid;page-break-after:avoid}
+.sec-body,.section-body{break-before:avoid;page-break-before:avoid}
 .card{break-inside:avoid;page-break-inside:avoid}
-.grid-2{break-inside:avoid;page-break-inside:avoid}
-.insight,.pdi-item{break-inside:avoid;page-break-inside:avoid}
-tr{break-inside:avoid;page-break-inside:avoid}
+.grid-2,.grid-3{break-inside:avoid;page-break-inside:avoid}
+.insight,.pdi-item,.sugg-box,.alert-box,.ok-box{break-inside:avoid;page-break-inside:avoid}
+.bar-row,.matriz-item{break-inside:avoid;page-break-inside:avoid}
+.profile-grid,.profile-cell,.capa-meta{break-inside:avoid;page-break-inside:avoid}
+tr,h3{break-inside:avoid;page-break-inside:avoid}
+*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 </style>
 </head>
 <body>
@@ -1604,10 +1611,12 @@ tr:nth-child(even)td{background:#FDFAF5}
 /* ── PAGE BREAK CONTROL ── */
 .cover{break-after:page;page-break-after:always;margin-bottom:0}
 .section-header{break-after:avoid;page-break-after:avoid}
+.section-body{break-before:avoid;page-break-before:avoid}
 .card{break-inside:avoid;page-break-inside:avoid}
-.grid-2{break-inside:avoid;page-break-inside:avoid}
-.pdi-item{break-inside:avoid;page-break-inside:avoid}
-.insight,.alert,.insight-box,.pdi-dot-row{break-inside:avoid;page-break-inside:avoid}
+.grid-2,.grid-3{break-inside:avoid;page-break-inside:avoid}
+.pdi-item,.pdi-section{break-inside:avoid;page-break-inside:avoid}
+.insight,.alert,.insight-box,.pdi-dot-row,.sugg-box,.alert-box,.ok-box{break-inside:avoid;page-break-inside:avoid}
+.bar-row,.matriz-item{break-inside:avoid;page-break-inside:avoid}
 tr{break-inside:avoid;page-break-inside:avoid}
 h3{break-after:avoid;page-break-after:avoid}
 </style>
@@ -2414,6 +2423,9 @@ h1{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;margin-
 .section-title{font-size:11px;font-family:'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#C9A84C;margin:16px 0 8px;font-weight:700}
 p{margin-bottom:8px;color:#2A2018}
 strong{color:#0A0806}
+.profile-cell,.disc-bar-row{break-inside:avoid;page-break-inside:avoid}
+.profile-grid{break-inside:avoid;page-break-inside:avoid}
+*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 </style>
 </head><body><div class="page">
 <h1>${name}</h1>
