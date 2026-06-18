@@ -149,7 +149,6 @@ tr:hover td{background:rgba(255,255,255,.02)}
 
 @media(max-width:900px){.sidebar{display:none}.main{padding:20px}}
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 <div class="bg"></div>
@@ -1476,6 +1475,19 @@ tr,h3{break-inside:avoid;page-break-inside:avoid}
   Instituto da Liderança · CNPJ 22.233.124/0001-50 · @institutodaideranca · ${data}</div>
 
 </div>
+
+<!-- PDF Server Integration (Puppeteer) -->
+<script src="integracao_puppeteer.js"></script>
+<script>
+  // Configurar URL do servidor PDF
+  const PDF_SERVER_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3001'
+    : 'https://seu-pdf-server.com'; // Alterar para URL de produção
+  
+  console.log('✅ Puppeteer PDF Server integrado');
+  console.log('📡 Servidor:', PDF_SERVER_URL);
+</script>
+
 </body>
 </html>`;
 
@@ -2483,6 +2495,19 @@ h3{break-after:avoid;page-break-after:avoid}
 </div>
 
 </div>
+
+<!-- PDF Server Integration (Puppeteer) -->
+<script src="integracao_puppeteer.js"></script>
+<script>
+  // Configurar URL do servidor PDF
+  const PDF_SERVER_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3001'
+    : 'https://seu-pdf-server.com'; // Alterar para URL de produção
+  
+  console.log('✅ Puppeteer PDF Server integrado');
+  console.log('📡 Servidor:', PDF_SERVER_URL);
+</script>
+
 </body>
 </html>`;
 
@@ -2519,7 +2544,20 @@ strong{color:#0A0806}
 </head><body><div class="page">
 <h1>${name}</h1>
 ${body}
-</div></body></html>`;
+</div>
+<!-- PDF Server Integration (Puppeteer) -->
+<script src="integracao_puppeteer.js"></script>
+<script>
+  // Configurar URL do servidor PDF
+  const PDF_SERVER_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3001'
+    : 'https://seu-pdf-server.com'; // Alterar para URL de produção
+  
+  console.log('✅ Puppeteer PDF Server integrado');
+  console.log('📡 Servidor:', PDF_SERVER_URL);
+</script>
+
+</body></html>`;
   exportRelatorioComPDF(htmlContent, 'Perfil-'+name.replace(/\s+/g,'-')+'.pdf');
 }
 
@@ -2921,7 +2959,20 @@ function exportGroupReport(){
   <table><tr><th>#</th><th>Nome</th><th>DISC</th><th>Elem.</th><th>Eneagrama</th><th>Arquétipo</th><th>Necessidade</th><th>Holland</th></tr>
   ${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${r.nome||r.name||'—'}</td><td>${DISC_NAMES[r.disc_primario]||r.disc_primario||'—'}</td><td>${r.elem_primario||'—'}</td><td>Tipo ${r.ennea_tipo||'—'}</td><td>${r.arquetipos||'—'}</td><td>${r.need_1a||'—'}</td><td><strong>${r.holland_codigo||'—'}</strong></td></tr>`).join('')}
   </table>
-  </body></html>`;
+  
+<!-- PDF Server Integration (Puppeteer) -->
+<script src="integracao_puppeteer.js"></script>
+<script>
+  // Configurar URL do servidor PDF
+  const PDF_SERVER_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3001'
+    : 'https://seu-pdf-server.com'; // Alterar para URL de produção
+  
+  console.log('✅ Puppeteer PDF Server integrado');
+  console.log('📡 Servidor:', PDF_SERVER_URL);
+</script>
+
+</body></html>`;
 
   const w=window.open('','_blank');
   w.document.write(html);w.document.close();
@@ -3603,6 +3654,19 @@ document.addEventListener('DOMContentLoaded',()=>{
   },90000);
 });
 </script>
+
+<!-- PDF Server Integration (Puppeteer) -->
+<script src="integracao_puppeteer.js"></script>
+<script>
+  // Configurar URL do servidor PDF
+  const PDF_SERVER_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3001'
+    : 'https://seu-pdf-server.com'; // Alterar para URL de produção
+  
+  console.log('✅ Puppeteer PDF Server integrado');
+  console.log('📡 Servidor:', PDF_SERVER_URL);
+</script>
+
 </body>
 </html>function renderPontuacaoTable(){
   const turma = document.getElementById('pts-turma')?.value;
