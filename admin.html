@@ -895,7 +895,7 @@ function exportRelatorioComPDF(htmlContent, filename){
 
     var captureEl = captureWrap.querySelector('div') || captureWrap;
 
-    html2pdf().set({
+    captureWrap.scrollTop=0; html2pdf().set({
       margin: [10,10,10,10],
       filename: filename,
       image: {type:'jpeg', quality:0.97},
@@ -1431,7 +1431,7 @@ tr,h3{break-inside:avoid;page-break-inside:avoid}
 <!-- PDI -->
 <div class="pdf-page-break"></div>
 
-<div class="section" style="border-color:#C9A84C">
+<div class="section">
   <div class="sec-head">
     <span class="sec-num" style="background:rgba(201,168,76,.2)">PDI</span>
     <span class="sec-icon">🎯</span>
@@ -1561,7 +1561,7 @@ function generate360Report(id){
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Syne',sans-serif;background:#FFFFFF;color:#1A1612;line-height:1.6;font-size:14px}
-.page{max-width:840px;margin:0 auto;padding:48px 40px}
+.page{max-width:840px;margin:0 auto;padding:32px 28px}
 /* CAPA */
 .cover{background:#FFFFFF;color:#0A0806;padding:48px;border-radius:16px;margin-bottom:40px;position:relative;overflow:hidden}
 .cover::after{content:'';position:absolute;top:-40px;right:-40px;width:240px;height:240px;border-radius:50%;background:rgba(201,168,76,.08)}
@@ -1574,34 +1574,34 @@ body{font-family:'Syne',sans-serif;background:#FFFFFF;color:#1A1612;line-height:
 .cover-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
 .cover-pill{font-family:'JetBrains Mono',monospace;font-size:10px;padding:4px 12px;border-radius:100px;border:1px solid rgba(201,168,76,.25);color:#C9A84C;letter-spacing:.08em}
 /* SECTIONS */
-.section{background:#fff;border:1px solid #E8E0D0;border-radius:12px;overflow:hidden;break-inside:avoid;page-break-inside:avoid;margin-bottom:24px}
-.section-header{display:flex;align-items:center;gap:14px;padding:18px 24px;border-bottom:1px solid #F0E8D8;background:linear-gradient(90deg,#FAF6EE,#F5F0E8)}
+.section{background:#fff;border:none;border-radius:12px;overflow:hidden;break-inside:avoid;page-break-inside:avoid;margin-bottom:24px}
+.section-header{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:none;background:linear-gradient(90deg,#FAF6EE,#F5F0E8)}
 .section-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:#C9A84C;letter-spacing:.1em;background:rgba(201,168,76,.12);padding:4px 10px;border-radius:100px}
 .section-icon{font-size:20px}
 .section-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:#0A0806}
 .section-badge{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;padding:5px 14px;border-radius:100px}
-.section-body{padding:22px 24px}
+.section-body{padding:14px 20px}
 /* TEXT */
-h3{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700;color:#0A0806;margin:16px 0 8px}
+h3{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:700;color:#0A0806;margin:10px 0 6px}
 h3:first-child{margin-top:0}
-p{font-size:13px;color:#4A4038;line-height:1.75;margin-bottom:10px}
+p{font-size:12px;color:#4A4038;line-height:1.65;margin-bottom:6px}
 strong{color:#0A0806;font-weight:700}
 em{font-style:italic;color:#7A6E5A}
 /* BARS */
-.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
 .bar-name{font-size:12px;font-weight:700;width:100px;flex-shrink:0}
 .bar-track{flex:1;height:10px;background:#F0E8D8;border-radius:5px;overflow:hidden}
 .bar-fill{height:100%;border-radius:5px}
 .bar-pct{font-family:'JetBrains Mono',monospace;font-size:12px;width:38px;text-align:right;color:#7A6E5A}
 /* GRID */
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
-.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:14px 0}
-.card{background:#FAF6EE;border:1px solid #E8E0D0;border-radius:10px;padding:16px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:8px 0}
+.card{background:#FAF6EE;border:none;border-radius:10px;padding:10px 12px}
 .card-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
 .card-value{font-size:14px;font-weight:700;color:#0A0806;margin-bottom:4px}
-.card-sub{font-size:12px;color:#7A6E5A;line-height:1.5}
+.card-sub{font-size:11px;color:#7A6E5A;line-height:1.4}
 /* INSIGHT */
-.insight{background:linear-gradient(90deg,rgba(201,168,76,.07),rgba(201,168,76,.02));border-left:3px solid #C9A84C;border-radius:0 8px 8px 0;padding:12px 16px;margin:12px 0;font-size:13px;line-height:1.7;color:#2A2018}
+.insight{background:linear-gradient(90deg,rgba(201,168,76,.07),rgba(201,168,76,.02));border-left:3px solid #C9A84C;border-radius:0 8px 8px 0;padding:8px 12px;margin:6px 0;font-size:12px;line-height:1.6;color:#2A2018}
 .insight strong{color:#8A6520}
 /* ALERT */
 .alert{background:rgba(239,68,68,.05);border-left:3px solid #EF4444;border-radius:0 8px 8px 0;padding:12px 16px;margin:10px 0;font-size:13px;color:#7A0A0A;line-height:1.7}
@@ -1809,7 +1809,7 @@ h3{break-after:avoid;page-break-after:avoid}
   </div>
   <div class="section-body">
     <h3>Distribuição do Perfil</h3>
-    <div style="margin:14px 0">
+    <div style="margin:8px 0">
       ${Object.entries(discPct).map(([k,v])=>{
         const rawPct=Math.round(v/total*100);
         const isNeg=rawPct<0;
@@ -1828,7 +1828,7 @@ h3{break-after:avoid;page-break-after:avoid}
         </div>`;}).join('')}
     </div>
     <!-- DISC Legend -->
-    <div style="font-size:11px;color:#8A7A5A;padding:10px 14px;background:#F8F5F0;border-radius:8px;margin-bottom:16px">
+    <div style="font-size:10px;color:#8A7A5A;padding:6px 10px;background:#F8F5F0;border-radius:6px;margin-bottom:8px">
       <strong>PERFIS DISC:</strong>
       ${Object.entries({D:'Dominante',I:'Influente',S:'Estável',C:'Conformidade'}).map(([k,v])=>`<span style="display:inline-flex;align-items:center;gap:4px;margin:0 8px 0 0"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${ {D:'#F07030',I:'#E8B830',S:'#4A90D4',C:'#A878E0'}[k]}"></span>${k} – ${v}</span>`).join(' · ')}
       <br><span style="display:inline-flex;align-items:center;gap:4px;margin-top:4px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;border:1px dashed #888"></span> Valor negativo = comportamento reprimido</span>
@@ -1847,12 +1847,12 @@ h3{break-after:avoid;page-break-after:avoid}
     </div>
     <h3>Atributos de Liderança</h3>
     <p>${disc==='D'?'Líder <strong>Condutora</strong> — move pelo resultado, pela decisão e pela capacidade de enfrentar desafios com determinação. Sua presença é sentida antes de você falar.':disc==='I'?'Líder <strong>Inspiradora</strong> — move pelo entusiasmo, pela visão e pela capacidade de conectar pessoas em torno de uma causa. Sua energia transforma ambientes.':disc==='S'?'Líder <strong>Estabilizadora</strong> — move pela consistência, pelo cuidado e pela capacidade de criar ambientes seguros onde as pessoas prosperam. Sua lealdade é inestimável.':'Líder <strong>Estrategista</strong> — move pela qualidade, pela análise e pela capacidade de garantir que o que é feito é feito da forma certa. Seu rigor é um diferencial raro.'}</p>
-    <h3 style="margin-top:18px">Pontos de Atenção</h3>
+    <h3 style="margin-top:8px">Pontos de Atenção</h3>
     <div class="alert">
       <strong>Comportamentos sob pressão:</strong> ${disc==='D'?'Impulsividade, autoritarismo e dificuldade em ouvir perspectivas alternativas. A velocidade de decisão pode atropelhar pessoas e processos.':disc==='I'?'Dispersão, promessas não cumpridas e fuga de conflitos necessários. O entusiasmo pode sobrepor o planejamento e a execução consistente.':disc==='S'?'Passividade, acúmulo de ressentimentos e evitação de conversas difíceis. A busca por harmonia pode sufocar o crescimento e a inovação.':'Paralisia analítica, hipercriticidade e dificuldade em iniciar sem todas as informações. O rigor pode se tornar obstáculo à velocidade.'}
     </div>
     <!-- DISC: Fortes / Delegação / Comunicação / Motivadores -->
-    <div class="grid-2" style="margin-top:16px">
+    <div class="grid-2" style="margin-top:8px">
       <div class="card" style="background:#F0FAF4;border-color:#C8EDD8">
         <div class="card-label" style="color:#22C55E">✅ Pontos Fortes</div>
         <div class="card-sub">${disc==='D'?'Orientação a resultados, assertividade, autonomia, decisão rápida, coragem e capacidade de mobilizar em crises.':disc==='I'?'Carisma, comunicação, engajamento de equipes, otimismo e criação de conexões genuínas.':disc==='S'?'Lealdade, paciência, empatia, consistência e criação de segurança psicológica.':'Análise crítica, precisão, planejamento rigoroso e garantia de qualidade.'}</div>
