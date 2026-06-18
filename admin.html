@@ -1752,21 +1752,25 @@ h3{break-after:avoid;page-break-after:avoid}
         <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px">DISC</div>
         <div style="font-size:18px;font-weight:800;color:${ ({D:'#F07030',I:'#E8B830',S:'#4A90D4',C:'#A878E0'})[disc]||'#C9A84C' }">${discN[disc]}</div>
         <div style="font-size:10px;color:#8A7A5A;margin-top:2px">${disc} · ${discSec} 2º</div>
+        <div style="font-size:9px;color:#A09080;margin-top:3px;font-style:italic">Como você age</div>
       </div>
       <div style="background:rgba(255,255,255,.8);border:1px solid rgba(201,168,76,.25);border-radius:10px;padding:12px;text-align:center">
         <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px">TEMPERAMENTO</div>
         <div style="font-size:16px;font-weight:800;color:${ ({FOGO:'#F07030',AR:'#E8C830','ÁGUA':'#4A90D4',TERRA:'#9AB050'})[elem]||'#C9A84C' }">${elem}</div>
         <div style="font-size:10px;color:#8A7A5A;margin-top:2px">${ ({FOGO:'🔥 Ação',AR:'💨 Visão','ÁGUA':'💧 Conexão',TERRA:'🌿 Estrutura'})[elem]||'' }</div>
+        <div style="font-size:9px;color:#A09080;margin-top:3px;font-style:italic">Ritmo energético</div>
       </div>
       <div style="background:rgba(255,255,255,.8);border:1px solid rgba(201,168,76,.25);border-radius:10px;padding:12px;text-align:center">
         <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px">ENEAGRAMA</div>
         <div style="font-size:18px;font-weight:800;color:#A878E0">T${ennea}</div>
         <div style="font-size:10px;color:#8A7A5A;margin-top:2px">${enneaNome}</div>
+        <div style="font-size:9px;color:#A09080;margin-top:3px;font-style:italic">Motivação inconsciente</div>
       </div>
       <div style="background:rgba(255,255,255,.8);border:1px solid rgba(201,168,76,.25);border-radius:10px;padding:12px;text-align:center">
         <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px">ARQUÉTIPO</div>
         <div style="font-size:14px;font-weight:800;color:#C9A84C">${arch}</div>
         <div style="font-size:10px;color:#8A7A5A;margin-top:2px">Imagem de Poder</div>
+        <div style="font-size:9px;color:#A09080;margin-top:3px;font-style:italic">Como você lidera</div>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
@@ -1774,16 +1778,19 @@ h3{break-after:avoid;page-break-after:avoid}
         <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px">KOLB</div>
         <div style="font-size:13px;font-weight:800;color:#48C864">${kolb}</div>
         <div style="font-size:10px;color:#8A7A5A;margin-top:2px">Aprendizagem</div>
+        <div style="font-size:9px;color:#A09080;margin-top:3px;font-style:italic">Como você aprende</div>
       </div>
       <div style="background:rgba(255,255,255,.8);border:1px solid rgba(201,168,76,.25);border-radius:10px;padding:12px;text-align:center">
         <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px">NECESSIDADES</div>
         <div style="font-size:13px;font-weight:800;color:#F0A050">${need1}</div>
         <div style="font-size:10px;color:#8A7A5A;margin-top:2px">+ ${need2}</div>
+        <div style="font-size:9px;color:#A09080;margin-top:3px;font-style:italic">O que te move</div>
       </div>
       <div style="background:rgba(255,255,255,.8);border:1px solid rgba(201,168,76,.25);border-radius:10px;padding:12px;text-align:center">
         <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px">HOLLAND</div>
-        <div style="font-size:18px;font-weight:800;color:#4A60D4">${holland}</div>
-        <div style="font-size:10px;color:#8A7A5A;margin-top:2px">Código RIASEC</div>
+        <div style="font-size:16px;font-weight:800;color:#4A60D4">${holland}</div>
+        <div style="font-size:9px;color:#4A60D4;margin-top:4px;line-height:1.5">${[...holland].map(l=>({R:'Realista',I:'Investigativo',A:'Artístico',S:'Social',E:'Empreendedor',C:'Convencional'})[l]||l).join(' · ')}</div>
+        <div style="font-size:9px;color:#A09080;margin-top:2px;font-style:italic">Vocação natural</div>
       </div>
     </div>
   </div>
