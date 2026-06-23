@@ -2906,7 +2906,7 @@ function renderDashboard(){
           ${Object.entries(discAvg).map(([k,v])=>`
             <div class="cbar-row" style="margin-bottom:12px">
               <span class="cbar-name" style="color:${discColors[k]};font-size:13px;font-weight:700">${DISC_NAMES[k]}</span>
-              <div class="cbar-track" style="height:10px"><div class="cbar-fill" style="width:${v/discMax*100}%;background:${discColors[k]}"></div></div>
+              <div class="cbar-track" style="height:10px"><div class="cbar-fill" style="width:${Math.min(v/discMax*100,100)}%;background:${discColors[k]}"></div></div>
               <span class="cbar-val">${v.toFixed(1)}</span>
             </div>
             <div style="font-size:11px;color:var(--mid);margin:-8px 0 10px 110px;line-height:1.5">${{
