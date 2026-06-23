@@ -441,15 +441,9 @@ h1.hero span{display:block;background:linear-gradient(135deg,var(--parch) 0%,var
 
 <script>
 // ════════════════════════════════════════════════════
-// TURMAS — carregadas do localStorage (Admin pode editar)
+// TURMAS — carregadas do Apps Script (fonte única de verdade)
 // ════════════════════════════════════════════════════
-const DEFAULT_TURMAS = [
-  'Geral',
-  'Impact Leader · Turma 2025/1',
-  'Impact Leader · Turma 2025/2',
-  'Formação de Líderes · 2025',
-  'Programa Executivo · 2025',
-];
+const DEFAULT_TURMAS = ['Geral']; // fallback mínimo — não exibe turmas fictícias
 const DEFAULT_FASES = [
   'Pré-Treinamento',
   'Durante o Treinamento',
@@ -458,6 +452,20 @@ const DEFAULT_FASES = [
 
 function getTurmas(){try{const t=JSON.parse(localStorage.getItem('il_turmas'));return Array.isArray(t)&&t.length?t:DEFAULT_TURMAS;}catch(e){return DEFAULT_TURMAS;}}
 function setTurmas(arr){try{localStorage.setItem('il_turmas',JSON.stringify(arr));}catch(e){}}
+
+// Busca turmas do Apps Script e atualiza localStorage + select
+async function syncTurmasFromScript(){
+  try{
+    const res=await fetch(SHEETS_URL+'?action=getTurmas&t='+Date.now());
+    if(!res.ok) return;
+    const json=await res.json();
+    if(json.status==='ok'&&Array.isArray(json.turmas)&&json.turmas.length){
+      setTurmas(json.turmas);
+      populateTurmaSelect();
+      renderMgmtTurmas();
+    }
+  }catch(e){console.warn('syncTurmas falhou, usando localStorage:',e.message);}
+}
 function getFases(){try{const f=JSON.parse(localStorage.getItem('il_fases'));return Array.isArray(f)&&f.length?f:DEFAULT_FASES;}catch(e){return DEFAULT_FASES;}}
 function setFases(arr){try{localStorage.setItem('il_fases',JSON.stringify(arr));}catch(e){}}
 
@@ -1973,6 +1981,7 @@ function exportPDF(){
 document.addEventListener('DOMContentLoaded',()=>{
   populateTurmaSelect();
   populateFaseSelect();
+  syncTurmasFromScript(); // busca turmas reais do Apps Script
   renderDisc();
   renderElemProgress();
   renderElemRound(0);
