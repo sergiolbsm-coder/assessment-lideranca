@@ -1,11 +1,12 @@
 
 // ═══════════════════════════════════════════════════════════════════════════
-// APPS SCRIPT — Instituto da Liderança  |  Versão 2025.4
+// APPS SCRIPT — Instituto da Liderança  |  Versão 2025.5
 // ═══════════════════════════════════════════════════════════════════════════
 var SHEET_ID       = '1C8kfRIjc3caRCfCkIgFToudZJD6Ch_-_36JBW9Mr7ho';
 var ABA_RESPOSTAS  = 'Respostas';
 var ABA_PONTUACAO  = 'Pontuacao';
 var ABA_RANKING    = 'Ranking';
+var ABA_TURMAS     = 'Turmas';   // ← nova aba: fonte única de verdade
 
 var CAB_RESPOSTAS = [
   'timestamp','nome','email','empresa','turma','fase',
@@ -38,6 +39,7 @@ function doGet(e) {
     var action = (e && e.parameter && e.parameter.action) ? e.parameter.action : 'getRespostas';
     if (action === 'getPontuacoes') return out.setContent(JSON.stringify(sheetToJson(ABA_PONTUACAO)));
     if (action === 'getRanking')    return out.setContent(JSON.stringify(sheetToJson(ABA_RANKING)));
+    if (action === 'getTurmas')     return out.setContent(JSON.stringify(doGetTurmas()));
     return out.setContent(JSON.stringify(sheetToJson(ABA_RESPOSTAS)));
   } catch(err) {
     return out.setContent(JSON.stringify({status:'error', message:err.toString()}));
@@ -68,11 +70,48 @@ function doPost(e) {
     var data = JSON.parse(e.postData.contents);
     if (data.action === 'savePontuacao') return out.setContent(JSON.stringify(doSavePontuacao(data)));
     if (data.action === 'saveRanking')   return out.setContent(JSON.stringify(doSaveRanking(data.rows)));
+    if (data.action === 'saveTurmas')    return out.setContent(JSON.stringify(doSaveTurmas(data.turmas)));
     return out.setContent(JSON.stringify(doSaveResposta(data)));
   } catch(err) {
     Logger.log('Erro doPost: ' + err.toString());
     return out.setContent(JSON.stringify({status:'error', message:err.toString()}));
   }
+}
+
+// ── Turmas — leitura ─────────────────────────────────────────────────────────
+function doGetTurmas() {
+  var ss    = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName(ABA_TURMAS);
+  if (!sheet || sheet.getLastRow() === 0) return {status:'ok', turmas:['Geral']};
+  var vals = sheet.getRange(1, 1, sheet.getLastRow(), 1).getValues()
+               .flat()
+               .map(function(v){ return String(v).trim(); })
+               .filter(function(v){ return v.length > 0; });
+  if (!vals.length) return {status:'ok', turmas:['Geral']};
+  return {status:'ok', turmas: vals};
+}
+
+// ── Turmas — escrita (admin) ──────────────────────────────────────────────────
+function doSaveTurmas(turmas) {
+  if (!Array.isArray(turmas) || !turmas.length) return {status:'error', message:'Lista de turmas vazia'};
+  var ss    = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName(ABA_TURMAS);
+  if (!sheet) {
+    sheet = ss.insertSheet(ABA_TURMAS);
+    var h = sheet.getRange(1,1,1,2);
+    h.setValues([['turma','ativo']]);
+    h.setFontWeight('bold');
+    h.setBackground('#0A0806');
+    h.setFontColor('#C9A84C');
+    sheet.setFrozenRows(1);
+  }
+  // Limpa dados anteriores (preserva cabeçalho)
+  if (sheet.getLastRow() > 1) sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).clearContent();
+  // Escreve nova lista
+  var rows = turmas.map(function(t){ return [String(t).trim(), 'SIM']; });
+  sheet.getRange(2, 1, rows.length, 2).setValues(rows);
+  sheet.getRange(2, 1, rows.length, 1).setNumberFormat('@');
+  return {status:'ok', saved: rows.length};
 }
 
 // ── Salvar resposta do assessment ────────────────────────────────────────────
@@ -121,17 +160,14 @@ function doSavePontuacao(data) {
   var rodIdx  = headers.indexOf('rodada');
   var atvIdx  = headers.indexOf('atv_id');
 
-  // Build set of keys to upsert
   var toReplace = {};
   lancamentos.forEach(function(l){ toReplace[l.key+'|'+l.rodada+'|'+l.atv_id] = true; });
 
-  // Delete matching rows from bottom
   for (var i = allRows.length - 1; i >= 1; i--) {
     var rk = allRows[i][keyIdx]+'|'+allRows[i][rodIdx]+'|'+allRows[i][atvIdx];
     if (toReplace[rk]) sheet.deleteRow(i+1);
   }
 
-  // Append new rows
   var newRows = lancamentos.map(function(l) {
     return [l.key||'', l.nome||'', l.email||'', l.turma||'', l.empresa||'',
             l.rodada||'', l.atv_id||'', l.atv_nome||'', Number(l.pts)||0,
@@ -141,7 +177,6 @@ function doSavePontuacao(data) {
   if (newRows.length) {
     var startRow = sheet.getLastRow() + 1;
     sheet.getRange(startRow, 1, newRows.length, newRows[0].length).setValues(newRows);
-    // Force text on string columns
     [1,2,3,4,5,6,7,8,10,11].forEach(function(col){
       sheet.getRange(startRow, col, newRows.length, 1).setNumberFormat('@');
     });
@@ -187,7 +222,9 @@ function configurarAbas() {
   makeSheet(ABA_RESPOSTAS, CAB_RESPOSTAS, TEXT_COLS_R);
   makeSheet(ABA_PONTUACAO, CAB_PONTUACAO, null);
   makeSheet(ABA_RANKING,   CAB_RANKING,   null);
-  Logger.log('Abas configuradas: Respostas, Pontuacao, Ranking');
+  // Cria aba Turmas com defaults mínimos se não existir
+  if (!ss.getSheetByName(ABA_TURMAS)) doSaveTurmas(['Geral']);
+  Logger.log('Abas configuradas: Respostas, Pontuacao, Ranking, Turmas');
 }
 
 // ── Testes (executar no editor) ───────────────────────────────────────────────
@@ -218,6 +255,13 @@ function testarPontuacao() {
   Logger.log('Pontuação: ' + JSON.stringify(r));
 }
 
+function testarTurmas() {
+  var salvo = doSaveTurmas(['Geral','Impact Leader · T1','Formação 2025']);
+  Logger.log('Save turmas: ' + JSON.stringify(salvo));
+  var lido = doGetTurmas();
+  Logger.log('Get turmas: ' + JSON.stringify(lido));
+}
+
 function testarGetPontuacoes() {
   var r = sheetToJson(ABA_PONTUACAO);
   Logger.log('Pontuações: total=' + r.total);
@@ -240,4 +284,5 @@ function verEstatisticas() {
   Logger.log('Respostas: '  + sheetToJson(ABA_RESPOSTAS).total);
   Logger.log('Pontuacoes: ' + sheetToJson(ABA_PONTUACAO).total);
   Logger.log('Ranking: '    + sheetToJson(ABA_RANKING).total);
+  Logger.log('Turmas: '     + JSON.stringify(doGetTurmas()));
 }
