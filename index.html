@@ -456,9 +456,9 @@ function setTurmas(arr){try{localStorage.setItem('il_turmas',JSON.stringify(arr)
 // Busca turmas do Apps Script e atualiza localStorage + select
 async function syncTurmasFromScript(){
   try{
-    const res=await fetch(SHEETS_URL+'?action=getTurmas&t='+Date.now());
-    if(!res.ok) return;
-    const json=await res.json();
+    const res=await fetch(SHEETS_URL+'?action=getTurmas&t='+Date.now(),{redirect:'follow'});
+    const text=await res.text();
+    const json=JSON.parse(text);
     if(json.status==='ok'&&Array.isArray(json.turmas)&&json.turmas.length){
       setTurmas(json.turmas);
       populateTurmaSelect();
@@ -466,6 +466,7 @@ async function syncTurmasFromScript(){
     }
   }catch(e){console.warn('syncTurmas falhou, usando localStorage:',e.message);}
 }
+
 function getFases(){try{const f=JSON.parse(localStorage.getItem('il_fases'));return Array.isArray(f)&&f.length?f:DEFAULT_FASES;}catch(e){return DEFAULT_FASES;}}
 function setFases(arr){try{localStorage.setItem('il_fases',JSON.stringify(arr));}catch(e){}}
 
