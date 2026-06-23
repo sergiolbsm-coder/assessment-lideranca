@@ -326,7 +326,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
         </div>
         <div class="config-row">
           <div class="config-label">URL do Apps Script (Web App)</div>
-          <input class="config-input" id="cfg-script-url" placeholder="https://script.google.com/macros/s/XXXX/exec" value="https://script.google.com/macros/s/AKfycbzfakehpLWVm1HJYkyHHXq4pBL-3v3Wo_BfhzM0FezaDUqpMXctk3ta8YFB-Hc2TrjfzA/exec">
+          <input class="config-input" id="cfg-script-url" placeholder="https://script.google.com/macros/s/XXXX/exec" value="https://script.google.com/macros/s/AKfycbyUFi-n1PaKBH119A0XiWZ_wMgN7jRbN176F1VLEUD0JyODhVVGooVRcQQ1D0MFZkS4ng/exec">
           <div class="config-hint">Gerada ao implantar o Apps Script como Web App com acesso público.</div>
         </div>
         <button class="btn btn-gold" onclick="saveConfig()" style="margin-top:6px">💾 Salvar Configuração</button>
@@ -539,7 +539,7 @@ const ELEM_COLORS={FOGO:'var(--flame)',AR:'var(--mist)',TERRA:'var(--moss)','ÁG
 
 async function loadData(){
   const emptyEl=document.getElementById('empty-resp');
-  const scriptUrl=getCfg('script_url','https://script.google.com/macros/s/AKfycbzfakehpLWVm1HJYkyHHXq4pBL-3v3Wo_BfhzM0FezaDUqpMXctk3ta8YFB-Hc2TrjfzA/exec');
+  const scriptUrl=getCfg('script_url','https://script.google.com/macros/s/AKfycbyUFi-n1PaKBH119A0XiWZ_wMgN7jRbN176F1VLEUD0JyODhVVGooVRcQQ1D0MFZkS4ng/exec');
   const csvUrl=getCfg('csv_url',DEFAULT_CSV);
   let loaded=false;
 
@@ -3132,7 +3132,7 @@ function renderTurmaList(){
 // Envia lista de turmas ao Apps Script para persistência remota
 async function pushTurmasToScript(turmas){
   try{
-    const scriptUrl=getCfg('script_url','https://script.google.com/macros/s/AKfycbzfakehpLWVm1HJYkyHHXq4pBL-3v3Wo_BfhzM0FezaDUqpMXctk3ta8YFB-Hc2TrjfzA/exec');
+    const scriptUrl=getCfg('script_url','https://script.google.com/macros/s/AKfycbyUFi-n1PaKBH119A0XiWZ_wMgN7jRbN176F1VLEUD0JyODhVVGooVRcQQ1D0MFZkS4ng/exec');
     if(!scriptUrl)return;
     await fetch(scriptUrl,{method:'POST',body:JSON.stringify({action:'saveTurmas',turmas}),headers:{'Content-Type':'application/json'}});
   }catch(e){console.warn('pushTurmas falhou:',e.message);}
@@ -3265,7 +3265,7 @@ function toast(msg,type='info'){
 // PONTUAÇÕES — sincronização com Apps Script
 // ════════════════════════════════════════════════════
 async function loadPontuacoesFromSheet(){
-  const scriptUrl=getCfg('script_url','https://script.google.com/macros/s/AKfycbzfakehpLWVm1HJYkyHHXq4pBL-3v3Wo_BfhzM0FezaDUqpMXctk3ta8YFB-Hc2TrjfzA/exec');
+  const scriptUrl=getCfg('script_url','https://script.google.com/macros/s/AKfycbyUFi-n1PaKBH119A0XiWZ_wMgN7jRbN176F1VLEUD0JyODhVVGooVRcQQ1D0MFZkS4ng/exec');
   if(!scriptUrl) return;
   try{
     const res=await fetch(scriptUrl+'?action=getPontuacoes&t='+Date.now());
@@ -3299,7 +3299,7 @@ async function loadPontuacoesFromSheet(){
 // PONTUAÇÕES — carregar da planilha
 // ════════════════════════════════════════════════════
 async function loadPontuacoesFromSheet(){
-  const scriptUrl=getCfg('script_url','https://script.google.com/macros/s/AKfycbzfakehpLWVm1HJYkyHHXq4pBL-3v3Wo_BfhzM0FezaDUqpMXctk3ta8YFB-Hc2TrjfzA/exec');
+  const scriptUrl=getCfg('script_url','https://script.google.com/macros/s/AKfycbyUFi-n1PaKBH119A0XiWZ_wMgN7jRbN176F1VLEUD0JyODhVVGooVRcQQ1D0MFZkS4ng/exec');
   if(!scriptUrl)return;
   try{
     const res=await fetch(scriptUrl+'?action=getPontuacoes&t='+Date.now());
@@ -3460,7 +3460,7 @@ function togglePonto(cb){
 }
 
 async function salvarPontoSheet(key, rodada, atvId, marcado, r, atividades){
-  const scriptUrl=getCfg('script_url','https://script.google.com/macros/s/AKfycbzfakehpLWVm1HJYkyHHXq4pBL-3v3Wo_BfhzM0FezaDUqpMXctk3ta8YFB-Hc2TrjfzA/exec');
+  const scriptUrl=getCfg('script_url','https://script.google.com/macros/s/AKfycbyUFi-n1PaKBH119A0XiWZ_wMgN7jRbN176F1VLEUD0JyODhVVGooVRcQQ1D0MFZkS4ng/exec');
   if(!scriptUrl) return;
   const atv=atividades.find(a=>a.id===atvId)||{};
   try{
@@ -3484,7 +3484,7 @@ function salvarPontuacao(){
   const turma=document.getElementById('pts-turma')?.value;
   const rodada=document.getElementById('pts-rodada')?.value||'1';
   if(!turma){toast('Selecione uma turma primeiro','warn');return;}
-  const scriptUrl=getCfg('script_url','https://script.google.com/macros/s/AKfycbzfakehpLWVm1HJYkyHHXq4pBL-3v3Wo_BfhzM0FezaDUqpMXctk3ta8YFB-Hc2TrjfzA/exec');
+  const scriptUrl=getCfg('script_url','https://script.google.com/macros/s/AKfycbyUFi-n1PaKBH119A0XiWZ_wMgN7jRbN176F1VLEUD0JyODhVVGooVRcQQ1D0MFZkS4ng/exec');
   if(!scriptUrl){toast('Configure o Apps Script na aba Configuração','warn');return;}
   const participantes=allData.filter(r=>r.turma===turma);
   const atividades=getAtividades();
@@ -3697,7 +3697,7 @@ function saveRankingToSheet(){
     });
   });
 
-  const scriptUrl=getCfg('script_url','https://script.google.com/macros/s/AKfycbzfakehpLWVm1HJYkyHHXq4pBL-3v3Wo_BfhzM0FezaDUqpMXctk3ta8YFB-Hc2TrjfzA/exec');
+  const scriptUrl=getCfg('script_url','https://script.google.com/macros/s/AKfycbyUFi-n1PaKBH119A0XiWZ_wMgN7jRbN176F1VLEUD0JyODhVVGooVRcQQ1D0MFZkS4ng/exec');
   if(!scriptUrl){toast('Configure o Apps Script na aba Configuração','warn');return;}
 
   const btn=document.getElementById('btn-save-ranking');
