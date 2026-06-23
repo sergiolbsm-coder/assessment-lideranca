@@ -3129,6 +3129,15 @@ function renderTurmaList(){
     </div>`).join('')||'<p style="color:var(--mid);font-size:13px">Nenhuma turma cadastrada.</p>';
 }
 
+// Envia lista de turmas ao Apps Script para persistência remota
+async function pushTurmasToScript(turmas){
+  try{
+    const scriptUrl=getCfg('script_url','https://script.google.com/macros/s/AKfycbzfakehpLWVm1HJYkyHHXq4pBL-3v3Wo_BfhzM0FezaDUqpMXctk3ta8YFB-Hc2TrjfzA/exec');
+    if(!scriptUrl)return;
+    await fetch(scriptUrl,{method:'POST',body:JSON.stringify({action:'saveTurmas',turmas}),headers:{'Content-Type':'application/json'}});
+  }catch(e){console.warn('pushTurmas falhou:',e.message);}
+}
+
 function addTurma(){
   const val=document.getElementById('new-turma').value.trim();
   if(!val){toast('Digite o nome da turma','warn');return}
@@ -3136,6 +3145,7 @@ function addTurma(){
   if(turmas.includes(val)){toast('Turma já cadastrada','warn');return}
   turmas.push(val);
   setTurmas(turmas);
+  pushTurmasToScript(turmas);
   document.getElementById('new-turma').value='';
   renderTurmaList();
   syncTurmaSelects();
@@ -3147,6 +3157,7 @@ function deleteTurma(i){
   if(!confirm(`Remover a turma "${turmas[i]}"?`))return;
   turmas.splice(i,1);
   setTurmas(turmas);
+  pushTurmasToScript(turmas);
   renderTurmaList();
   syncTurmaSelects();
   toast('Turma removida','success');
@@ -3165,6 +3176,7 @@ function saveEditTurma(){
   const turmas=getTurmas();
   turmas[editTurmaIdx]=val;
   setTurmas(turmas);
+  pushTurmasToScript(turmas);
   closeEditTurma();
   renderTurmaList();
   syncTurmaSelects();
@@ -3176,6 +3188,7 @@ function closeEditTurma(){document.getElementById('edit-turma-modal').classList.
 function resetTurmas(){
   if(!confirm('Restaurar turmas padrão? As turmas personalizadas serão removidas.'))return;
   localStorage.removeItem('il_turmas');
+  pushTurmasToScript(getTurmas());
   renderTurmaList();
   syncTurmaSelects();
   toast('Turmas restauradas para o padrão','success');
