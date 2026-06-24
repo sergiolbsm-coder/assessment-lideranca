@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DISC — Instituto da Liderança</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:    #0A0806;
+  --parch:  #EDE8DC;
+  --gold:   #C9A84C;
+  --mid:    #6A5A48;
+  --border: rgba(201,168,76,.18);
+  --flame:  #DC503C;
+  --sky:    #4A90D9;
+  --mist:   #7BB89A;
+  --r:      12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Syne',sans-serif;background:var(--ink);color:var(--parch);min-height:100vh;padding:24px 16px}
+.wrap{max-width:680px;margin:0 auto}
+h1{font-size:22px;font-weight:800;color:var(--gold);margin-bottom:4px}
+.subtitle{font-size:13px;color:var(--mid);margin-bottom:32px;font-family:'JetBrains Mono',monospace}
+.card{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin-bottom:16px}
+.section-title{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);font-family:'JetBrains Mono',monospace;margin-bottom:16px}
+label{display:block;font-size:13px;color:var(--mid);margin-bottom:6px}
+input,select{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--parch);font-family:'Syne',sans-serif;font-size:14px;outline:none}
+input:focus,select:focus{border-color:var(--gold)}
+select option{background:#1a1410}
+.field{margin-bottom:14px}
+.round-header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.round-badge{background:var(--gold);color:var(--ink);font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;padding:4px 12px;border-radius:100px;letter-spacing:.1em}
+.round-desc{font-size:12px;color:var(--mid);line-height:1.5}
+.group{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:10px}
+.group-num{font-size:10px;color:var(--mid);font-family:'JetBrains Mono',monospace;margin-bottom:10px}
+.words{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.word-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;border-radius:6px;background:rgba(255,255,255,.03);border:1px solid transparent;transition:.2s}
+.word-row:hover{border-color:var(--border)}
+.word-label{font-size:14px;font-weight:600}
+.word-disc{font-size:9px;color:var(--mid);font-family:'JetBrains Mono',monospace}
+.radio-group{display:flex;gap:6px;flex-shrink:0}
+.radio-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);background:transparent;cursor:pointer;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--mid);transition:.2s;display:flex;align-items:center;justify-content:center}
+.radio-btn:hover{border-color:var(--gold);color:var(--gold)}
+.radio-btn.mais.active{background:var(--gold);border-color:var(--gold);color:var(--ink)}
+.radio-btn.menos.active{background:var(--flame);border-color:var(--flame);color:#fff}
+.progress-wrap{margin-bottom:24px}
+.progress-label{font-size:11px;color:var(--mid);font-family:'JetBrains Mono',monospace;margin-bottom:6px;display:flex;justify-content:space-between}
+.progress-track{height:4px;background:rgba(255,255,255,.08);border-radius:2px}
+.progress-fill{height:100%;background:var(--gold);border-radius:2px;transition:width .3s}
+.warning{font-size:12px;color:var(--flame);font-family:'JetBrains Mono',monospace;margin-top:8px;display:none}
+.warning.show{display:block}
+.btn{padding:14px 32px;border-radius:100px;border:none;cursor:pointer;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;transition:.2s}
+.btn-primary{background:var(--gold);color:var(--ink)}
+.btn-primary:hover{opacity:.9}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--mid)}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:24px}
+.step{display:none}
+.step.active{display:block}
+.result-bar-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.result-bar-label{width:120px;font-size:13px;font-weight:600;flex-shrink:0}
+.result-bar-track{flex:1;height:20px;background:rgba(255,255,255,.05);border-radius:6px;overflow:hidden;position:relative}
+.result-bar-fill{height:100%;border-radius:6px;transition:width .8s ease}
+.result-bar-val{width:48px;text-align:right;font-size:13px;font-family:'JetBrains Mono',monospace;flex-shrink:0}
+.delta-center{position:absolute;left:50%;top:0;width:1px;height:100%;background:rgba(255,255,255,.2)}
+.tag{display:inline-block;padding:3px 12px;border-radius:100px;font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.result-card{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:16px}
+.result-card-label{font-size:10px;color:var(--mid);font-family:'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+.result-card-value{font-size:18px;font-weight:800}
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:rgba(10,8,6,.96);border:1px solid var(--gold);color:var(--parch);padding:12px 24px;border-radius:100px;font-size:13px;font-family:'Syne',sans-serif;z-index:9999;display:none}
+@media(max-width:600px){.words{grid-template-columns:1fr}.result-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- STEP 0: CADASTRO -->
+  <div class="step active" id="step-cadastro">
+    <h1>Assessment DISC</h1>
+    <p class="subtitle">Instituto da Liderança · Versão 2.0</p>
+    <div class="card">
+      <div class="section-title">Identificação</div>
+      <div class="field"><label>Nome completo *</label><input id="f-nome" type="text" placeholder="Seu nome"></div>
+      <div class="field"><label>E-mail *</label><input id="f-email" type="email" placeholder="seu@email.com"></div>
+      <div class="field"><label>Empresa</label><input id="f-empresa" type="text" placeholder="Nome da empresa"></div>
+      <div class="field"><label>Turma *</label>
+        <select id="f-turma"><option value="">Carregando...</option></select>
+      </div>
+      <div class="field"><label>Fase *</label>
+        <select id="f-fase">
+          <option value="Pré-Treinamento">Pré-Treinamento</option>
+          <option value="Durante o Treinamento">Durante o Treinamento</option>
+          <option value="Pós-Treinamento">Pós-Treinamento</option>
+        </select>
+      </div>
+    </div>
+    <div class="nav">
+      <span></span>
+      <button class="btn btn-primary" onclick="startDisc()">Iniciar Assessment →</button>
+    </div>
+  </div>
+
+  <!-- STEP 1: DISC MÁSCARA -->
+  <div class="step" id="step-mask">
+    <h1>Perfil DISC</h1>
+    <p class="subtitle">Rodada 1 de 2</p>
+    <div class="progress-wrap">
+      <div class="progress-label"><span>Progresso</span><span id="prog-mask-txt">0 / 24</span></div>
+      <div class="progress-track"><div class="progress-fill" id="prog-mask" style="width:0%"></div></div>
+    </div>
+    <div class="card">
+      <div class="round-header">
+        <span class="round-badge">RODADA 1 — MÁSCARA</span>
+      </div>
+      <p class="round-desc" style="margin-bottom:20px">Em cada grupo, escolha a palavra que <strong style="color:var(--gold)">MAIS</strong> te descreve no <strong>ambiente de trabalho</strong> e a que <strong style="color:var(--flame)">MENOS</strong> te descreve. Seja espontâneo(a).</p>
+      <div id="groups-mask"></div>
+      <div class="warning" id="warn-mask">⚠ Responda pelo menos 20 grupos antes de continuar.</div>
+    </div>
+    <div class="nav">
+      <button class="btn btn-ghost" onclick="goTo('step-cadastro')">← Voltar</button>
+      <button class="btn btn-primary" onclick="nextToNat()">Próxima Rodada →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: DISC NATURAL -->
+  <div class="step" id="step-nat">
+    <h1>Perfil DISC</h1>
+    <p class="subtitle">Rodada 2 de 2</p>
+    <div class="progress-wrap">
+      <div class="progress-label"><span>Progresso</span><span id="prog-nat-txt">0 / 24</span></div>
+      <div class="progress-track"><div class="progress-fill" id="prog-nat" style="width:0%"></div></div>
+    </div>
+    <div class="card">
+      <div class="round-header">
+        <span class="round-badge" style="background:var(--sky)">RODADA 2 — PERFIL NATURAL</span>
+      </div>
+      <p class="round-desc" style="margin-bottom:20px">Agora responda pensando em <strong>como você realmente é</strong> — fora do trabalho, com pessoas próximas, sem pressão de papel ou função. Escolha a palavra que <strong style="color:var(--gold)">MAIS</strong> e <strong style="color:var(--flame)">MENOS</strong> te representa.</p>
+      <div id="groups-nat"></div>
+      <div class="warning" id="warn-nat">⚠ Responda pelo menos 20 grupos antes de continuar.</div>
+    </div>
+    <div class="nav">
+      <button class="btn btn-ghost" onclick="goTo('step-mask')">← Voltar</button>
+      <button class="btn btn-primary" onclick="calcularEMostrar()">Ver Resultado →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: RESULTADO -->
+  <div class="step" id="step-result">
+    <h1>Seu Perfil DISC</h1>
+    <p class="subtitle" id="res-nome-sub"></p>
+
+    <div class="result-grid" id="res-cards"></div>
+
+    <div class="card">
+      <div class="section-title">Perfil Natural — como você realmente é</div>
+      <p style="font-size:11px;color:var(--mid);font-family:'JetBrains Mono',monospace;margin-bottom:14px">% do total de respostas (Rodada 2)</p>
+      <div id="res-nat-bars"></div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="section-title">Máscara — como você age no trabalho</div>
+      <p style="font-size:11px;color:var(--mid);font-family:'JetBrains Mono',monospace;margin-bottom:14px">% do total de respostas (Rodada 1)</p>
+      <div id="res-mask-bars"></div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="section-title">Adaptação (Delta) — esforço comportamental</div>
+      <p style="font-size:11px;color:var(--mid);font-family:'JetBrains Mono',monospace;margin-bottom:14px">
+        Positivo (+) = forçando mais que o natural &nbsp;|&nbsp; Negativo (−) = suprimindo
+      </p>
+      <div id="res-delta-bars"></div>
+      <div id="res-diagnostico" style="margin-top:16px;padding:14px;background:rgba(255,255,255,.03);border-radius:8px;border-left:3px solid var(--gold)"></div>
+    </div>
+
+    <div class="nav" style="margin-top:24px">
+      <button class="btn btn-ghost" onclick="goTo('step-nat')">← Revisar</button>
+      <button class="btn btn-primary" id="btn-salvar" onclick="salvar()">✓ Salvar Resultado</button>
+    </div>
+  </div>
+
+</div>
+<div id="toast"></div>
+
+<script>
+// ─── CONSTANTES ───────────────────────────────────────────────────────────────
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyUFi-n1PaKBH119A0XiWZ_wMgN7jRbN176F1VLEUD0JyODhVVGooVRcQQ1D0MFZkS4ng/exec';
+
+const DISC_COLORS = { D:'var(--flame)', I:'#F0C030', S:'var(--sky)', C:'var(--mist)' };
+const DISC_NAMES  = { D:'Dominante', I:'Influente', S:'Estável', C:'Consciencioso' };
+
+// 24 grupos clássicos DISC (adjetivos validados método MAIS/MENOS)
+const GRUPOS = [
+  [{w:'Ousado',d:'D'},{w:'Expressivo',d:'I'},{w:'Paciente',d:'S'},{w:'Cuidadoso',d:'C'}],
+  [{w:'Decidido',d:'D'},{w:'Entusiasmado',d:'I'},{w:'Amigável',d:'S'},{w:'Preciso',d:'C'}],
+  [{w:'Competitivo',d:'D'},{w:'Persuasivo',d:'I'},{w:'Tolerante',d:'S'},{w:'Metódico',d:'C'}],
+  [{w:'Direto',d:'D'},{w:'Animado',d:'I'},{w:'Calmo',d:'S'},{w:'Analítico',d:'C'}],
+  [{w:'Independente',d:'D'},{w:'Sociável',d:'I'},{w:'Gentil',d:'S'},{w:'Sistemático',d:'C'}],
+  [{w:'Determinado',d:'D'},{w:'Otimista',d:'I'},{w:'Leal',d:'S'},{w:'Exato',d:'C'}],
+  [{w:'Corajoso',d:'D'},{w:'Carismático',d:'I'},{w:'Apoiador',d:'S'},{w:'Criterioso',d:'C'}],
+  [{w:'Audacioso',d:'D'},{w:'Inspirador',d:'I'},{w:'Cooperativo',d:'S'},{w:'Prudente',d:'C'}],
+  [{w:'Assertivo',d:'D'},{w:'Comunicativo',d:'I'},{w:'Estável',d:'S'},{w:'Detalhista',d:'C'}],
+  [{w:'Impaciente',d:'D'},{w:'Impulsivo',d:'I'},{w:'Resistente a mudança',d:'S'},{w:'Perfeccionista',d:'C'}],
+  [{w:'Dominador',d:'D'},{w:'Falante',d:'I'},{w:'Indeciso',d:'S'},{w:'Crítico',d:'C'}],
+  [{w:'Exigente',d:'D'},{w:'Emotivo',d:'I'},{w:'Passivo',d:'S'},{w:'Rígido',d:'C'}],
+  [{w:'Resoluto',d:'D'},{w:'Popular',d:'I'},{w:'Acomodador',d:'S'},{w:'Reservado',d:'C'}],
+  [{w:'Pioneiro',d:'D'},{w:'Dinâmico',d:'I'},{w:'Consistente',d:'S'},{w:'Organizado',d:'C'}],
+  [{w:'Objetivo',d:'D'},{w:'Envolvente',d:'I'},{w:'Previsível',d:'S'},{w:'Cauteloso',d:'C'}],
+  [{w:'Firme',d:'D'},{w:'Entusiasta',d:'I'},{w:'Compreensivo',d:'S'},{w:'Lógico',d:'C'}],
+  [{w:'Autoconfiante',d:'D'},{w:'Espontâneo',d:'I'},{w:'Dedicado',d:'S'},{w:'Disciplinado',d:'C'}],
+  [{w:'Vigoroso',d:'D'},{w:'Extrovertido',d:'I'},{w:'Harmonioso',d:'S'},{w:'Confiável',d:'C'}],
+  [{w:'Incisivo',d:'D'},{w:'Alegre',d:'I'},{w:'Sereno',d:'S'},{w:'Minucioso',d:'C'}],
+  [{w:'Arrojado',d:'D'},{w:'Criativo',d:'I'},{w:'Empático',d:'S'},{w:'Rigoroso',d:'C'}],
+  [{w:'Desafiador',d:'D'},{w:'Motivador',d:'I'},{w:'Protetor',d:'S'},{w:'Investigativo',d:'C'}],
+  [{w:'Enérgico',d:'D'},{w:'Versátil',d:'I'},{w:'Mediador',d:'S'},{w:'Sistemático',d:'C'}],
+  [{w:'Coletivo',d:'D'},{w:'Informal',d:'I'},{w:'Previsível',d:'S'},{w:'Formal',d:'C'}],
+  [{w:'Veloz',d:'D'},{w:'Interativo',d:'I'},{w:'Pausado',d:'S'},{w:'Reflexivo',d:'C'}]
+];
+
+// ─── ESTADO ───────────────────────────────────────────────────────────────────
+const answers = {
+  mask: Array(24).fill(null).map(()=>({mais:null,menos:null})),
+  nat:  Array(24).fill(null).map(()=>({mais:null,menos:null}))
+};
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  renderGroups('mask');
+  renderGroups('nat');
+  await loadTurmas();
+});
+
+async function loadTurmas() {
+  try {
+    const r = await fetch(`${SHEETS_URL}?action=getTurmas&t=${Date.now()}`,{redirect:'follow'});
+    const d = await r.json();
+    const sel = document.getElementById('f-turma');
+    if (d.status==='ok' && d.turmas?.length) {
+      sel.innerHTML = d.turmas.map(t=>`<option value="${t}">${t}</option>`).join('');
+    } else {
+      sel.innerHTML = '<option value="Geral">Geral</option>';
+    }
+  } catch(e) {
+    document.getElementById('f-turma').innerHTML = '<option value="Geral">Geral</option>';
+  }
+}
+
+// ─── RENDER GRUPOS ────────────────────────────────────────────────────────────
+function renderGroups(round) {
+  const container = document.getElementById(`groups-${round}`);
+  container.innerHTML = GRUPOS.map((grupo, gi) => `
+    <div class="group" id="grp-${round}-${gi}">
+      <div class="group-num">GRUPO ${gi+1}</div>
+      <div class="words">
+        ${grupo.map((item, wi) => `
+          <div class="word-row" id="wr-${round}-${gi}-${wi}">
+            <div>
+              <div class="word-label">${item.w}</div>
+              <div class="word-disc">${DISC_NAMES[item.d]}</div>
+            </div>
+            <div class="radio-group">
+              <button class="radio-btn mais" onclick="select('${round}',${gi},${wi},'mais')" title="MAIS me define">+</button>
+              <button class="radio-btn menos" onclick="select('${round}',${gi},${wi},'menos')" title="MENOS me define">−</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─── SELEÇÃO ──────────────────────────────────────────────────────────────────
+function select(round, gi, wi, tipo) {
+  const ans = answers[round][gi];
+  const grupo = GRUPOS[gi];
+
+  // Remove seleção anterior do mesmo tipo no grupo
+  if (ans[tipo] !== null) {
+    const prevBtn = document.querySelector(`#wr-${round}-${gi}-${ans[tipo]} .radio-btn.${tipo}`);
+    if (prevBtn) prevBtn.classList.remove('active');
+  }
+
+  // Se clicou no mesmo item que já está selecionado → deselect
+  if (ans[tipo] === wi) {
+    ans[tipo] = null;
+  } else {
+    // Não pode ser mais e menos ao mesmo tempo
+    if (tipo === 'mais' && ans.menos === wi) ans.menos = null;
+    if (tipo === 'menos' && ans.mais === wi) ans.mais = null;
+    // Limpa todos os botões do grupo para esse tipo
+    grupo.forEach((_,i) => {
+      const b = document.querySelector(`#wr-${round}-${gi}-${i} .radio-btn.${tipo}`);
+      if (b) b.classList.remove('active');
+    });
+    ans[tipo] = wi;
+    const btn = document.querySelector(`#wr-${round}-${gi}-${wi} .radio-btn.${tipo}`);
+    if (btn) btn.classList.add('active');
+  }
+  updateProgress(round);
+}
+
+// ─── PROGRESSO ────────────────────────────────────────────────────────────────
+function countCompleted(round) {
+  return answers[round].filter(a => a.mais !== null && a.menos !== null).length;
+}
+
+function updateProgress(round) {
+  const done = countCompleted(round);
+  const pct  = Math.round(done / 24 * 100);
+  document.getElementById(`prog-${round}`).style.width = pct + '%';
+  document.getElementById(`prog-${round}-txt`).textContent = `${done} / 24`;
+}
+
+// ─── NAVEGAÇÃO ────────────────────────────────────────────────────────────────
+function goTo(id) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function startDisc() {
+  const nome  = document.getElementById('f-nome').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+  const turma = document.getElementById('f-turma').value;
+  if (!nome || !email || !turma) { showToast('⚠ Preencha nome, e-mail e turma.'); return; }
+  goTo('step-mask');
+}
+
+function nextToNat() {
+  const done = countCompleted('mask');
+  if (done < 20) {
+    document.getElementById('warn-mask').classList.add('show');
+    return;
+  }
+  document.getElementById('warn-mask').classList.remove('show');
+  goTo('step-nat');
+}
+
+// ─── CÁLCULO ──────────────────────────────────────────────────────────────────
+function calcScores(round) {
+  const sc = {D:0, I:0, S:0, C:0};
+  answers[round].forEach((ans, gi) => {
+    if (ans.mais !== null) sc[GRUPOS[gi][ans.mais].d]++;
+    if (ans.menos !== null) sc[GRUPOS[gi][ans.menos].d]--;
+  });
+  return sc;
+}
+
+function getPrimary(scores) {
+  return Object.entries(scores).sort((a,b)=>b[1]-a[1])[0][0];
+}
+
+function getSecondary(scores, primary) {
+  return Object.entries(scores).filter(([k])=>k!==primary).sort((a,b)=>b[1]-a[1])[0][0];
+}
+
+function pctOfAbs(scores) {
+  const total = Object.values(scores).reduce((a,v)=>a+Math.abs(v),0) || 1;
+  const out = {};
+  Object.entries(scores).forEach(([k,v]) => out[k] = Math.round(Math.abs(v)/total*100));
+  return out;
+}
+
+function calcularEMostrar() {
+  const done = countCompleted('nat');
+  if (done < 20) {
+    document.getElementById('warn-nat').classList.add('show');
+    return;
+  }
+  document.getElementById('warn-nat').classList.remove('show');
+
+  const maskSc  = calcScores('mask');
+  const natSc   = calcScores('nat');
+  const deltaSc = { D: maskSc.D-natSc.D, I: maskSc.I-natSc.I, S: maskSc.S-natSc.S, C: maskSc.C-natSc.C };
+
+  const natPct  = pctOfAbs(natSc);
+  const maskPct = pctOfAbs(maskSc);
+
+  const natPrim  = getPrimary(natSc);
+  const natSec   = getSecondary(natSc, natPrim);
+  const maskPrim = getPrimary(maskSc);
+
+  // Cards
+  document.getElementById('res-nome-sub').textContent = document.getElementById('f-nome').value.trim();
+  document.getElementById('res-cards').innerHTML = `
+    <div class="result-card">
+      <div class="result-card-label">Perfil Natural</div>
+      <div class="result-card-value" style="color:${DISC_COLORS[natPrim]}">${DISC_NAMES[natPrim]}</div>
+      <div style="font-size:12px;color:var(--mid);margin-top:4px">Secundário: ${DISC_NAMES[natSec]}</div>
+    </div>
+    <div class="result-card">
+      <div class="result-card-label">Máscara (Trabalho)</div>
+      <div class="result-card-value" style="color:${DISC_COLORS[maskPrim]}">${DISC_NAMES[maskPrim]}</div>
+      <div style="font-size:12px;color:var(--mid);margin-top:4px">Secundário: ${DISC_NAMES[getSecondary(maskSc,maskPrim)]}</div>
+    </div>
+  `;
+
+  // Barras Perfil Natural
+  document.getElementById('res-nat-bars').innerHTML =
+    renderBarsNormal(natPct);
+
+  // Barras Máscara
+  document.getElementById('res-mask-bars').innerHTML =
+    renderBarsNormal(maskPct);
+
+  // Barras Delta
+  const maxDelta = Math.max(...Object.values(deltaSc).map(Math.abs), 1);
+  document.getElementById('res-delta-bars').innerHTML =
+    ['D','I','S','C'].map(k => {
+      const v   = deltaSc[k];
+      const pct = Math.round(Math.abs(v)/maxDelta*48);
+      const isNeg = v < 0;
+      const label = (v>0?'+':'') + v;
+      const barStyle = isNeg
+        ? `margin-left:${50-pct}%;width:${pct}%;background:${DISC_COLORS[k]};opacity:0.55`
+        : `margin-left:50%;width:${pct}%;background:${DISC_COLORS[k]}`;
+      return `
+        <div class="result-bar-row">
+          <div class="result-bar-label" style="color:${DISC_COLORS[k]}">${DISC_NAMES[k]}</div>
+          <div class="result-bar-track">
+            <div class="delta-center"></div>
+            <div style="${barStyle};height:100%;border-radius:4px;position:absolute;top:0;transition:width .8s"></div>
+          </div>
+          <div class="result-bar-val" style="color:${isNeg?'var(--mid)':DISC_COLORS[k]}">${label}</div>
+        </div>`;
+    }).join('');
+
+  // Diagnóstico automático de adaptação
+  const maxDeltaKey = Object.entries(deltaSc).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]))[0];
+  const custo = Math.abs(maxDeltaKey[1]);
+  let diag = '';
+  if (custo >= 8) {
+    const dir = deltaSc[maxDeltaKey[0]] > 0 ? 'forçando mais' : 'suprimindo';
+    diag = `⚡ <strong>Alto esforço de adaptação detectado:</strong> você está ${dir} significativamente o fator <strong style="color:${DISC_COLORS[maxDeltaKey[0]]}">${DISC_NAMES[maxDeltaKey[0]]}</strong> no trabalho. Isso tem custo energético alto no médio prazo — risco de burnout se sustentado por muito tempo.`;
+  } else if (custo >= 4) {
+    diag = `⚠ <strong>Adaptação moderada:</strong> existem diferenças entre seu perfil natural e como você se apresenta no trabalho. Vale observar onde está o maior esforço.`;
+  } else {
+    diag = `✅ <strong>Alta congruência:</strong> seu comportamento no trabalho está alinhado com seu perfil natural. Isso indica menor custo energético e maior autenticidade.`;
+  }
+  document.getElementById('res-diagnostico').innerHTML = `<p style="font-size:13px;line-height:1.7;color:var(--parch)">${diag}</p>`;
+
+  // Salva resultado no estado global para envio
+  window._discResult = { maskSc, natSc, deltaSc, natPrim, natSec, maskPrim };
+
+  goTo('step-result');
+}
+
+function renderBarsNormal(pct) {
+  return ['D','I','S','C'].map(k => `
+    <div class="result-bar-row">
+      <div class="result-bar-label" style="color:${DISC_COLORS[k]}">${DISC_NAMES[k]}</div>
+      <div class="result-bar-track">
+        <div class="result-bar-fill" style="width:${pct[k]}%;background:${DISC_COLORS[k]}"></div>
+      </div>
+      <div class="result-bar-val">${pct[k]}%</div>
+    </div>`).join('');
+}
+
+// ─── SALVAR ───────────────────────────────────────────────────────────────────
+async function salvar() {
+  const btn = document.getElementById('btn-salvar');
+  btn.disabled = true;
+  btn.textContent = 'Salvando...';
+
+  const r = window._discResult;
+  const payload = {
+    timestamp:   new Date().toISOString(),
+    nome:        document.getElementById('f-nome').value.trim(),
+    email:       document.getElementById('f-email').value.trim(),
+    empresa:     document.getElementById('f-empresa').value.trim(),
+    turma:       document.getElementById('f-turma').value,
+    fase:        document.getElementById('f-fase').value,
+    // Delta (retrocompatível com coluna disc_D/I/S/C existente)
+    disc_D:      r.deltaSc.D,
+    disc_I:      r.deltaSc.I,
+    disc_S:      r.deltaSc.S,
+    disc_C:      r.deltaSc.C,
+    disc_primario:   r.maskPrim,
+    disc_secundario: r.natSec,
+    // Perfil Natural (novas colunas)
+    disc_nat_D:  r.natSc.D,
+    disc_nat_I:  r.natSc.I,
+    disc_nat_S:  r.natSc.S,
+    disc_nat_C:  r.natSc.C,
+    // Máscara (novas colunas)
+    disc_mask_D: r.maskSc.D,
+    disc_mask_I: r.maskSc.I,
+    disc_mask_S: r.maskSc.S,
+    disc_mask_C: r.maskSc.C,
+  };
+
+  try {
+    await fetch(SHEETS_URL, {
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    showToast('✓ Resultado salvo com sucesso!');
+    btn.textContent = '✓ Salvo';
+  } catch(e) {
+    showToast('✗ Erro ao salvar. Tente novamente.');
+    btn.disabled = false;
+    btn.textContent = '✓ Salvar Resultado';
+  }
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(()=>{ t.style.display='none'; }, 3500);
+}
+</script>
+</body>
+</html>
