@@ -552,11 +552,14 @@ function openModal(idx){
 
     <div class="modal-section-title">DISC Detalhado</div>
     <div style="margin-bottom:20px">
-      ${[['D','Dominante','var(--flame)'],['I','Influente','#F0C030'],['S','Estável','var(--sky)'],['C','Consciencioso','var(--mist)']].map(([k,name,color])=>{
-        const v = parseInt(r[`disc_${k}`]||0);
-        const max = Math.max(parseInt(r.disc_D||0),parseInt(r.disc_I||0),parseInt(r.disc_S||0),parseInt(r.disc_C||0),1);
-        return `<div class="chart-bar-row"><span class="chart-bar-label" style="color:${color}">${name}</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:${v/max*100}%;background:${color}"></div></div><span class="chart-bar-val">${v}</span></div>`;
-      }).join('')}
+      ${(()=>{
+        const dD=parseInt(r.disc_D||0), dI=parseInt(r.disc_I||0), dS=parseInt(r.disc_S||0), dC=parseInt(r.disc_C||0);
+        const total = dD+dI+dS+dC||1;
+        return [['D','Dominante','var(--flame)',dD],['I','Influente','#F0C030',dI],['S','Estável','var(--sky)',dS],['C','Consciencioso','var(--mist)',dC]].map(([k,name,color,v])=>{
+          const pct = Math.round(v/total*100);
+          return `<div class="chart-bar-row"><span class="chart-bar-label" style="color:${color}">${name}</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:${pct}%;background:${color}"></div></div><span class="chart-bar-val">${pct}%</span></div>`;
+        }).join('');
+      })()}
     </div>
 
     <div class="modal-section-title">6 Necessidades</div>
