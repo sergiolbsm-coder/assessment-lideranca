@@ -11,6 +11,8 @@ var ABA_TURMAS     = 'Turmas';   // ← nova aba: fonte única de verdade
 var CAB_RESPOSTAS = [
   'timestamp','nome','email','empresa','turma','fase',
   'disc_D','disc_I','disc_S','disc_C','disc_primario','disc_secundario',
+  'disc_nat_D','disc_nat_I','disc_nat_S','disc_nat_C',
+  'disc_mask_D','disc_mask_I','disc_mask_S','disc_mask_C',
   'elem_FOGO','elem_AR','elem_TERRA','elem_AGUA','elem_primario',
   'ennea_tipo','ennea_nome','ennea_score',
   'arquetipos','kolb_estilo',
@@ -20,7 +22,7 @@ var CAB_RESPOSTAS = [
   'holland_codigo','holland_tipo1','holland_tipo2','holland_tipo3',
   'holland_R','holland_I','holland_A','holland_S','holland_E','holland_C'
 ];
-var TEXT_COLS_R = [1,2,3,4,5,6,11,12,17,18,19,20,21,22,23,24,31,32,33,34];
+var TEXT_COLS_R = [1,2,3,4,5,6,11,12,19,20,21,22,25,26,27,28,29,30,31,32,39,40,41,42];
 
 var CAB_PONTUACAO = [
   'respondente_key','nome','email','turma','empresa',
@@ -125,6 +127,8 @@ function doSaveResposta(d) {
     d.nome || '', d.email || '', d.empresa || '', d.turma || '', d.fase || '',
     Number(d.disc_D)||0, Number(d.disc_I)||0, Number(d.disc_S)||0, Number(d.disc_C)||0,
     d.disc_primario||'', d.disc_secundario||'',
+    Number(d.disc_nat_D)||0, Number(d.disc_nat_I)||0, Number(d.disc_nat_S)||0, Number(d.disc_nat_C)||0,
+    Number(d.disc_mask_D)||0, Number(d.disc_mask_I)||0, Number(d.disc_mask_S)||0, Number(d.disc_mask_C)||0,
     Number(d.elem_FOGO)||0, Number(d.elem_AR)||0, Number(d.elem_TERRA)||0, Number(d.elem_AGUA)||0,
     d.elem_primario||'',
     d.ennea_tipo||'', d.ennea_nome||'', d.ennea_score||'',
@@ -232,7 +236,9 @@ function testarInsercao() {
   var r = doSaveResposta({
     timestamp:new Date().toISOString(), nome:'TESTE — Apagar', email:'teste@il.com',
     empresa:'Instituto da Liderança', turma:'Geral', fase:'Pré-Treinamento',
-    disc_D:18,disc_I:12,disc_S:8,disc_C:5, disc_primario:'D',disc_secundario:'I',
+    disc_D:6,disc_I:-12,disc_S:-4,disc_C:8, disc_primario:'D',disc_secundario:'C',
+    disc_nat_D:12,disc_nat_I:18,disc_nat_S:8,disc_nat_C:5,
+    disc_mask_D:18,disc_mask_I:6,disc_mask_S:4,disc_mask_C:13,
     elem_FOGO:12,elem_AR:8,elem_TERRA:4,elem_AGUA:3,elem_primario:'FOGO',
     ennea_tipo:'8',ennea_nome:'O Desafiador',ennea_score:'4.2',
     arquetipos:'Herói',kolb_estilo:'Convergente',
