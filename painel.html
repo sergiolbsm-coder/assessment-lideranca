@@ -681,6 +681,524 @@ async function silentRefresh(){
 }
 
 setInterval(silentRefresh, 60000);
+
+// ═══════════════════════════════════════════════════════════════════
+// RELATÓRIO CONSOLIDADO DE TURMA — v2
+// ═══════════════════════════════════════════════════════════════════
+
+function fecharRelatorio(){ document.getElementById('modal-relatorio').style.display='none'; }
+
+// ── helpers ─────────────────────────────────────────────────────────
+function _discNome(k){ return {D:'Dominante',I:'Influente',S:'Estável',C:'Consciencioso'}[k]||k||'—'; }
+function _discColor(k){ return {D:'#DC503C',I:'#F0C030',S:'#4A90D9',C:'#7BB89A'}[k]||'#888'; }
+function _elemColor(e){ return {FOGO:'#DC503C',AR:'#7BB89A',TERRA:'#8B6914',ÁGUA:'#4A90D9'}[e]||'#888'; }
+function _enneaColor(t){ const c=['','#DC503C','#F0A050','#F0C030','#7BB89A','#4A90D9','#7C3AED','#D97706','#16A34A','#EC4899'];return c[parseInt(t)]||'#888'; }
+function _needColor(k){ return {Certeza:'#DC503C',Variedade:'#F0A050',Significância:'#F0C030',Conexão:'#4A90D9',Crescimento:'#7BB89A',Contribuição:'#7C3AED'}[k]||'#888'; }
+function _kolbColor(k){ return {Convergente:'#DC503C',Divergente:'#F0C030',Assimilador:'#4A90D9',Acomodador:'#7BB89A'}[k]||'#888'; }
+
+function _calcDreno(r){
+  const D=parseInt(r.disc_D||0),I=parseInt(r.disc_I||0),S=parseInt(r.disc_S||0),C=parseInt(r.disc_C||0);
+  const total=Math.abs(D)+Math.abs(I)+Math.abs(S)+Math.abs(C)||1;
+  const neg=Math.abs(Math.min(0,D))+Math.abs(Math.min(0,I))+Math.abs(Math.min(0,S))+Math.abs(Math.min(0,C));
+  return Math.round(neg/total*100);
+}
+function _calcPotencial(r){
+  const D=parseInt(r.disc_D||0),I=parseInt(r.disc_I||0),S=parseInt(r.disc_S||0),C=parseInt(r.disc_C||0);
+  const total=Math.abs(D)+Math.abs(I)+Math.abs(S)+Math.abs(C)||1;
+  const pos=Math.max(0,D)+Math.max(0,I)+Math.max(0,S)+Math.max(0,C);
+  const neg=Math.abs(Math.min(0,D))+Math.abs(Math.min(0,I))+Math.abs(Math.min(0,S))+Math.abs(Math.min(0,C));
+  return Math.max(0,Math.round((total-pos-neg)/total*100));
+}
+
+// Gráfico de barras horizontal inline
+function _barH(label,pct,color,valStr){
+  return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+    <span style="width:110px;font-size:11px;color:#4A4038;flex-shrink:0;font-weight:600">${label}</span>
+    <div style="flex:1;height:13px;background:#E8E0D0;border-radius:4px;overflow:hidden">
+      <div style="width:${Math.max(1,pct)}%;height:100%;background:${color};border-radius:4px;transition:width .6s"></div>
+    </div>
+    <span style="font-size:11px;font-family:'JetBrains Mono',monospace;color:#6A5A48;width:44px;text-align:right;flex-shrink:0">${valStr}</span>
+  </div>`;
+}
+
+// Donut SVG simples
+function _donut(slices, size=80){
+  const total = slices.reduce((s,x)=>s+x.v,0)||1;
+  let offset=0; const R=28, C=40, r=16;
+  const circumference = 2*Math.PI*R;
+  const paths = slices.map(s=>{
+    const pct = s.v/total;
+    const dash = pct*circumference;
+    const gap  = circumference - dash;
+    const el = `<circle cx="${C}" cy="${C}" r="${R}" fill="none" stroke="${s.c}" stroke-width="10"
+      stroke-dasharray="${dash} ${gap}" stroke-dashoffset="${-offset*circumference}" transform="rotate(-90 ${C} ${C})"/>`;
+    offset += pct;
+    return el;
+  });
+  return `<svg width="${size}" height="${size}" viewBox="0 0 80 80">${paths.join('')}<circle cx="${C}" cy="${C}" r="${r}" fill="#FAF6EE"/></svg>`;
+}
+
+// Mapa Visual de líderes (bubbles agrupadas por perfil)
+function _mapaLideres(dados, campo, labelFn, colorFn, grupos){
+  const grupos_map = {};
+  grupos.forEach(g=>{ grupos_map[g]=[]; });
+  dados.forEach(r=>{
+    const k = r[campo]||'';
+    const label = labelFn(k);
+    if(grupos_map[label]!==undefined) grupos_map[label].push(r.nome||'?');
+    else if(grupos_map[k]!==undefined) grupos_map[k].push(r.nome||'?');
+  });
+
+  return `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
+    ${Object.entries(grupos_map).map(([grp,nomes])=>`
+      <div style="border:2px solid ${colorFn(grp)};border-radius:10px;padding:14px;background:${colorFn(grp)}12">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:${colorFn(grp)};font-family:'JetBrains Mono',monospace;font-weight:700;margin-bottom:8px">${grp} <span style="opacity:.7">(${nomes.length})</span></div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">
+          ${nomes.length===0
+            ? '<span style="font-size:11px;color:#B0A090;font-style:italic">Nenhum</span>'
+            : nomes.map(n=>`<span style="font-size:11px;background:${colorFn(grp)}22;border:1px solid ${colorFn(grp)}44;color:#1a1208;padding:3px 9px;border-radius:100px;font-weight:600">${n}</span>`).join('')}
+        </div>
+      </div>`).join('')}
+  </div>`;
+}
+
+// ── Imprimir / Download PDF ──────────────────────────────────────────
+function imprimirRelatorio(){
+  const body  = document.getElementById('rel-body').innerHTML;
+  const titulo= document.getElementById('rel-titulo').textContent;
+  const win   = window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head>
+    <meta charset="UTF-8"><title>${titulo}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:'Syne',sans-serif;color:#1a1208;background:#FAF6EE;padding:28px}
+      h2{font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin:28px 0 14px;padding-bottom:8px;border-bottom:2px solid #C9A84C;color:#0A0806}
+      table{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:11px}
+      th{background:#0A0806;color:#C9A84C;padding:8px 12px;text-align:left;font-size:9px;letter-spacing:.1em;text-transform:uppercase}
+      td{padding:8px 12px;border-bottom:1px solid #E0D8C8;vertical-align:top}
+      tr:nth-child(even) td{background:#F5F0E8}
+      @media print{body{padding:14px}@page{margin:10mm}h2{page-break-before:auto}}
+    </style>
+  </head><body>${body}</body></html>`);
+  win.document.close();
+  setTimeout(()=>win.print(),700);
+}
+
+function downloadRelatorio(){
+  const body  = document.getElementById('rel-body').innerHTML;
+  const titulo= document.getElementById('rel-titulo').textContent;
+  const html  = `<!DOCTYPE html><html><head>
+    <meta charset="UTF-8"><title>${titulo}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:'Syne',sans-serif;color:#1a1208;background:#FAF6EE;padding:32px}
+      h2{font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin:24px 0 14px;padding-bottom:8px;border-bottom:2px solid #C9A84C;color:#0A0806}
+      table{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:11px}
+      th{background:#0A0806;color:#C9A84C;padding:8px 12px;text-align:left;font-size:9px;letter-spacing:.1em;text-transform:uppercase}
+      td{padding:8px 12px;border-bottom:1px solid #E0D8C8;vertical-align:top}
+      tr:nth-child(even) td{background:#F5F0E8}
+    </style>
+  </head><body>${body}</body></html>`;
+  const blob = new Blob([html],{type:'text/html;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `relatorio-turma-${new Date().toISOString().slice(0,10)}.html`;
+  a.click();
+}
+
+// ── MAIN ─────────────────────────────────────────────────────────────
+function openRelatorioTurma(){
+  const turmaFiltro = document.getElementById('filter-turma')?.value||'';
+  const dados = turmaFiltro ? allData.filter(r=>r.turma===turmaFiltro) : filteredData;
+  if(!dados.length){ alert('Sem dados. Selecione uma turma ou carregue dados primeiro.'); return; }
+
+  const turma = turmaFiltro || (dados[0]?.turma||'Geral');
+  const total  = dados.length;
+  const hoje   = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+
+  document.getElementById('rel-titulo').textContent = `Relatório Consolidado — ${turma}`;
+  document.getElementById('rel-meta').textContent   = `${total} participante(s) · Gerado em ${hoje}`;
+
+  // ── Contagens ──────────────────────────────────────────────────────
+  const cnt = (field, mapFn=k=>k) => {
+    const c={};
+    dados.forEach(r=>{ const k=mapFn(r[field]||''); if(k) c[k]=(c[k]||0)+1; });
+    return Object.entries(c).sort((a,b)=>b[1]-a[1]);
+  };
+
+  const discCnt   = cnt('disc_primario', k=>_discNome(k));
+  const elemCnt   = cnt('elem_primario');
+  const enneaCnt  = cnt('ennea_tipo',    k=>k?`Tipo ${k}`:'');
+  const needCnt   = cnt('need_1a');
+  const kolbCnt   = cnt('kolb_estilo');
+  const arquCnt   = cnt('arquetipos');
+  const hollCnt   = cnt('holland_codigo');
+
+  const discMax  = Math.max(...discCnt.map(x=>x[1]),1);
+  const pct = (n)=>Math.round(n/total*100);
+
+  // ── Dados enriquecidos ─────────────────────────────────────────────
+  const enrich = dados.map(r=>({
+    ...r,
+    dreno:    _calcDreno(r),
+    potencial:_calcPotencial(r),
+    nomeDisc: _discNome(r.disc_primario),
+    discSit:  r.disc_secundario ? _discNome(r.disc_secundario) : '—',
+  }));
+
+  const comDreno     = [...enrich].filter(r=>r.dreno>0).sort((a,b)=>b.dreno-a.dreno);
+  const comPotencial = [...enrich].filter(r=>r.potencial>0).sort((a,b)=>b.potencial-a.potencial);
+  const talentos     = [...enrich].sort((a,b)=>a.nome.localeCompare(b.nome));
+
+  // ── Recomendações dinâmicas ──────────────────────────────────────
+  const domPct   = pct(discCnt.find(([k])=>k==='Dominante')?.[1]||0);
+  const estPct   = pct(discCnt.find(([k])=>k==='Estável')?.[1]||0);
+  const drAlto   = comDreno.filter(r=>r.dreno>50).length;
+  const needTop  = needCnt[0]?.[0]||'';
+  const enneaTop = enneaCnt[0]?.[0]||'';
+
+  const recs=[];
+  if(domPct>50) recs.push({t:'risco',txt:`<b>Alta concentração de Dominantes (${domPct}%):</b> Risco de conflitos de liderança e dificuldade de escuta. Implementar dinâmicas de perspectiva reversa e composição de times complementares.`});
+  if(estPct>50) recs.push({t:'atencao',txt:`<b>Maioria Estável (${estPct}%):</b> Time consistente e de alta lealdade, mas resistente a mudanças. Mudanças organizacionais precisam de comunicação antecipada e tempo de maturação.`});
+  if(drAlto>Math.ceil(total*0.3)) recs.push({t:'risco',txt:`<b>${drAlto} colaboradores com dreno acima de 50%:</b> Risco real de burnout. Revisar alocação de tarefas e alinhamento com perfil natural. Devolutivas individuais prioritárias.`});
+  if(needTop==='Conexão') recs.push({t:'atencao',txt:`<b>Necessidade primária dominante: Conexão.</b> Ambientes remotos ou isolados drenam a performance desta turma. Rituais de pertencimento e presença física são alavancas críticas.`});
+  if(needTop==='Significância') recs.push({t:'atencao',txt:`<b>Necessidade dominante: Significância.</b> Time motivado por reconhecimento e impacto visível. Falta de feedback e invisibilidade geram desengajamento rápido.`});
+  if(enneaTop==='Tipo 1') recs.push({t:'atencao',txt:`<b>Alta concentração Eneagrama Tipo 1:</b> Cultura de auto-exigência elevada. Atenção ao perfeccionismo paralisante em projetos de inovação e ao acúmulo de ressentimento silencioso.`});
+  if(comPotencial.filter(r=>r.potencial>30).length>0) recs.push({t:'positivo',txt:`<b>${comPotencial.filter(r=>r.potencial>30).length} colaboradores com Potencial Latente acima de 30%:</b> Competências disponíveis não ativadas. Redesenho de funções pode gerar ganho imediato sem novas contratações.`});
+  if(!recs.length) recs.push({t:'positivo',txt:'<b>Perfil equilibrado:</b> Turma sem alertas críticos. Manter monitoramento semestral e aprofundar devolutivas individuais.'});
+
+  // ── Recomendações para Diretoria ──────────────────────────────────
+  const recDir = [
+    {icon:'🎯', titulo:'Alocação Estratégica', txt:`Com base no perfil DISC predominante (${discCnt[0]?.[0]||'—'}), a turma tem maior performance em projetos com ${discCnt[0]?.[0]==='Dominante'?'autonomia, metas agressivas e decisões rápidas':discCnt[0]?.[0]==='Estável'?'estabilidade, processos claros e tempo de adaptação':discCnt[0]?.[0]==='Influente'?'alto relacionamento, visibilidade e inovação':'rigor técnico, qualidade e processos estruturados'}. Alinhar designações a esse padrão reduz dreno e aumenta entrega.`},
+    {icon:'⚡', titulo:'Risco de Retenção', txt:`${comDreno.filter(r=>r.dreno>60).length} colaboradores operam com dreno comportamental crítico (>60%). Perfis com alto dreno sustentado têm maior probabilidade de saída voluntária em até 12 meses. Ação corretiva: revisão de função e plano de desenvolvimento individual.`},
+    {icon:'💎', titulo:'Alavanca de Performance', txt:`${comPotencial.length} colaboradores possuem potencial latente identificado. Ativar essas capacidades via redesenho de funções, projetos especiais ou expansão de escopo representa o maior ROI de RH disponível sem custo adicional de contratação.`},
+    {icon:'🧭', titulo:'Cultura e Clima', txt:`Necessidade primária dominante da turma (${needTop}) define o ambiente que energiza ou drena o time. ${needTop==='Conexão'?'Investimento em rituais de pertencimento tem impacto direto em produtividade e retenção.':needTop==='Significância'?'Sistemas de reconhecimento e visibilidade de impacto são críticos para engajamento.':'Alinhar a cultura organizacional a essa necessidade é a principal alavanca de engajamento sustentável.'}`},
+  ];
+
+  // ── DONUT data ─────────────────────────────────────────────────────
+  const discDonut  = discCnt.map(([k,v])=>({c:_discColor(k[0]),v}));
+  const elemDonut  = elemCnt.map(([k,v])=>({c:_elemColor(k),v}));
+  const needDonut  = needCnt.map(([k,v])=>({c:_needColor(k),v}));
+
+  // ── HTML ───────────────────────────────────────────────────────────
+  const needIcons={Certeza:'🏰',Variedade:'⚡',Significância:'🏆',Conexão:'🤗',Crescimento:'🌱',Contribuição:'🌍'};
+  const kolbDesc={Convergente:'Pensa e faz — decide por experimento',Divergente:'Sente e observa — aprende pela experiência',Assimilador:'Pensa e observa — aprende por modelos',Acomodador:'Sente e faz — aprende pela ação'};
+  const enneaNomes={1:'Perfeccionista',2:'Prestativo',3:'Realizador',4:'Individualista',5:'Investigador',6:'Leal',7:'Entusiasta',8:'Desafiador',9:'Pacificador'};
+
+  const html = `
+  <!-- CAPA -->
+  <div style="background:linear-gradient(135deg,#0A0806,#1a1208);margin:-32px -40px 32px;padding:32px 40px">
+    <div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#C9A84C;margin-bottom:6px;font-family:'JetBrains Mono',monospace">Instituto da Liderança · Diagnóstico Integrado</div>
+    <h1 style="font-size:26px;font-weight:800;color:#EDE8DC;margin:0 0 6px">Relatório Consolidado de Turma</h1>
+    <div style="font-size:12px;color:#8A7A5A">Turma: <strong style="color:#C9A84C">${turma}</strong> &nbsp;·&nbsp; ${total} participante(s) &nbsp;·&nbsp; ${hoje}</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:22px">
+      ${[
+        ['Total',total,'participantes'],
+        ['DISC Líder',discCnt[0]?.[0]||'—',`${pct(discCnt[0]?.[1]||0)}% da turma`],
+        ['Temperamento',elemCnt[0]?.[0]||'—',`${pct(elemCnt[0]?.[1]||0)}% da turma`],
+        ['Necessidade nº1',needCnt[0]?.[0]||'—',needIcons[needCnt[0]?.[0]]||''],
+      ].map(([l,v,s])=>`<div style="background:rgba(255,255,255,.06);border:1px solid rgba(201,168,76,.2);border-radius:8px;padding:12px">
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:#8A7A5A;font-family:'JetBrains Mono',monospace;margin-bottom:3px">${l}</div>
+        <div style="font-size:17px;font-weight:800;color:#EDE8DC">${v}</div>
+        <div style="font-size:10px;color:#6A5A48;margin-top:2px">${s}</div>
+      </div>`).join('')}
+    </div>
+  </div>
+
+  <!-- I. DISC -->
+  <h2 style="font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#0A0806;margin:0 0 14px;padding-bottom:7px;border-bottom:2px solid #C9A84C">I · Comportamento DISC</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px">
+    <div style="background:#fff;border:1px solid #E0D8C8;border-radius:10px;padding:18px">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#8A7A5A;font-family:'JetBrains Mono',monospace;margin-bottom:12px">Distribuição por Perfil Predominante</div>
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px">
+        ${_donut(discDonut,90)}
+        <div style="flex:1">
+          ${discCnt.map(([k,v])=>`<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+            <span style="color:${_discColor(k[0])};font-weight:700">${k}</span>
+            <span style="font-family:'JetBrains Mono',monospace;color:#6A5A48">${v} · ${pct(v)}%</span>
+          </div>`).join('')}
+        </div>
+      </div>
+      ${discCnt.map(([k,v])=>_barH(k,pct(v),_discColor(k[0]),`${v} (${pct(v)}%)`)).join('')}
+    </div>
+    <div style="background:#fff;border:1px solid #E0D8C8;border-radius:10px;padding:18px">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#8A7A5A;font-family:'JetBrains Mono',monospace;margin-bottom:12px">Análise de Composição da Turma</div>
+      <div style="font-size:12px;color:#4A4038;line-height:1.7;margin-bottom:12px">
+        ${domPct>50?`⚠️ <b>Excesso de Dominantes (${domPct}%)</b> — Risco de conflitos de ego. Times precisam de perfis S/C para equilíbrio.`
+          :estPct>50?`ℹ️ <b>Maioria Estável (${estPct}%)</b> — Alta coesão, baixa velocidade de mudança. Cuidado com status quo.`
+          :`✅ Distribuição equilibrada — ${discCnt.map(([k,v])=>`${k[0]}:${pct(v)}%`).join(' | ')}`}
+      </div>
+      <div style="background:#F8F4EE;border-radius:8px;padding:12px;font-size:11px;color:#6A5A48;line-height:1.7">
+        <b>O que isso significa para a liderança:</b><br>
+        ${discCnt[0]?.[0]==='Dominante'?'Turma de alta iniciativa. Precisa de espaço para decidir e executar com autonomia.'
+          :discCnt[0]?.[0]==='Estável'?'Turma colaborativa e confiável. Precisa de clareza, consistência e processos bem definidos.'
+          :discCnt[0]?.[0]==='Influente'?'Turma criativa e relacional. Precisa de reconhecimento, visibilidade e projetos de impacto.'
+          :'Turma analítica e precisa. Precisa de dados, critérios claros e tempo para processar antes de decidir.'}
+      </div>
+    </div>
+  </div>
+
+  <!-- MAPA VISUAL DISC PREDOMINANTE -->
+  <div style="background:#fff;border:1px solid #E0D8C8;border-radius:10px;padding:20px;margin-bottom:14px">
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#8A7A5A;font-family:'JetBrains Mono',monospace;margin-bottom:14px">🗺 Mapa de Líderes — Perfil DISC Predominante</div>
+    ${_mapaLideres(dados,'disc_primario',k=>_discNome(k),k=>_discColor(k),['Dominante','Influente','Estável','Consciencioso'])}
+  </div>
+
+  <!-- MAPA VISUAL DISC SITUACIONAL -->
+  <div style="background:#fff;border:1px solid #E0D8C8;border-radius:10px;padding:20px;margin-bottom:24px">
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#8A7A5A;font-family:'JetBrains Mono',monospace;margin-bottom:6px">🗺 Mapa de Líderes — DISC Situacional (2º perfil)</div>
+    <div style="font-size:11px;color:#8A7A5A;margin-bottom:12px">Como o líder se adapta ao ambiente de trabalho percebido</div>
+    ${_mapaLideres(dados,'disc_secundario',k=>_discNome(k),k=>_discColor(k),['Dominante','Influente','Estável','Consciencioso'])}
+  </div>
+
+  <!-- II. TEMPERAMENTO -->
+  <h2 style="font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#0A0806;margin:0 0 14px;padding-bottom:7px;border-bottom:2px solid #C9A84C">II · Temperamento — Custo Energético</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px">
+    <div style="background:#fff;border:1px solid #E0D8C8;border-radius:10px;padding:18px">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px">
+        ${_donut(elemDonut,80)}
+        <div style="flex:1">
+          ${elemCnt.map(([k,v])=>`<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+            <span style="color:${_elemColor(k)};font-weight:700">${k}</span>
+            <span style="font-family:'JetBrains Mono',monospace;color:#6A5A48">${v} · ${pct(v)}%</span>
+          </div>`).join('')}
+        </div>
+      </div>
+      ${elemCnt.map(([k,v])=>_barH(k,pct(v),_elemColor(k),`${v} (${pct(v)}%)`)).join('')}
+    </div>
+    <div style="background:#fff;border:1px solid #E0D8C8;border-radius:10px;padding:18px">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#8A7A5A;font-family:'JetBrains Mono',monospace;margin-bottom:10px">Custo Energético do Ambiente Atual</div>
+      <div style="font-size:12px;color:#4A4038;line-height:1.7">
+        ${elemCnt[0]?.[0]==='FOGO'?'🔥 <b>Turma FOGO:</b> Alta velocidade de decisão e ação. Ambientes de alta pressão e prazos agressivos são naturais — mas podem queimar os demais.'
+          :elemCnt[0]?.[0]==='TERRA'?'🌿 <b>Turma TERRA:</b> Rigor, qualidade e estrutura. Ambientes caóticos ou sem processos drenam energia rapidamente. Precisam de dados e critérios claros.'
+          :elemCnt[0]?.[0]==='ÁGUA'?'💧 <b>Turma ÁGUA:</b> Harmonia, conexão e cuidado. Conflitos frequentes ou ambientes competitivos internamente causam queda de performance.'
+          :'💨 <b>Turma AR:</b> Criatividade, visão e inovação. Ambientes burocrático ou repetitivos drenam o engajamento rapidamente.'}
+      </div>
+    </div>
+  </div>
+
+  <!-- III. ENEAGRAMA -->
+  <h2 style="font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#0A0806;margin:0 0 14px;padding-bottom:7px;border-bottom:2px solid #C9A84C">III · Eneagrama — Motivações Inconscientes</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+    <div style="background:#fff;border:1px solid #E0D8C8;border-radius:10px;padding:18px">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#8A7A5A;font-family:'JetBrains Mono',monospace;margin-bottom:12px">Distribuição por Tipo</div>
+      ${enneaCnt.map(([k,v])=>_barH(k,pct(v),_enneaColor(k.replace('Tipo ','')),`${v} (${pct(v)}%)`)).join('')}
+    </div>
+    <div style="background:#fff;border:1px solid #E0D8C8;border-radius:10px;padding:18px">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#8A7A5A;font-family:'JetBrains Mono',monospace;margin-bottom:10px">Pontos de Atenção Coletivos</div>
+      <div style="font-size:12px;color:#4A4038;line-height:1.7">
+        ${enneaCnt.slice(0,3).map(([k,v])=>`<div style="margin-bottom:8px;padding:8px 12px;background:#F8F4EE;border-radius:6px;border-left:3px solid ${_enneaColor(k.replace('Tipo ',''))}">
+          <b style="color:${_enneaColor(k.replace('Tipo ',''))}">${k} · ${enneaNomes[k.replace('Tipo ','')]||''}</b>
+          <span style="font-size:10px;color:#8A7A5A;font-family:'JetBrains Mono',monospace"> ${v} pessoa(s)</span>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>
+
+  <!-- MAPA ENEAGRAMA -->
+  <div style="background:#fff;border:1px solid #E0D8C8;border-radius:10px;padding:20px;margin-bottom:14px">
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#8A7A5A;font-family:'JetBrains Mono',monospace;margin-bottom:14px">🗺 Mapa de Líderes — Eneagrama (Tipo Principal)</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+      ${[1,2,3,4,5,6,7,8,9].map(t=>{
+        const nomes = dados.filter(r=>parseInt(r.ennea_tipo)===t).map(r=>r.nome||'?');
+        const cor   = _enneaColor(t);
+        return `<div style="border:2px solid ${cor};border-radius:10px;padding:12px;background:${cor}12">
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:${cor};font-family:'JetBrains Mono',monospace;font-weight:700;margin-bottom:6px">T${t} · ${enneaNomes[t]||''} <span style="opacity:.7">(${nomes.length})</span></div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px">
+            ${nomes.length===0
+              ? '<span style="font-size:10px;color:#C0B0A0;font-style:italic">Nenhum</span>'
+              : nomes.map(n=>`<span style="font-size:10px;background:${cor}20;border:1px solid ${cor}40;color:#1a1208;padding:2px 8px;border-radius:100px;font-weight:600">${n}</span>`).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>
+  <div style="margin-bottom:24px;background:#FFF9EC;border-left:4px solid #C9A84C;border-radius:6px;padding:14px 18px;font-size:12px;color:#4A4038;line-height:1.7">
+    <b>Leitura facilitadora:</b> O Eneagrama revela os padrões automáticos sob pressão. Turmas com ${enneaCnt[0]?.[0]||'—'} como tipo dominante tendem a ${enneaCnt[0]?.[0]==='Tipo 1'?'exigir perfeição antes de entregar e acumular ressentimento silencioso':enneaCnt[0]?.[0]==='Tipo 2'?'sacrificar seus próprios limites por aprovação e conexão':enneaCnt[0]?.[0]==='Tipo 3'?'priorizar a imagem de resultado em detrimento da profundidade do processo':enneaCnt[0]?.[0]==='Tipo 8'?'confrontar diretamente e exercer controle sob pressão':'reagir com o vício emocional do tipo em situações de estresse'}. Reconhecer esse padrão coletivo é o primeiro passo para intervir.
+  </div>
+
+  <!-- IV. 6 NECESSIDADES -->
+  <h2 style="font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#0A0806;margin:0 0 14px;padding-bottom:7px;border-bottom:2px solid #C9A84C">IV · 6 Necessidades Humanas — Motivação</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px">
+    <div style="background:#fff;border:1px solid #E0D8C8;border-radius:10px;padding:18px">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px">
+        ${_donut(needDonut,80)}
+        <div style="flex:1">
+          ${needCnt.map(([k,v])=>`<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+            <span style="color:${_needColor(k)};font-weight:600">${needIcons[k]||''} ${k}</span>
+            <span style="font-family:'JetBrains Mono',monospace;color:#6A5A48">${v} · ${pct(v)}%</span>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div style="background:#fff;border:1px solid #E0D8C8;border-radius:10px;padding:18px">
+      ${needCnt.map(([k,v])=>_barH(`${needIcons[k]||''} ${k}`,pct(v),_needColor(k),`${v} (${pct(v)}%)`)).join('')}
+    </div>
+  </div>
+
+  <!-- V. KOLB -->
+  <h2 style="font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#0A0806;margin:0 0 14px;padding-bottom:7px;border-bottom:2px solid #C9A84C">V · Ciclo de Aprendizagem Kolb</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px">
+    <div style="background:#fff;border:1px solid #E0D8C8;border-radius:10px;padding:18px">
+      ${kolbCnt.map(([k,v])=>_barH(k,pct(v),_kolbColor(k),`${v} (${pct(v)}%)`)).join('')}
+    </div>
+    <div style="background:#fff;border:1px solid #E0D8C8;border-radius:10px;padding:18px">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#8A7A5A;font-family:'JetBrains Mono',monospace;margin-bottom:10px">Impacto no Desenvolvimento</div>
+      ${kolbCnt.slice(0,3).map(([k,v])=>`
+        <div style="margin-bottom:8px;padding:8px 12px;background:#F8F4EE;border-radius:6px;border-left:3px solid ${_kolbColor(k)}">
+          <b style="font-size:12px;color:${_kolbColor(k)}">${k}</b>
+          <span style="font-size:10px;color:#8A7A5A"> — ${kolbDesc[k]||''}</span>
+          <span style="float:right;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6A5A48">${v} pessoa(s)</span>
+        </div>`).join('')}
+      <div style="font-size:11px;color:#6A5A48;margin-top:10px;line-height:1.6">
+        <b>Formato ideal de treinamento:</b> ${kolbCnt[0]?.[0]==='Assimilador'?'Conteúdo teórico denso, frameworks e modelos. Leituras e análises antes da prática.':kolbCnt[0]?.[0]==='Convergente'?'Casos práticos, simulações e experimentos controlados. Aprendem fazendo com dados.':kolbCnt[0]?.[0]==='Divergente'?'Debates, brainstorms e reflexão em grupo. Precisam sentir antes de estruturar.':'Projetos reais, tentativa e erro. Aprendem executando e ajustando.'}
+      </div>
+    </div>
+  </div>
+
+  <!-- VI. ARQUÉTIPOS + HOLLAND -->
+  <h2 style="font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#0A0806;margin:0 0 14px;padding-bottom:7px;border-bottom:2px solid #C9A84C">VI · Arquétipos de Liderança & Holland RIASEC</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px">
+    <div style="background:#fff;border:1px solid #E0D8C8;border-radius:10px;padding:18px">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#8A7A5A;font-family:'JetBrains Mono',monospace;margin-bottom:12px">Arquétipos Predominantes</div>
+      ${arquCnt.slice(0,6).map(([k,v])=>_barH(k,pct(v),'#7C3AED',`${v} (${pct(v)}%)`)).join('')}
+      ${arquCnt.length===0?'<div style="font-size:12px;color:#B0A090;font-style:italic">Dados de Arquétipos ainda não disponíveis.</div>':''}
+    </div>
+    <div style="background:#fff;border:1px solid #E0D8C8;border-radius:10px;padding:18px">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#8A7A5A;font-family:'JetBrains Mono',monospace;margin-bottom:12px">Códigos Holland RIASEC</div>
+      ${hollCnt.slice(0,6).map(([k,v])=>_barH(k,pct(v),'#16A34A',`${v} (${pct(v)}%)`)).join('')}
+      ${hollCnt.length===0?'<div style="font-size:12px;color:#B0A090;font-style:italic">Dados Holland ainda não disponíveis.</div>':''}
+    </div>
+  </div>
+
+  <!-- VII. LISTA COMPLETA -->
+  <h2 style="font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#0A0806;margin:0 0 14px;padding-bottom:7px;border-bottom:2px solid #C9A84C">VII · Colaboradores — Perfil Completo</h2>
+  <div style="overflow-x:auto;margin-bottom:24px">
+    <table style="width:100%;border-collapse:collapse;font-size:11px">
+      <thead><tr style="background:#0A0806">
+        ${['Nome','DISC','Temp.','Eneagrama','Necessidade','Holland','Kolb','Dreno','Potencial'].map(h=>`<th style="padding:9px 10px;text-align:left;color:#C9A84C;font-size:9px;letter-spacing:.1em;text-transform:uppercase">${h}</th>`).join('')}
+      </tr></thead>
+      <tbody>
+        ${talentos.map((r,i)=>{
+          const dBg  = r.dreno>60?'#FFF0F0':r.dreno>35?'#FFFBEB':'transparent';
+          const dCol = r.dreno>60?'#DC503C':r.dreno>35?'#D97706':'#16A34A';
+          const pBg  = r.potencial>30?'#F0FDF4':'transparent';
+          const pCol = r.potencial>30?'#16A34A':r.potencial>10?'#C9A84C':'#B0A090';
+          return `<tr style="background:${i%2===0?'#FAF6EE':'#fff'}">
+            <td style="padding:8px 10px;font-weight:600;color:#1a1208">${r.nome||'—'}</td>
+            <td style="padding:8px 10px"><span style="color:${_discColor(r.disc_primario||'')};font-weight:700">${r.nomeDisc}</span></td>
+            <td style="padding:8px 10px;color:#8B6914;font-weight:600">${r.elem_primario||'—'}</td>
+            <td style="padding:8px 10px;color:#7C3AED">T${r.ennea_tipo||'—'}</td>
+            <td style="padding:8px 10px;color:#4A4038">${r.need_1a||'—'}</td>
+            <td style="padding:8px 10px;font-family:'JetBrains Mono',monospace;font-weight:700">${r.holland_codigo||'—'}</td>
+            <td style="padding:8px 10px;color:#4A4038">${r.kolb_estilo||'—'}</td>
+            <td style="padding:8px 10px;background:${dBg}"><span style="font-weight:700;color:${dCol};font-family:'JetBrains Mono',monospace">${r.dreno}%</span></td>
+            <td style="padding:8px 10px;background:${pBg}"><span style="font-weight:700;color:${pCol};font-family:'JetBrains Mono',monospace">${r.potencial}%</span></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- VIII. DRENO -->
+  <h2 style="font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#DC503C;margin:0 0 14px;padding-bottom:7px;border-bottom:2px solid #DC503C">VIII · ⚠️ Alto Dreno Comportamental</h2>
+  ${comDreno.filter(r=>r.dreno>0).length===0
+    ?'<div style="background:#F0FDF4;border-left:4px solid #22C55E;padding:12px 16px;border-radius:6px;margin-bottom:24px;font-size:12px;color:#166534">✅ Nenhum colaborador com dreno identificado.</div>'
+    :`<div style="margin-bottom:24px">
+      <div style="font-size:11px;color:#6A5A48;margin-bottom:10px">Esforço mental invisível para sustentar comportamentos não naturais. Acima de 50% = risco de burnout.</div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px">
+        <thead><tr style="background:#FEF2F2">
+          ${['Nome','DISC Natural','Dreno','Nível','Recomendação'].map(h=>`<th style="padding:9px 12px;text-align:left;color:#DC503C;font-size:9px;letter-spacing:.08em;text-transform:uppercase">${h}</th>`).join('')}
+        </tr></thead>
+        <tbody>
+          ${comDreno.map((r,i)=>{
+            const nivel = r.dreno>60?'🔴 Alto':r.dreno>35?'🟡 Médio':'🟢 Baixo';
+            const rec   = r.dreno>60?'Revisão urgente de função. Devolutiva individual prioritária.'
+                          :r.dreno>35?'Monitorar. Avaliar alinhamento de tarefas ao perfil natural.'
+                          :'Acompanhamento regular.';
+            return `<tr style="background:${i%2===0?'#FFF5F5':'#fff'};border-bottom:1px solid #FEE2E2">
+              <td style="padding:8px 12px;font-weight:600">${r.nome}</td>
+              <td style="padding:8px 12px;color:${_discColor(r.disc_primario||'')};font-weight:700">${r.nomeDisc}</td>
+              <td style="padding:8px 12px;font-weight:800;color:${r.dreno>60?'#DC503C':r.dreno>35?'#D97706':'#16A34A'};font-family:'JetBrains Mono',monospace">${r.dreno}%</td>
+              <td style="padding:8px 12px">${nivel}</td>
+              <td style="padding:8px 12px;color:#6A5A48">${rec}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`}
+
+  <!-- IX. POTENCIAL LATENTE -->
+  <h2 style="font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#C9A84C;margin:0 0 14px;padding-bottom:7px;border-bottom:2px solid #C9A84C">IX · 💎 Potencial Latente — Competências Ociosas</h2>
+  ${comPotencial.length===0
+    ?'<div style="background:#FFF9EC;border-left:4px solid #C9A84C;padding:12px 16px;border-radius:6px;margin-bottom:24px;font-size:12px;color:#7C5F00">Capacidade bem alocada — sem potencial latente significativo identificado.</div>'
+    :`<div style="margin-bottom:24px">
+      <div style="font-size:11px;color:#6A5A48;margin-bottom:10px">Competências disponíveis não alocadas. Ativar sem custo adicional de contratação.</div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px">
+        <thead><tr style="background:#FFFBEB">
+          ${['Nome','Perfil','Potencial','Holland','Oportunidade'].map(h=>`<th style="padding:9px 12px;text-align:left;color:#92400E;font-size:9px;letter-spacing:.08em;text-transform:uppercase">${h}</th>`).join('')}
+        </tr></thead>
+        <tbody>
+          ${comPotencial.map((r,i)=>`<tr style="background:${i%2===0?'#FFFBEB':'#fff'};border-bottom:1px solid #FDE68A">
+            <td style="padding:8px 12px;font-weight:600">${r.nome}</td>
+            <td style="padding:8px 12px;color:${_discColor(r.disc_primario||'')};font-weight:700">${r.nomeDisc}</td>
+            <td style="padding:8px 12px;font-weight:800;color:#B45309;font-family:'JetBrains Mono',monospace">${r.potencial}%</td>
+            <td style="padding:8px 12px;font-family:'JetBrains Mono',monospace;font-weight:700">${r.holland_codigo||'—'}</td>
+            <td style="padding:8px 12px;color:#6A5A48">${r.potencial>40?'Redesenho de função ou expansão de escopo.':r.potencial>20?'Projetos especiais alinhados ao perfil natural.':'Delegação complementar ao perfil dominante.'}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`}
+
+  <!-- X. RH -->
+  <h2 style="font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#0A0806;margin:0 0 14px;padding-bottom:7px;border-bottom:2px solid #C9A84C">X · Recomendações e Pontos de Atenção — RH</h2>
+  <div style="margin-bottom:24px">
+    ${recs.map(r=>`<div style="margin-bottom:9px;padding:13px 16px;border-radius:8px;border-left:4px solid ${r.t==='risco'?'#DC503C':r.t==='atencao'?'#F0C030':'#22C55E'};background:${r.t==='risco'?'#FFF5F5':r.t==='atencao'?'#FFFBEB':'#F0FDF4'}">
+      <div style="font-size:12px;color:#1a1208;line-height:1.6">${r.t==='risco'?'🔴':r.t==='atencao'?'🟡':'🟢'} ${r.txt}</div>
+    </div>`).join('')}
+  </div>
+
+  <!-- XI. DIRETORIA -->
+  <h2 style="font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#0A0806;margin:0 0 14px;padding-bottom:7px;border-bottom:2px solid #C9A84C">XI · Orientações para a Diretoria</h2>
+  <div style="margin-bottom:24px">
+    <div style="font-size:12px;color:#6A5A48;margin-bottom:14px;line-height:1.6">Leituras estratégicas baseadas no perfil consolidado da turma para tomada de decisão executiva.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      ${recDir.map(r=>`<div style="background:#fff;border:1px solid #E0D8C8;border-radius:10px;padding:16px">
+        <div style="font-size:18px;margin-bottom:6px">${r.icon}</div>
+        <div style="font-size:12px;font-weight:700;color:#1a1208;margin-bottom:6px">${r.titulo}</div>
+        <div style="font-size:11px;color:#6A5A48;line-height:1.7">${r.txt}</div>
+      </div>`).join('')}
+    </div>
+  </div>
+
+  <!-- XII. PLANO DE AÇÃO -->
+  <h2 style="font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#0A0806;margin:0 0 14px;padding-bottom:7px;border-bottom:2px solid #C9A84C">XII · Plano de Ação — RH</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:28px">
+    ${[
+      ['🔴','30 dias','DC503C',['Devolutivas individuais — dreno >50%','Mapear funções x perfis naturais','Identificar conflitos de necessidades primárias']],
+      ['🟡','90 dias','D97706',['Formar times com perfis complementares','Trilhas de desenvolvimento por Kolb','Ativar potenciais latentes com projetos especiais']],
+      ['🟢','6 meses','166534',['Redesenho de cargos por Holland RIASEC','Programa de liderança por arquétipo','Re-assessment para medir evolução']],
+    ].map(([ico,prazo,cor,items])=>`<div style="background:#fff;border:1px solid #E0D8C8;border-radius:10px;padding:16px">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#${cor};font-family:'JetBrains Mono',monospace;margin-bottom:10px;font-weight:700">${ico} ${prazo}</div>
+      <ul style="font-size:11px;color:#4A4038;line-height:1.8;padding-left:15px">
+        ${items.map(i=>`<li>${i}</li>`).join('')}
+      </ul>
+    </div>`).join('')}
+  </div>
+
+  <!-- Rodapé -->
+  <div style="border-top:1px solid #E0D8C8;padding-top:14px;display:flex;justify-content:space-between;align-items:center">
+    <div style="font-size:10px;color:#8A7A5A">Instituto da Liderança · @institutodaideranca</div>
+    <div style="font-size:10px;color:#8A7A5A">${hoje} · Diagnóstico Integrado 7 Instrumentos</div>
+  </div>`;
+
+  document.getElementById('rel-body').innerHTML = html;
+  document.getElementById('modal-relatorio').style.display = 'block';
+  document.getElementById('modal-relatorio').scrollTop = 0;
+}
+
 </script>
 
 <!-- ░ MODAL RELATÓRIO DE TURMA ░ -->
@@ -700,6 +1218,7 @@ setInterval(silentRefresh, 60000);
     <!-- Footer -->
     <div style="padding:20px 40px;background:#F0EBE0;display:flex;gap:12px;justify-content:flex-end;border-top:1px solid #E0D8C8">
       <button onclick="fecharRelatorio()" style="padding:10px 24px;border-radius:100px;border:1px solid #C9A84C;background:transparent;color:#8A7A5A;cursor:pointer;font-family:'Syne',sans-serif">Fechar</button>
+      <button onclick="downloadRelatorio()" style="padding:10px 24px;border-radius:100px;border:1px solid #4A90D9;background:transparent;color:#4A90D9;cursor:pointer;font-weight:700;font-family:'Syne',sans-serif">⬇ Baixar HTML</button>
       <button onclick="imprimirRelatorio()" style="padding:10px 24px;border-radius:100px;border:none;background:linear-gradient(135deg,#b8922a,#C9A84C);color:#0A0806;cursor:pointer;font-weight:700;font-family:'Syne',sans-serif">🖨 Imprimir / PDF</button>
     </div>
   </div>
