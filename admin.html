@@ -180,15 +180,22 @@ tr:hover td{background:rgba(255,255,255,.02)}
   <aside class="sidebar">
     <div class="sidebar-logo">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 90" style="height:48px;width:auto;display:block" role="img" aria-label="Instituto da Liderança">
-  <g transform="translate(45,45)">
-    <g transform="rotate(0)"><ellipse cx="0" cy="-19" rx="10" ry="15" fill="#00C5B2"/><circle cx="0" cy="-31" r="7" fill="#00C5B2"/></g>
-    <g transform="rotate(90)"><ellipse cx="0" cy="-19" rx="10" ry="15" fill="#FF1566"/><circle cx="0" cy="-31" r="7" fill="#FF1566"/></g>
-    <g transform="rotate(180)"><ellipse cx="0" cy="-19" rx="10" ry="15" fill="#7C3AED"/><circle cx="0" cy="-31" r="7" fill="#7C3AED"/></g>
-    <g transform="rotate(270)"><ellipse cx="0" cy="-19" rx="10" ry="15" fill="#00C5B2" opacity="0.6"/><circle cx="0" cy="-31" r="7" fill="#00C5B2" opacity="0.6"/></g>
-    <circle cx="0" cy="0" r="6" fill="#FF1566"/>
-  </g>
-  <text x="95" y="38" font-family="'DM Sans',Arial,sans-serif" font-weight="800" font-size="32" fill="#FF1566" font-style="italic">Instituto</text>
-  <text x="97" y="64" font-family="'DM Sans',Arial,sans-serif" font-weight="700" font-size="14" fill="#FFFFFF" letter-spacing="2">DA LIDERANÇA</text>
+  <!-- Top: teal -->
+  <ellipse cx="45" cy="26" rx="10" ry="15" fill="#00C5B2"/>
+  <circle  cx="45" cy="10" r="7"  fill="#00C5B2"/>
+  <!-- Right: magenta -->
+  <ellipse cx="64" cy="45" rx="15" ry="10" fill="#FF1566"/>
+  <circle  cx="80" cy="45" r="7"  fill="#FF1566"/>
+  <!-- Bottom: purple -->
+  <ellipse cx="45" cy="64" rx="10" ry="15" fill="#7C3AED"/>
+  <circle  cx="45" cy="80" r="7"  fill="#7C3AED"/>
+  <!-- Left: teal (lighter) -->
+  <ellipse cx="26" cy="45" rx="15" ry="10" fill="#00C5B2" opacity="0.65"/>
+  <circle  cx="10" cy="45" r="7"  fill="#00C5B2" opacity="0.65"/>
+  <!-- Center -->
+  <circle  cx="45" cy="45" r="6"  fill="#FF1566"/>
+  <text x="95" y="39" font-family="'DM Sans',Arial,sans-serif" font-weight="800" font-size="30" fill="#FF1566" font-style="italic">Instituto</text>
+  <text x="97" y="63" font-family="'DM Sans',Arial,sans-serif" font-weight="700" font-size="13" fill="#FFFFFF" letter-spacing="2.5">DA LIDERANÇA</text>
 </svg>
     </div>
     <div class="nav-section">Dados</div>
@@ -643,16 +650,32 @@ const a0_0x42ca97=a0_0x193c;(function(_0x245ef9,_0x5d566a){const _0x15d3cd=a0_0x
 
 </script>
 
+
 <script id="idl-data-override">
-/* IDL Admin — carrega dados via Apps Script JSON (funciona sem planilha pública) */
+/* ═══ IDL Admin — override completo ════════════════════════════════
+   1. Bloqueia fetch ao Google Sheets CSV (privado → retornaria HTML de login)
+   2. Carrega respondentes via Apps Script JSON
+   3. MutationObserver: re-renderiza se alguém limpar a tabela
+   ═══════════════════════════════════════════════════════════════════ */
 (function(){
   var EP = 'https://script.google.com/macros/s/AKfycbyUFi-n1PaKBH119A0XiWZ_wMgN7jRbN176F1VLEUD0JyODhVVGooVRcQQ1D0MFZkS4ng/exec';
   var DISC = {D:'Dominante',I:'Influente',S:'Estável',C:'Conformidade'};
 
+  /* ── 1. Bloqueia requests ao Sheets CSV (fundo) ── */
+  var _origFetch = window.fetch;
+  window.fetch = function(url, opts){
+    if(typeof url==='string' && url.indexOf('docs.google.com/spreadsheets')>=0){
+      /* retorna JSON vazio para não crashar o parser CSV */
+      return Promise.resolve(new Response('',{status:200,headers:{'Content-Type':'text/csv'}}));
+    }
+    return _origFetch.apply(this, arguments);
+  };
+
+  /* ── helpers ── */
   function qs(id){ return document.getElementById(id); }
 
   function populateTurmas(data){
-    var turmas = [];
+    var turmas=[];
     data.forEach(function(r){ if(r.turma && turmas.indexOf(r.turma)<0) turmas.push(r.turma); });
     turmas.sort();
     ['f-turma','dash-turma','pts-turma','rank-turma'].forEach(function(id){
@@ -680,7 +703,11 @@ const a0_0x42ca97=a0_0x193c;(function(_0x245ef9,_0x5d566a){const _0x15d3cd=a0_0x
     });
     window._filteredData=filtered;
     var sc=qs('sel-count'); if(sc) sc.textContent=filtered.length+' respondente(s)';
-    if(!filtered.length){ tbody.innerHTML=''; if(emp) emp.style.display='flex'; return; }
+    if(!filtered.length){
+      tbody.innerHTML='';
+      if(emp) emp.style.display='flex';
+      return;
+    }
     if(emp) emp.style.display='none';
     tbody.innerHTML=filtered.map(function(r,i){
       var disc=(r.disc_primario||'')+(r.disc_secundario?'/'+r.disc_secundario:'');
@@ -690,16 +717,16 @@ const a0_0x42ca97=a0_0x193c;(function(_0x245ef9,_0x5d566a){const _0x15d3cd=a0_0x
         +'<td>'+(i+1)+'</td>'
         +'<td><strong style="color:var(--parch)">'+(r.nome||'—')+'</strong><br>'
         +'<span style="font-size:11px;color:var(--mid)">'+(r.email||'')+'</span></td>'
-        +'<td>'+(r.turma||'—')+'</td>'
-        +'<td>'+(r.fase||'—')+'</td>'
+        +'<td style="color:var(--parch)">'+(r.turma||'—')+'</td>'
+        +'<td style="color:var(--parch)">'+(r.fase||'—')+'</td>'
         +'<td><strong style="color:var(--gold)">'+(disc||'—')+'</strong></td>'
-        +'<td>'+(r.elem_primario||'—')+'</td>'
-        +'<td>'+(r.ennea_nome||'—')+'</td>'
-        +'<td>'+(r.arquetipos||'—')+'</td>'
-        +'<td>'+(r.kolb_estilo||'—')+'</td>'
-        +'<td>'+(r.need_1a||'—')+'</td>'
-        +'<td>'+(r.holland_codigo||'—')+'</td>'
-        +'<td style="font-size:11px">'+dt+'</td>'
+        +'<td style="color:var(--parch)">'+(r.elem_primario||'—')+'</td>'
+        +'<td style="color:var(--parch)">'+(r.ennea_nome||'—')+'</td>'
+        +'<td style="color:var(--parch)">'+(r.arquetipos||'—')+'</td>'
+        +'<td style="color:var(--parch)">'+(r.kolb_estilo||'—')+'</td>'
+        +'<td style="color:var(--parch)">'+(r.need_1a||'—')+'</td>'
+        +'<td style="color:var(--parch)">'+(r.holland_codigo||'—')+'</td>'
+        +'<td style="font-size:11px;color:var(--mid)">'+dt+'</td>'
         +'<td><button class="btn btn-outline btn-sm" onclick="idlView('+r._id+')" style="font-size:11px;padding:3px 8px">📄 Ver</button></td>'
         +'</tr>';
     }).join('');
@@ -707,20 +734,32 @@ const a0_0x42ca97=a0_0x193c;(function(_0x245ef9,_0x5d566a){const _0x15d3cd=a0_0x
     if(ca){ ca.checked=false; ca.onchange=function(e){document.querySelectorAll('.row-check').forEach(function(c){c.checked=e.target.checked;}); }; }
   }
 
+  /* ── 2. Carrega dados via Apps Script ── */
   function idlLoad(){
     var tbody=qs('table-body');
     if(tbody) tbody.innerHTML='<tr><td colspan="14" style="text-align:center;padding:32px;color:var(--mid)">⏳ Carregando respondentes…</td></tr>';
-    fetch(EP+'?action=getData')
-      .then(function(r){return r.json();})
+    fetch(EP+'?action=getData&t='+Date.now())
+      .then(function(r){ return r.json(); })
       .then(function(json){
-        if(json.status!=='ok'||!json.data||!json.data.length){
+        if(!json || json.status!=='ok' || !json.data || !json.data.length){
           if(tbody) tbody.innerHTML='';
           var e=qs('empty-resp'); if(e) e.style.display='flex';
           return;
         }
-        window._adminData=json.data;
+        window._adminData = json.data;
         populateTurmas(json.data);
         renderTable(json.data);
+        /* ── 3. MutationObserver: re-renderiza se alguém limpar a tabela ── */
+        if(!window._idlObserver){
+          window._idlObserver = new MutationObserver(function(){
+            var tb=qs('table-body');
+            if(tb && !tb.querySelector('tr') && window._adminData && window._adminData.length){
+              renderTable(window._adminData);
+            }
+          });
+          var tb=qs('table-body');
+          if(tb) window._idlObserver.observe(tb,{childList:true});
+        }
       })
       .catch(function(err){
         if(tbody) tbody.innerHTML='<tr><td colspan="14" style="text-align:center;padding:32px;color:#FF0060">'
@@ -728,16 +767,16 @@ const a0_0x42ca97=a0_0x193c;(function(_0x245ef9,_0x5d566a){const _0x15d3cd=a0_0x
       });
   }
 
-  window.idlView=function(id){
+  /* ── globals ── */
+  window.idlView = function(id){
     var r=(window._adminData||[]).find(function(x){return x._id===id;});
     if(!r) return;
-    localStorage.setItem('idl_preview_user',JSON.stringify(r));
+    localStorage.setItem('idl_preview_user', JSON.stringify(r));
     window.open('painel.html','_blank');
   };
-
-  window.loadData   = idlLoad;
-  window.filterTable= function(){ if(window._adminData) renderTable(window._adminData); };
-  window.selectAll  = function(){ document.querySelectorAll('.row-check').forEach(function(c){c.checked=true;}); };
+  window.loadData     = idlLoad;
+  window.filterTable  = function(){ if(window._adminData) renderTable(window._adminData); };
+  window.selectAll    = function(){ document.querySelectorAll('.row-check').forEach(function(c){c.checked=true;}); };
   window.clearSelection=function(){ document.querySelectorAll('.row-check').forEach(function(c){c.checked=false;}); };
   window.exportSelected=function(){
     var ids=Array.from(document.querySelectorAll('.row-check:checked')).map(function(c){return parseInt(c.dataset.id);});
@@ -746,16 +785,16 @@ const a0_0x42ca97=a0_0x193c;(function(_0x245ef9,_0x5d566a){const _0x15d3cd=a0_0x
     var keys=Object.keys(rows[0]);
     var csv=[keys.join(',')].concat(rows.map(function(r){return keys.map(function(k){return JSON.stringify(r[k]!=null?r[k]:'');}).join(',');})).join('\n');
     var a=document.createElement('a');
-    a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+    a.href='data:text/csv;charset=utf-8,﻿'+encodeURIComponent(csv);
     a.download='respondentes_'+new Date().toISOString().slice(0,10)+'.csv';
     a.click();
   };
 
-  /* Inicializa após o DOM estar pronto */
+  /* ── inicia ── */
   if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',function(){setTimeout(idlLoad,600);});
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(idlLoad, 800); });
   } else {
-    setTimeout(idlLoad,600);
+    setTimeout(idlLoad, 800);
   }
 })();
 </script>
