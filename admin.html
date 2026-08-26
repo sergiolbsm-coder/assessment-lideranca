@@ -179,28 +179,16 @@ tr:hover td{background:rgba(255,255,255,.02)}
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 88" role="img" aria-label="Instituto da Liderança" style="height:52px;width:auto;display:block">
-  <!-- Ícone circular IDL -->
-  <g transform="translate(44,44)">
-    <!-- Figura teal (esquerda-cima) -->
-    <circle cx="-12" cy="-26" r="5.5" fill="#00C5B2"/>
-    <path d="M-22,-20 C-32,-8 -28,8 -16,14 C-6,18 4,14 8,4 C12,-8 6,-20 -12,-20 Z" fill="#00C5B2"/>
-    <!-- Figura magenta (direita-cima) -->
-    <circle cx="26" cy="-12" r="5.5" fill="#FF1566"/>
-    <path d="M20,-22 C32,-12 32,4 20,12 C10,18 -2,14 -4,4 C-8,-8 2,-22 20,-22 Z" fill="#FF1566"/>
-    <!-- Figura roxa (direita-baixo) -->
-    <circle cx="12" cy="26" r="5.5" fill="#5C19C4"/>
-    <path d="M22,20 C32,8 28,-8 16,-14 C6,-18 -4,-14 -8,-4 C-12,8 -6,20 12,20 Z" fill="#5C19C4"/>
-    <!-- Figura teal (esquerda-baixo) -->
-    <circle cx="-26" cy="12" r="5.5" fill="#00C5B2"/>
-    <path d="M-20,22 C-32,12 -32,-4 -20,-12 C-10,-18 2,-14 4,-4 C8,8 -2,22 -20,22 Z" fill="#00C5B2"/>
-    <!-- Ponto central -->
-    <circle cx="0" cy="0" r="5" fill="#FF1566"/>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 90" style="height:48px;width:auto;display:block" role="img" aria-label="Instituto da Liderança">
+  <g transform="translate(45,45)">
+    <g transform="rotate(0)"><ellipse cx="0" cy="-19" rx="10" ry="15" fill="#00C5B2"/><circle cx="0" cy="-31" r="7" fill="#00C5B2"/></g>
+    <g transform="rotate(90)"><ellipse cx="0" cy="-19" rx="10" ry="15" fill="#FF1566"/><circle cx="0" cy="-31" r="7" fill="#FF1566"/></g>
+    <g transform="rotate(180)"><ellipse cx="0" cy="-19" rx="10" ry="15" fill="#7C3AED"/><circle cx="0" cy="-31" r="7" fill="#7C3AED"/></g>
+    <g transform="rotate(270)"><ellipse cx="0" cy="-19" rx="10" ry="15" fill="#00C5B2" opacity="0.6"/><circle cx="0" cy="-31" r="7" fill="#00C5B2" opacity="0.6"/></g>
+    <circle cx="0" cy="0" r="6" fill="#FF1566"/>
   </g>
-  <!-- Texto Instituto (bold magenta, levemente italic) -->
-  <text x="92" y="38" font-family="'DM Sans','Nunito',Arial,sans-serif" font-weight="800" font-size="30" fill="#FF1566" font-style="italic" letter-spacing="-0.5">Instituto</text>
-  <!-- Texto DA LIDERANÇA (bold purple, uppercase) -->
-  <text x="93" y="62" font-family="'DM Sans','Nunito',Arial,sans-serif" font-weight="700" font-size="15" fill="#391694" letter-spacing="2.5">DA LIDERANÇA</text>
+  <text x="95" y="38" font-family="'DM Sans',Arial,sans-serif" font-weight="800" font-size="32" fill="#FF1566" font-style="italic">Instituto</text>
+  <text x="97" y="64" font-family="'DM Sans',Arial,sans-serif" font-weight="700" font-size="14" fill="#FFFFFF" letter-spacing="2">DA LIDERANÇA</text>
 </svg>
     </div>
     <div class="nav-section">Dados</div>
@@ -653,6 +641,123 @@ const a0_0x42ca97=a0_0x193c;(function(_0x245ef9,_0x5d566a){const _0x15d3cd=a0_0x
   }
 })();
 
+</script>
+
+<script id="idl-data-override">
+/* IDL Admin — carrega dados via Apps Script JSON (funciona sem planilha pública) */
+(function(){
+  var EP = 'https://script.google.com/macros/s/AKfycbyUFi-n1PaKBH119A0XiWZ_wMgN7jRbN176F1VLEUD0JyODhVVGooVRcQQ1D0MFZkS4ng/exec';
+  var DISC = {D:'Dominante',I:'Influente',S:'Estável',C:'Conformidade'};
+
+  function qs(id){ return document.getElementById(id); }
+
+  function populateTurmas(data){
+    var turmas = [];
+    data.forEach(function(r){ if(r.turma && turmas.indexOf(r.turma)<0) turmas.push(r.turma); });
+    turmas.sort();
+    ['f-turma','dash-turma','pts-turma','rank-turma'].forEach(function(id){
+      var sel=qs(id); if(!sel) return;
+      var cur=sel.value;
+      sel.innerHTML='<option value="">'+(id==='pts-turma'?'Selecione a turma':'Todas as turmas')+'</option>'
+        +turmas.map(function(t){return '<option value="'+t+'">'+t+'</option>';}).join('');
+      if(cur) sel.value=cur;
+    });
+  }
+
+  function renderTable(data){
+    var tbody=qs('table-body'), emp=qs('empty-resp');
+    if(!tbody) return;
+    var search=(qs('search')||{}).value||''; search=search.toLowerCase();
+    var fT=(qs('f-turma')||{}).value||'';
+    var fF=(qs('f-fase')||{}).value||'';
+    var fD=(qs('f-disc')||{}).value||'';
+    var filtered=data.filter(function(r){
+      if(search && (r.nome||'').toLowerCase().indexOf(search)<0 && (r.email||'').toLowerCase().indexOf(search)<0) return false;
+      if(fT && r.turma!==fT) return false;
+      if(fF && r.fase!==fF)  return false;
+      if(fD && DISC[r.disc_primario]!==fD) return false;
+      return true;
+    });
+    window._filteredData=filtered;
+    var sc=qs('sel-count'); if(sc) sc.textContent=filtered.length+' respondente(s)';
+    if(!filtered.length){ tbody.innerHTML=''; if(emp) emp.style.display='flex'; return; }
+    if(emp) emp.style.display='none';
+    tbody.innerHTML=filtered.map(function(r,i){
+      var disc=(r.disc_primario||'')+(r.disc_secundario?'/'+r.disc_secundario:'');
+      var dt=r.timestamp?new Date(r.timestamp).toLocaleDateString('pt-BR'):'—';
+      return '<tr>'
+        +'<td class="check-col"><input type="checkbox" class="row-check" data-id="'+r._id+'"></td>'
+        +'<td>'+(i+1)+'</td>'
+        +'<td><strong style="color:var(--parch)">'+(r.nome||'—')+'</strong><br>'
+        +'<span style="font-size:11px;color:var(--mid)">'+(r.email||'')+'</span></td>'
+        +'<td>'+(r.turma||'—')+'</td>'
+        +'<td>'+(r.fase||'—')+'</td>'
+        +'<td><strong style="color:var(--gold)">'+(disc||'—')+'</strong></td>'
+        +'<td>'+(r.elem_primario||'—')+'</td>'
+        +'<td>'+(r.ennea_nome||'—')+'</td>'
+        +'<td>'+(r.arquetipos||'—')+'</td>'
+        +'<td>'+(r.kolb_estilo||'—')+'</td>'
+        +'<td>'+(r.need_1a||'—')+'</td>'
+        +'<td>'+(r.holland_codigo||'—')+'</td>'
+        +'<td style="font-size:11px">'+dt+'</td>'
+        +'<td><button class="btn btn-outline btn-sm" onclick="idlView('+r._id+')" style="font-size:11px;padding:3px 8px">📄 Ver</button></td>'
+        +'</tr>';
+    }).join('');
+    var ca=qs('chk-all');
+    if(ca){ ca.checked=false; ca.onchange=function(e){document.querySelectorAll('.row-check').forEach(function(c){c.checked=e.target.checked;}); }; }
+  }
+
+  function idlLoad(){
+    var tbody=qs('table-body');
+    if(tbody) tbody.innerHTML='<tr><td colspan="14" style="text-align:center;padding:32px;color:var(--mid)">⏳ Carregando respondentes…</td></tr>';
+    fetch(EP+'?action=getData')
+      .then(function(r){return r.json();})
+      .then(function(json){
+        if(json.status!=='ok'||!json.data||!json.data.length){
+          if(tbody) tbody.innerHTML='';
+          var e=qs('empty-resp'); if(e) e.style.display='flex';
+          return;
+        }
+        window._adminData=json.data;
+        populateTurmas(json.data);
+        renderTable(json.data);
+      })
+      .catch(function(err){
+        if(tbody) tbody.innerHTML='<tr><td colspan="14" style="text-align:center;padding:32px;color:#FF0060">'
+          +'❌ Erro: '+err.message+'</td></tr>';
+      });
+  }
+
+  window.idlView=function(id){
+    var r=(window._adminData||[]).find(function(x){return x._id===id;});
+    if(!r) return;
+    localStorage.setItem('idl_preview_user',JSON.stringify(r));
+    window.open('painel.html','_blank');
+  };
+
+  window.loadData   = idlLoad;
+  window.filterTable= function(){ if(window._adminData) renderTable(window._adminData); };
+  window.selectAll  = function(){ document.querySelectorAll('.row-check').forEach(function(c){c.checked=true;}); };
+  window.clearSelection=function(){ document.querySelectorAll('.row-check').forEach(function(c){c.checked=false;}); };
+  window.exportSelected=function(){
+    var ids=Array.from(document.querySelectorAll('.row-check:checked')).map(function(c){return parseInt(c.dataset.id);});
+    var rows=(window._adminData||[]).filter(function(r){return ids.indexOf(r._id)>=0;});
+    if(!rows.length){alert('Selecione ao menos um respondente.');return;}
+    var keys=Object.keys(rows[0]);
+    var csv=[keys.join(',')].concat(rows.map(function(r){return keys.map(function(k){return JSON.stringify(r[k]!=null?r[k]:'');}).join(',');})).join('\n');
+    var a=document.createElement('a');
+    a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+    a.download='respondentes_'+new Date().toISOString().slice(0,10)+'.csv';
+    a.click();
+  };
+
+  /* Inicializa após o DOM estar pronto */
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',function(){setTimeout(idlLoad,600);});
+  } else {
+    setTimeout(idlLoad,600);
+  }
+})();
 </script>
 </body>
 </html>function renderPontuacaoTable(){
