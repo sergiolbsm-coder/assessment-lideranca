@@ -5,29 +5,48 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DISC — Instituto da Liderança</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
 <style>
-:root {
-  --ink:    #0A0806;
-  --parch:  #EDE8DC;
-  --gold:   #C9A84C;
-  --mid:    #6A5A48;
-  --border: rgba(201,168,76,.18);
+:root{
+  /* ── IDL Design System ──────────────────────────── */
+  --idl-magenta:#FF0060;
+  --idl-purple:#391694;
+  --idl-purple-dark:#261062;
+  --idl-violet:#4D1DBF;
+  --idl-violet-light:#5631B9;
+  --idl-turquoise:#00D0C9;
+  --idl-whatsapp:#168D53;
+  --idl-text:#24153E;
+  --idl-text-muted:#6F667E;
+  --idl-background:#FBF9FF;
+  --idl-background-soft:#F4F0FB;
+  --idl-white:#FFFFFF;
+  --idl-border:rgba(57,22,148,.13);
+  --idl-gradient:linear-gradient(145deg,#261062,#391694 70%,#4D1DBF);
+  --idl-gradient-circle:radial-gradient(circle at 35% 28%,#5631B9,#261062 75%);
+  /* ────────────────────────────────────────────────── */
+
+  --ink:    #261062;
+  --parch:  #F4F0FB;
+  --gold:   #FF0060;
+  --mid:    #6F667E;
+  --border: rgba(255,0,96,.18);
   --flame:  #DC503C;
   --sky:    #4A90D9;
   --mist:   #7BB89A;
   --r:      12px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Syne',sans-serif;background:var(--ink);color:var(--parch);min-height:100vh;padding:24px 16px}
+body{font-family:'DM Sans',sans-serif;background:var(--idl-gradient);color:var(--parch);min-height:100vh;padding:24px 16px}
 .wrap{max-width:680px;margin:0 auto}
 h1{font-size:22px;font-weight:800;color:var(--gold);margin-bottom:4px}
 .subtitle{font-size:13px;color:var(--mid);margin-bottom:32px;font-family:'JetBrains Mono',monospace}
 .card{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin-bottom:16px}
 .section-title{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);font-family:'JetBrains Mono',monospace;margin-bottom:16px}
 label{display:block;font-size:13px;color:var(--mid);margin-bottom:6px}
-input,select{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--parch);font-family:'Syne',sans-serif;font-size:14px;outline:none}
+input,select{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--parch);font-family:'DM Sans',sans-serif;font-size:14px;outline:none}
 input:focus,select:focus{border-color:var(--gold)}
-select option{background:#1a1410}
+select option{background:#261062}
 .field{margin-bottom:14px}
 .round-header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
 .round-badge{background:var(--gold);color:var(--ink);font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;padding:4px 12px;border-radius:100px;letter-spacing:.1em}
@@ -50,7 +69,7 @@ select option{background:#1a1410}
 .progress-fill{height:100%;background:var(--gold);border-radius:2px;transition:width .3s}
 .warning{font-size:12px;color:var(--flame);font-family:'JetBrains Mono',monospace;margin-top:8px;display:none}
 .warning.show{display:block}
-.btn{padding:14px 32px;border-radius:100px;border:none;cursor:pointer;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;transition:.2s}
+.btn{padding:14px 32px;border-radius:100px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;transition:.2s}
 .btn-primary{background:var(--gold);color:var(--ink)}
 .btn-primary:hover{opacity:.9}
 .btn-primary:disabled{opacity:.4;cursor:not-allowed}
@@ -70,7 +89,7 @@ select option{background:#1a1410}
 .result-card{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:16px}
 .result-card-label{font-size:10px;color:var(--mid);font-family:'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
 .result-card-value{font-size:18px;font-weight:800}
-#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:rgba(10,8,6,.96);border:1px solid var(--gold);color:var(--parch);padding:12px 24px;border-radius:100px;font-size:13px;font-family:'Syne',sans-serif;z-index:9999;display:none}
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:rgba(38,16,98,.96);border:1px solid var(--gold);color:var(--parch);padding:12px 24px;border-radius:100px;font-size:13px;font-family:'DM Sans',sans-serif;z-index:9999;display:none}
 @media(max-width:600px){.words{grid-template-columns:1fr}.result-grid{grid-template-columns:1fr}}
 </style>
 </head>

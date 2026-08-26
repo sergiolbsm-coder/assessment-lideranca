@@ -6,11 +6,30 @@
 <meta http-equiv="Cache-Control" content="no-cache">
 <title>Portal RH — Instituto da Liderança</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Syne:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
 <style>
 /* ── TOKENS ─────────────────────────────────────────────── */
 :root{
-  --ink:#0A0806; --parch:#FAFAFA; --mid:#6A6258; --border:#E8E2DA;
-  --gold:#C9A84C; --gold-dk:#8A6520; --gold-lt:#F0E8C8;
+  /* ── IDL Design System ──────────────────────────── */
+  --idl-magenta:#FF0060;
+  --idl-purple:#391694;
+  --idl-purple-dark:#261062;
+  --idl-violet:#4D1DBF;
+  --idl-violet-light:#5631B9;
+  --idl-turquoise:#00D0C9;
+  --idl-whatsapp:#168D53;
+  --idl-text:#24153E;
+  --idl-text-muted:#6F667E;
+  --idl-background:#FBF9FF;
+  --idl-background-soft:#F4F0FB;
+  --idl-white:#FFFFFF;
+  --idl-border:rgba(57,22,148,.13);
+  --idl-gradient:linear-gradient(145deg,#261062,#391694 70%,#4D1DBF);
+  --idl-gradient-circle:radial-gradient(circle at 35% 28%,#5631B9,#261062 75%);
+  /* ────────────────────────────────────────────────── */
+
+  --ink:#261062;--parch:#FBF9FF; --mid:#6F667E; --border:rgba(57,22,148,.15);
+  --gold:#FF0060;--gold-dk:#391694;--gold-lt:#00D0C9;
   --flame:#F07030; --sky:#4A90D4; --mist:#A878E0; --moss:#9AB050;
   --r:12px; --r-sm:8px;
   --sidebar:260px;
@@ -19,25 +38,25 @@
 
 /* ── RESET ─────────────────────────────────────────────── */
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Syne',sans-serif;background:#F5F4F2;color:var(--ink);min-height:100vh;overflow-x:hidden}
+body{font-family:'DM Sans',sans-serif;background:#FBF9FF;color:var(--ink);min-height:100vh;overflow-x:hidden}
 
 /* ── LOGIN SCREEN ───────────────────────────────────────── */
 #login-screen{
   min-height:100vh;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(135deg,#0A0806 0%,#1A1410 60%,#0A0806 100%);
+  background:linear-gradient(135deg,#261062 0%,#261062 60%,#261062 100%);
   position:relative;overflow:hidden;
 }
 #login-screen::before{
   content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse 80% 60% at 50% 50%, rgba(201,168,76,.07) 0%, transparent 70%);
+  background:radial-gradient(ellipse 80% 60% at 50% 50%, rgba(255,0,96,.07) 0%, transparent 70%);
 }
 #login-screen::after{
   content:'';position:absolute;top:-200px;right:-200px;width:600px;height:600px;
-  border-radius:50%;border:1px solid rgba(201,168,76,.08);
+  border-radius:50%;border:1px solid rgba(255,0,96,.08);
 }
 .login-card{
   position:relative;z-index:1;width:100%;max-width:400px;margin:20px;
-  background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.2);
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,0,96,.2);
   border-radius:20px;padding:44px 40px;backdrop-filter:blur(20px);
   box-shadow:0 32px 80px rgba(0,0,0,.6);
 }
@@ -46,28 +65,28 @@ body{font-family:'Syne',sans-serif;background:#F5F4F2;color:var(--ink);min-heigh
 .login-badge{
   font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.18em;
   color:var(--gold);text-transform:uppercase;text-align:center;
-  border:1px solid rgba(201,168,76,.3);padding:4px 14px;border-radius:100px;
+  border:1px solid rgba(255,0,96,.3);padding:4px 14px;border-radius:100px;
   display:inline-block;margin-bottom:20px;
 }
 .login-title{
   font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;
-  color:#FAF6EE;text-align:center;margin-bottom:6px;
+  color:#FBF9FF;text-align:center;margin-bottom:6px;
 }
 .login-sub{font-size:13px;color:#8A7A5A;text-align:center;margin-bottom:32px}
 .login-field{margin-bottom:16px}
 .login-field label{font-size:11px;font-family:'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#8A7A5A;display:block;margin-bottom:6px}
 .login-field input{
   width:100%;padding:12px 16px;
-  background:rgba(255,255,255,.06);border:1px solid rgba(201,168,76,.25);
-  border-radius:var(--r-sm);color:#FAF6EE;font-family:'Syne',sans-serif;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,0,96,.25);
+  border-radius:var(--r-sm);color:#FBF9FF;font-family:'DM Sans',sans-serif;
   font-size:14px;outline:none;transition:border-color .2s;
 }
 .login-field input:focus{border-color:var(--gold)}
 .login-btn{
   width:100%;padding:14px;
   background:linear-gradient(135deg,var(--gold-dk),var(--gold));
-  color:#0A0806;border:none;border-radius:var(--r-sm);
-  font-family:'Syne',sans-serif;font-size:15px;font-weight:700;
+  color:#261062;border:none;border-radius:var(--r-sm);
+  font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;
   cursor:pointer;margin-top:8px;transition:opacity .2s;
 }
 .login-btn:hover{opacity:.9}
@@ -84,21 +103,21 @@ body{font-family:'Syne',sans-serif;background:#F5F4F2;color:var(--ink);min-heigh
 .layout{display:flex;min-height:100vh}
 .sidebar{
   width:var(--sidebar);flex-shrink:0;
-  background:#0A0806;color:#FAF6EE;
+  background:#261062;color:#FBF9FF;
   display:flex;flex-direction:column;
   position:fixed;left:0;top:0;bottom:0;z-index:50;
-  border-right:1px solid rgba(201,168,76,.15);
+  border-right:1px solid rgba(255,0,96,.15);
 }
-.sidebar-logo{padding:24px 20px 20px;border-bottom:1px solid rgba(201,168,76,.12)}
+.sidebar-logo{padding:24px 20px 20px;border-bottom:1px solid rgba(255,0,96,.12)}
 .sidebar-logo img{height:56px;width:auto;display:block;margin-bottom:10px;filter:brightness(0) invert(1)}
 .sidebar-badge{
   font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.14em;
   text-transform:uppercase;color:var(--gold);
-  background:rgba(201,168,76,.1);padding:3px 8px;border-radius:4px;display:inline-block;
+  background:rgba(255,0,96,.1);padding:3px 8px;border-radius:4px;display:inline-block;
 }
 .sidebar-user{
-  padding:14px 20px;border-bottom:1px solid rgba(201,168,76,.1);
-  background:rgba(201,168,76,.05);
+  padding:14px 20px;border-bottom:1px solid rgba(255,0,96,.1);
+  background:rgba(255,0,96,.05);
 }
 .sidebar-user-name{font-size:13px;font-weight:700;color:var(--gold);margin-bottom:2px}
 .sidebar-user-co{font-size:11px;color:#8A7A5A;font-family:'JetBrains Mono',monospace}
@@ -109,21 +128,21 @@ body{font-family:'Syne',sans-serif;background:#F5F4F2;color:var(--ink);min-heigh
   cursor:pointer;transition:all .2s;font-size:13px;color:#8A7A5A;
   border-left:3px solid transparent;
 }
-.nav-item:hover{background:rgba(201,168,76,.06);color:var(--parch)}
-.nav-item.active{background:rgba(201,168,76,.1);color:var(--gold);border-left-color:var(--gold)}
+.nav-item:hover{background:rgba(255,0,96,.06);color:var(--parch)}
+.nav-item.active{background:rgba(255,0,96,.1);color:var(--gold);border-left-color:var(--gold)}
 .ni{font-size:15px;width:20px;flex-shrink:0}
 .sidebar-footer{
-  padding:16px 20px;border-top:1px solid rgba(201,168,76,.1);
+  padding:16px 20px;border-top:1px solid rgba(255,0,96,.1);
 }
 .logout-btn{
   width:100%;padding:9px;background:rgba(220,80,60,.1);border:1px solid rgba(220,80,60,.3);
-  color:#F08070;border-radius:var(--r-sm);font-family:'Syne',sans-serif;font-size:12px;
+  color:#F08070;border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-size:12px;
   font-weight:600;cursor:pointer;transition:all .2s;
 }
 .logout-btn:hover{background:rgba(220,80,60,.2)}
 
 /* ── MAIN ───────────────────────────────────────────────── */
-.main{margin-left:var(--sidebar);flex:1;min-height:100vh;background:#F5F4F2}
+.main{margin-left:var(--sidebar);flex:1;min-height:100vh;background:#FBF9FF}
 .page-header{
   padding:28px 32px 20px;border-bottom:1px solid var(--border);
   display:flex;align-items:center;justify-content:space-between;
@@ -135,10 +154,10 @@ body{font-family:'Syne',sans-serif;background:#F5F4F2;color:var(--ink);min-heigh
 
 /* ── EMPRESA HEADER CARD ────────────────────────────────── */
 .empresa-card{
-  background:linear-gradient(135deg,#0A0806,#1A1410);
-  color:#FAF6EE;border-radius:var(--r);padding:28px 32px;
+  background:linear-gradient(135deg,#261062,#261062);
+  color:#FBF9FF;border-radius:var(--r);padding:28px 32px;
   margin-bottom:28px;display:flex;align-items:center;gap:20px;
-  border:1px solid rgba(201,168,76,.2);
+  border:1px solid rgba(255,0,96,.2);
 }
 .empresa-icon{font-size:36px}
 .empresa-info h2{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;margin-bottom:4px}
@@ -179,21 +198,21 @@ body{font-family:'Syne',sans-serif;background:#F5F4F2;color:var(--ink);min-heigh
 .tbl tr:hover td{background:#FDFCFA}
 .td-name{font-weight:600;color:var(--ink)}
 .disc-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px}
-.btn{padding:7px 14px;border-radius:var(--r-sm);border:1px solid var(--border);background:#fff;font-family:'Syne',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:5px}
+.btn{padding:7px 14px;border-radius:var(--r-sm);border:1px solid var(--border);background:#fff;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:5px}
 .btn:hover{border-color:var(--gold);color:var(--gold)}
-.btn-gold{background:linear-gradient(135deg,var(--gold-dk),var(--gold));color:#0A0806;border:none}
-.btn-gold:hover{opacity:.9;color:#0A0806}
+.btn-gold{background:linear-gradient(135deg,var(--gold-dk),var(--gold));color:#261062;border:none}
+.btn-gold:hover{opacity:.9;color:#261062}
 .btn-sm{padding:5px 11px;font-size:11px}
 .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
 .filter-sel{
   padding:8px 12px;border:1px solid var(--border);border-radius:var(--r-sm);
-  background:#fff;font-family:'Syne',sans-serif;font-size:13px;outline:none;
+  background:#fff;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;
   color:var(--ink);min-width:140px;cursor:pointer;
 }
 .filter-sel:focus{border-color:var(--gold)}
 .search-inp{
   flex:1;padding:8px 14px;border:1px solid var(--border);border-radius:var(--r-sm);
-  background:#fff;font-family:'Syne',sans-serif;font-size:13px;outline:none;
+  background:#fff;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;
   color:var(--ink);min-width:200px;max-width:320px;
 }
 .search-inp:focus{border-color:var(--gold)}
@@ -204,7 +223,7 @@ body{font-family:'Syne',sans-serif;background:#F5F4F2;color:var(--ink);min-heigh
 .empty-title{font-size:17px;font-weight:700;margin-bottom:8px;color:var(--ink)}
 
 /* ── MODAL ──────────────────────────────────────────────── */
-.modal-overlay{position:fixed;inset:0;background:rgba(10,8,6,.6);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay{position:fixed;inset:0;background:rgba(38,16,98,.6);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
 .modal-overlay.open{display:flex}
 .modal{background:#fff;border-radius:16px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;margin:20px;box-shadow:0 24px 80px rgba(0,0,0,.3)}
 .modal-header{padding:22px 26px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
@@ -237,9 +256,9 @@ body{font-family:'Syne',sans-serif;background:#F5F4F2;color:var(--ink);min-heigh
 /* ── TOAST ──────────────────────────────────────────────── */
 .toast{
   position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
-  background:#0A0806;color:#FAF6EE;padding:12px 24px;border-radius:100px;
-  font-size:13px;font-family:'Syne',sans-serif;z-index:9999;
-  border:1px solid rgba(201,168,76,.3);display:none;white-space:nowrap;
+  background:#261062;color:#FBF9FF;padding:12px 24px;border-radius:100px;
+  font-size:13px;font-family:'DM Sans',sans-serif;z-index:9999;
+  border:1px solid rgba(255,0,96,.3);display:none;white-space:nowrap;
 }
 
 /* ── UTILS ──────────────────────────────────────────────── */
@@ -962,54 +981,54 @@ function generate360Report(id){
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Syne:wght@400;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:Syne,sans-serif;background:#FFFFFF;color:#1A1612;line-height:1.6;font-size:14px}
+body{font-family:Syne,sans-serif;background:#FFFFFF;color:#261062;line-height:1.6;font-size:14px}
 .page{max-width:840px;margin:0 auto;padding:48px 40px}
 /* CAPA */
-.cover{background:linear-gradient(135deg,#0A0806 0%,#1A1612 100%);color:#FAF6EE;padding:56px 48px;border-radius:16px;margin-bottom:40px;position:relative;overflow:hidden}
-.cover::after{content:'';position:absolute;top:-40px;right:-40px;width:240px;height:240px;border-radius:50%;background:rgba(201,168,76,.08)}
-.cover-badge{font-family:JetBrains Mono,monospace;font-size:10px;letter-spacing:.18em;color:#C9A84C;text-transform:uppercase;margin-bottom:20px;display:inline-block;border:1px solid rgba(201,168,76,.3);padding:5px 14px;border-radius:100px}
+.cover{background:linear-gradient(135deg,#261062 0%,#261062 100%);color:#FBF9FF;padding:56px 48px;border-radius:16px;margin-bottom:40px;position:relative;overflow:hidden}
+.cover::after{content:'';position:absolute;top:-40px;right:-40px;width:240px;height:240px;border-radius:50%;background:rgba(255,0,96,.08)}
+.cover-badge{font-family:JetBrains Mono,monospace;font-size:10px;letter-spacing:.18em;color:#FF0060;text-transform:uppercase;margin-bottom:20px;display:inline-block;border:1px solid rgba(255,0,96,.3);padding:5px 14px;border-radius:100px}
 .cover-title{font-family:Cormorant Garamond,serif;font-size:36px;font-weight:700;line-height:1.15;margin-bottom:8px}
 .cover-subtitle{font-size:14px;color:#C4B898;margin-bottom:32px;line-height:1.7}
-.cover-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:32px;padding-top:28px;border-top:1px solid rgba(201,168,76,.2)}
+.cover-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:32px;padding-top:28px;border-top:1px solid rgba(255,0,96,.2)}
 .cover-meta-item .label{font-family:JetBrains Mono,monospace;font-size:9px;color:#8A7A5A;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px}
-.cover-meta-item .value{font-size:15px;font-weight:700;color:#FAF6EE}
+.cover-meta-item .value{font-size:15px;font-weight:700;color:#FBF9FF}
 .cover-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
-.cover-pill{font-family:JetBrains Mono,monospace;font-size:10px;padding:4px 12px;border-radius:100px;border:1px solid rgba(201,168,76,.25);color:#C9A84C;letter-spacing:.08em}
+.cover-pill{font-family:JetBrains Mono,monospace;font-size:10px;padding:4px 12px;border-radius:100px;border:1px solid rgba(255,0,96,.25);color:#FF0060;letter-spacing:.08em}
 /* SECTIONS */
 .section{margin-bottom:36px;background:#fff;border:1px solid #E8E0D0;border-radius:12px;overflow:hidden}
-.section-header{display:flex;align-items:center;gap:14px;padding:18px 24px;border-bottom:1px solid #F0E8D8;background:linear-gradient(90deg,#FAF6EE,#F5F0E8)}
-.section-num{font-family:JetBrains Mono,monospace;font-size:11px;color:#C9A84C;letter-spacing:.1em;background:rgba(201,168,76,.12);padding:4px 10px;border-radius:100px}
+.section-header{display:flex;align-items:center;gap:14px;padding:18px 24px;border-bottom:1px solid #F0E8D8;background:linear-gradient(90deg,#FBF9FF,#F5F0E8)}
+.section-num{font-family:JetBrains Mono,monospace;font-size:11px;color:#FF0060;letter-spacing:.1em;background:rgba(255,0,96,.12);padding:4px 10px;border-radius:100px}
 .section-icon{font-size:20px}
-.section-title{font-family:Cormorant Garamond,serif;font-size:20px;font-weight:700;color:#0A0806}
+.section-title{font-family:Cormorant Garamond,serif;font-size:20px;font-weight:700;color:#261062}
 .section-badge{margin-left:auto;font-family:JetBrains Mono,monospace;font-size:11px;font-weight:700;padding:5px 14px;border-radius:100px}
 .section-body{padding:22px 24px}
 /* TEXT */
-h3{font-family:Cormorant Garamond,serif;font-size:16px;font-weight:700;color:#0A0806;margin:16px 0 8px}
+h3{font-family:Cormorant Garamond,serif;font-size:16px;font-weight:700;color:#261062;margin:16px 0 8px}
 h3:first-child{margin-top:0}
 p{font-size:13px;color:#4A4038;line-height:1.75;margin-bottom:10px}
-strong{color:#0A0806;font-weight:700}
-em{font-style:italic;color:#7A6E5A}
+strong{color:#261062;font-weight:700}
+em{font-style:italic;color:#6F667E}
 /* BARS */
 .bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .bar-name{font-size:12px;font-weight:700;width:100px;flex-shrink:0}
 .bar-track{flex:1;height:10px;background:#F0E8D8;border-radius:5px;overflow:hidden}
 .bar-fill{height:100%;border-radius:5px}
-.bar-pct{font-family:JetBrains Mono,monospace;font-size:12px;width:38px;text-align:right;color:#7A6E5A}
+.bar-pct{font-family:JetBrains Mono,monospace;font-size:12px;width:38px;text-align:right;color:#6F667E}
 /* GRID */
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
 .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:14px 0}
-.card{background:#FAF6EE;border:1px solid #E8E0D0;border-radius:10px;padding:16px}
-.card-label{font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
-.card-value{font-size:14px;font-weight:700;color:#0A0806;margin-bottom:4px}
-.card-sub{font-size:12px;color:#7A6E5A;line-height:1.5}
+.card{background:#FBF9FF;border:1px solid #E8E0D0;border-radius:10px;padding:16px}
+.card-label{font-family:JetBrains Mono,monospace;font-size:9px;color:#FF0060;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
+.card-value{font-size:14px;font-weight:700;color:#261062;margin-bottom:4px}
+.card-sub{font-size:12px;color:#6F667E;line-height:1.5}
 /* INSIGHT */
-.insight{background:linear-gradient(90deg,rgba(201,168,76,.07),rgba(201,168,76,.02));border-left:3px solid #C9A84C;border-radius:0 8px 8px 0;padding:12px 16px;margin:12px 0;font-size:13px;line-height:1.7;color:#2A2018}
-.insight strong{color:#8A6520}
+.insight{background:linear-gradient(90deg,rgba(255,0,96,.07),rgba(255,0,96,.02));border-left:3px solid #FF0060;border-radius:0 8px 8px 0;padding:12px 16px;margin:12px 0;font-size:13px;line-height:1.7;color:#2A2018}
+.insight strong{color:#391694}
 /* ALERT */
 .alert{background:rgba(239,68,68,.05);border-left:3px solid #EF4444;border-radius:0 8px 8px 0;padding:12px 16px;margin:10px 0;font-size:13px;color:#7A0A0A;line-height:1.7}
 /* TABLE */
 table{width:100%;border-collapse:collapse;font-size:12px;margin:12px 0}
-th{background:#0A0806;color:#C9A84C;padding:10px 12px;text-align:left;font-family:JetBrains Mono,monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase}
+th{background:#261062;color:#FF0060;padding:10px 12px;text-align:left;font-family:JetBrains Mono,monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase}
 td{padding:10px 12px;border-bottom:1px solid #F0E8D8;color:#4A4038;vertical-align:top}
 tr:last-child td{border-bottom:none}
 tr:nth-child(even)td{background:#FDFAF5}
@@ -1019,14 +1038,14 @@ tr:nth-child(even)td{background:#FDFAF5}
 .pdi-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:8px;margin-bottom:8px;font-size:13px;line-height:1.6}
 .pdi-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
 /* MATRIZ */
-.matriz-item{background:#FAF6EE;border:1px solid #E8E0D0;border-radius:10px;padding:16px;margin-bottom:12px}
-.matriz-label{font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
+.matriz-item{background:#FBF9FF;border:1px solid #E8E0D0;border-radius:10px;padding:16px;margin-bottom:12px}
+.matriz-label{font-family:JetBrains Mono,monospace;font-size:9px;color:#FF0060;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
 .matriz-text{font-size:13px;color:#2A2018;line-height:1.7}
 /* FOOTER */
 .footer{text-align:center;padding:32px 0 0;border-top:1px solid #E8E0D0;margin-top:40px;font-family:JetBrains Mono,monospace;font-size:10px;color:#B0A090;letter-spacing:.08em}
 /* RANKING */
 .rank-card{background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px}
-.rank-card-header{display:flex;align-items:center;gap:12px;padding:14px 20px;background:rgba(201,168,76,.07);border-bottom:1px solid var(--border)}
+.rank-card-header{display:flex;align-items:center;gap:12px;padding:14px 20px;background:rgba(255,0,96,.07);border-bottom:1px solid var(--border)}
 .rank-card-title{font-family:Cormorant Garamond,serif;font-size:20px;font-weight:700}
 .rank-medal{font-size:22px;width:28px;text-align:center;flex-shrink:0}
 .rank-row{display:flex;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s}
@@ -1041,7 +1060,7 @@ tr:nth-child(even)td{background:#FDFAF5}
 .rank-bar{height:100%;border-radius:3px;transition:width .8s ease}
 /* PONTUACAO TABLE */
 .pts-table{width:100%;border-collapse:collapse;font-size:12px}
-.pts-table th{padding:9px 10px;text-align:left;font-family:JetBrains Mono,monospace;font-size:9px;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;background:rgba(201,168,76,.07);border-bottom:1px solid var(--border);white-space:nowrap}
+.pts-table th{padding:9px 10px;text-align:left;font-family:JetBrains Mono,monospace;font-size:9px;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;background:rgba(255,0,96,.07);border-bottom:1px solid var(--border);white-space:nowrap}
 .pts-table td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
 .pts-table tr:last-child td{border-bottom:none}
 .pts-table tr:hover td{background:rgba(255,255,255,.02)}
@@ -1049,7 +1068,7 @@ tr:nth-child(even)td{background:#FDFAF5}
 .pts-total{font-family:JetBrains Mono,monospace;font-size:14px;font-weight:800;color:var(--gold)}
 /* ATIVIDADES */
 .atv-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:6px}
-.atv-pts-badge{font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:var(--gold);background:rgba(201,168,76,.1);padding:4px 12px;border-radius:100px;border:1px solid rgba(201,168,76,.3);min-width:60px;text-align:center;flex-shrink:0}
+.atv-pts-badge{font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:var(--gold);background:rgba(255,0,96,.1);padding:4px 12px;border-radius:100px;border:1px solid rgba(255,0,96,.3);min-width:60px;text-align:center;flex-shrink:0}
 .nivel-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:6px}
 .nivel-badge{font-size:11px;font-weight:700;padding:4px 14px;border-radius:100px;flex-shrink:0;min-width:80px;text-align:center}
 .mgmt-input{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 12px;color:var(--parch);font-family:Syne,sans-serif;font-size:13px;outline:none;flex:1;min-width:0}
@@ -1059,7 +1078,7 @@ tr:nth-child(even)td{background:#FDFAF5}
 /* RODADA TABS */
 .rodada-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px}
 .rod-tab{padding:5px 14px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--mid);font-size:12px;font-family:JetBrains Mono,monospace;cursor:pointer;transition:all .2s}
-.rod-tab.active{border-color:var(--gold);background:rgba(201,168,76,.12);color:var(--gold)}
+.rod-tab.active{border-color:var(--gold);background:rgba(255,0,96,.12);color:var(--gold)}
 /* EDIT INLINE */
 .mgmt-edit-input{flex:1;background:rgba(255,255,255,.06);border:1px solid var(--gold);border-radius:5px;padding:3px 8px;color:var(--parch);font-family:Syne,sans-serif;font-size:13px;outline:none}
   body{background:#fff}
@@ -1072,7 +1091,7 @@ tr:nth-child(even)td{background:#FDFAF5}
 @media print{
   body{background:#FFFFFF!important}
   .no-print{display:none!important}
-  .cover{background:linear-gradient(135deg,#0A0806 0%,#1A1612 100%)!important;-webkit-print-color-adjust:exact!important}
+  .cover{background:linear-gradient(135deg,#261062 0%,#261062 100%)!important;-webkit-print-color-adjust:exact!important}
   .section{break-inside:avoid;page-break-inside:avoid}
   .pdi-section{break-inside:avoid}
 }
@@ -1094,7 +1113,7 @@ tr:nth-child(even)td{background:#FDFAF5}
 
 <!-- TOOLBAR -->
 <div class="no-print" style="position:fixed;top:20px;right:20px;z-index:100;display:flex;gap:8px">
-  <button onclick="window.print()" style="background:#C9A84C;color:#0A0806;border:none;border-radius:8px;padding:10px 18px;font-family:Syne,sans-serif;font-weight:700;cursor:pointer;font-size:13px">🖨️ Imprimir / Salvar PDF</button>
+  <button onclick="window.print()" style="background:#FF0060;color:#261062;border:none;border-radius:8px;padding:10px 18px;font-family:Syne,sans-serif;font-weight:700;cursor:pointer;font-size:13px">🖨️ Imprimir / Salvar PDF</button>
   <button onclick="window.close()" style="background:rgba(255,255,255,.9);color:#555;border:1px solid #ddd;border-radius:8px;padding:10px 14px;font-family:Syne,sans-serif;font-weight:600;cursor:pointer;font-size:13px">✕ Fechar</button>
 </div>
 
@@ -1168,7 +1187,7 @@ tr:nth-child(even)td{background:#FDFAF5}
     <span class="section-num">II</span>
     <span class="section-icon">${{FOGO:'🔥',TERRA:'🌿','ÁGUA':'💧',AR:'💨'}[elem]||'🔥'}</span>
     <span class="section-title">Temperamento — Elementos da Natureza</span>
-    <span class="section-badge" style="background:rgba(240,112,48,.08);color:#7A6E5A">${elemNames[elem]||elem}</span>
+    <span class="section-badge" style="background:rgba(240,112,48,.08);color:#6F667E">${elemNames[elem]||elem}</span>
   </div>
   <div class="section-body">
     <div class="card" style="margin-bottom:16px">
@@ -1224,7 +1243,7 @@ tr:nth-child(even)td{background:#FDFAF5}
     <span class="section-num">IV</span>
     <span class="section-icon">⚔️</span>
     <span class="section-title">Arquétipos — Imagens de Poder</span>
-    <span class="section-badge" style="background:rgba(201,168,76,.12);color:#C9A84C">${arch}</span>
+    <span class="section-badge" style="background:rgba(255,0,96,.12);color:#FF0060">${arch}</span>
   </div>
   <div class="section-body">
     <div class="card" style="margin-bottom:16px">
@@ -1330,7 +1349,7 @@ tr:nth-child(even)td{background:#FDFAF5}
     <span class="section-num">VIII</span>
     <span class="section-icon">🔋</span>
     <span class="section-title">Bateria de Energia Comportamental</span>
-    <span class="section-badge" style="background:rgba(201,168,76,.12);color:#C9A84C">Custo de Adaptação</span>
+    <span class="section-badge" style="background:rgba(255,0,96,.12);color:#FF0060">Custo de Adaptação</span>
   </div>
   <div class="section-body">
     <p>Este indicador quantifica o <strong>esforço mental invisível</strong> para sustentar comportamentos não naturais ao perfil. Quanto maior o dreno, maior o risco de exaustão e menor o desempenho de longo prazo.</p>
@@ -1351,15 +1370,15 @@ tr:nth-child(even)td{background:#FDFAF5}
       ];
       return`
       <div style="margin:16px 0">
-        <div style="font-family:monospace;font-size:10px;color:#C9A84C;letter-spacing:.1em;margin-bottom:10px;font-weight:700">CAPACIDADE GLOBAL — PERFIL ${(discN[disc]||disc).toUpperCase()}</div>
+        <div style="font-family:monospace;font-size:10px;color:#FF0060;letter-spacing:.1em;margin-bottom:10px;font-weight:700">CAPACIDADE GLOBAL — PERFIL ${(discN[disc]||disc).toUpperCase()}</div>
         <div style="position:relative;height:34px;background:#F0E8D8;border-radius:8px;overflow:hidden;margin-bottom:5px">
           <div style="position:absolute;left:0;top:0;height:100%;width:${natPct}%;background:${discColors[disc]}99;border-radius:8px 0 0 8px;display:flex;align-items:center;padding-left:10px">
-            <span style="font-size:11px;font-weight:700;color:#0A0806">${natPct}% Natural</span>
+            <span style="font-size:11px;font-weight:700;color:#261062">${natPct}% Natural</span>
           </div>
           <div style="position:absolute;left:${natPct}%;top:0;height:100%;width:${adjPct}%;background:repeating-linear-gradient(45deg,${discColors[discSec]}55,${discColors[discSec]}55 3px,${discColors[discSec]}22 3px,${discColors[discSec]}22 6px);border-left:2px solid ${drenoColor}">
             ${adjPct>8?`<span style="font-size:10px;color:${drenoColor};padding-left:6px;line-height:34px">${adjPct}% Dreno</span>`:''}
           </div>
-          <div style="position:absolute;left:${natPct+adjPct}%;top:0;height:100%;width:${latentPct}%;background:#EDE8DC;border-left:1px dashed #B0A090;display:flex;align-items:center;justify-content:center">
+          <div style="position:absolute;left:${natPct+adjPct}%;top:0;height:100%;width:${latentPct}%;background:#F4F0FB;border-left:1px dashed #B0A090;display:flex;align-items:center;justify-content:center">
             ${latentPct>5?`<span style="font-size:10px;color:#8A7A5A">${latentPct}% Latente</span>`:''}
           </div>
         </div>
@@ -1371,8 +1390,8 @@ tr:nth-child(even)td{background:#FDFAF5}
         ${baterias.map(b=>{
           const t2=Math.min(b.nat+b.dreno,100);
           return`<div style="margin-bottom:12px">
-            <div style="font-size:12px;font-weight:700;color:#0A0806;margin-bottom:4px">${b.nome}</div>
-            <div style="position:relative;height:18px;background:#EDE8DC;border-radius:5px;overflow:hidden">
+            <div style="font-size:12px;font-weight:700;color:#261062;margin-bottom:4px">${b.nome}</div>
+            <div style="position:relative;height:18px;background:#F4F0FB;border-radius:5px;overflow:hidden">
               <div style="position:absolute;left:0;top:0;height:100%;width:${b.nat}%;background:${b.color}55;border-radius:5px 0 0 5px"></div>
               <div style="position:absolute;left:${b.nat}%;top:0;height:100%;width:${b.dreno}%;background:repeating-linear-gradient(45deg,${b.color}33,${b.color}33 3px,${b.color}11 3px,${b.color}11 6px);border-left:2px solid ${b.color}"></div>
             </div>
@@ -1395,9 +1414,9 @@ tr:nth-child(even)td{background:#FDFAF5}
     <p>As <strong>Zonas de Sombra</strong> ocorrem quando um estilo é utilizado de forma excessiva sob estresse — transformando um ponto forte em prejuízo crítico para o negócio.</p>
     <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:12px">
       <thead><tr style="background:#F5F0E8">
-        <th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;border-bottom:2px solid #E0D8C8">ESTILO EM SOMBRA</th>
-        <th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;border-bottom:2px solid #E0D8C8">COMPORTAMENTO OCULTO</th>
-        <th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;border-bottom:2px solid #E0D8C8">GAP DE PERFORMANCE</th>
+        <th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#FF0060;letter-spacing:.1em;border-bottom:2px solid #E0D8C8">ESTILO EM SOMBRA</th>
+        <th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#FF0060;letter-spacing:.1em;border-bottom:2px solid #E0D8C8">COMPORTAMENTO OCULTO</th>
+        <th style="padding:9px 12px;text-align:left;font-family:monospace;font-size:9px;color:#FF0060;letter-spacing:.1em;border-bottom:2px solid #E0D8C8">GAP DE PERFORMANCE</th>
       </tr></thead>
       <tbody>
         ${[
@@ -1409,8 +1428,8 @@ tr:nth-child(even)td{background:#FDFAF5}
           <td style="padding:9px 12px;border-bottom:1px solid #F0E8D8;font-weight:700;color:${{D:'#F07030',I:'#E8B830',S:'#4A90D4',C:'#A878E0'}[s.k]};vertical-align:top;white-space:nowrap">
             ${s.label}${s.k===disc?` <span style="font-size:9px;background:#FFEAEA;color:#EF4444;padding:2px 6px;border-radius:100px;font-family:monospace">SEU PERFIL</span>`:''}
           </td>
-          <td style="padding:9px 12px;border-bottom:1px solid #F0E8D8;color:#6A5A48;vertical-align:top">${s.comp}</td>
-          <td style="padding:9px 12px;border-bottom:1px solid #F0E8D8;color:#6A5A48;vertical-align:top">${s.gap}</td>
+          <td style="padding:9px 12px;border-bottom:1px solid #F0E8D8;color:#6F667E;vertical-align:top">${s.comp}</td>
+          <td style="padding:9px 12px;border-bottom:1px solid #F0E8D8;color:#6F667E;vertical-align:top">${s.gap}</td>
         </tr>`).join('')}
       </tbody>
     </table>
@@ -1485,8 +1504,8 @@ tr:nth-child(even)td{background:#FDFAF5}
       ${pdiParar.slice(0,3).map(a=>`<div class="pdi-item" style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2)"><div class="pdi-dot" style="background:#EF4444"></div><span>${a}</span></div>`).join('')}
     </div>
     <div class="pdi-section">
-      <div class="pdi-title" style="color:#C9A84C">🟡 CONTINUAR</div>
-      ${pdiContinuar.map(a=>`<div class="pdi-item" style="background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.2)"><div class="pdi-dot" style="background:#C9A84C"></div><span>${a}</span></div>`).join('')}
+      <div class="pdi-title" style="color:#FF0060">🟡 CONTINUAR</div>
+      ${pdiContinuar.map(a=>`<div class="pdi-item" style="background:rgba(255,0,96,.05);border:1px solid rgba(255,0,96,.2)"><div class="pdi-dot" style="background:#FF0060"></div><span>${a}</span></div>`).join('')}
     </div>
   </div>
 </div>
@@ -1581,46 +1600,46 @@ function generateIndividualReport(id){
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Syne:wght@400;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:Syne,sans-serif;background:#FFFFFF;color:#1A1612;font-size:13px;line-height:1.6}
+body{font-family:Syne,sans-serif;background:#FFFFFF;color:#261062;font-size:13px;line-height:1.6}
 .page{max-width:840px;margin:0 auto;padding:32px 28px 60px}
 .toolbar{position:fixed;top:16px;right:16px;z-index:100;display:flex;gap:8px}
 .tb-btn{padding:9px 18px;border-radius:8px;font-family:Syne,sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none}
-.tb-gold{background:#C9A84C;color:#0A0806}
+.tb-gold{background:#FF0060;color:#261062}
 .tb-out{background:#fff;color:#555;border:1px solid #ddd!important}
-.capa{background:#0A0806;color:#FAF6EE;padding:40px;border-radius:14px;margin-bottom:28px}
-.capa-badge{font-family:JetBrains Mono,monospace;font-size:9px;letter-spacing:.16em;color:#C9A84C;text-transform:uppercase;border:1px solid rgba(201,168,76,.3);padding:4px 14px;border-radius:100px;display:inline-block;margin-bottom:14px}
+.capa{background:#261062;color:#FBF9FF;padding:40px;border-radius:14px;margin-bottom:28px}
+.capa-badge{font-family:JetBrains Mono,monospace;font-size:9px;letter-spacing:.16em;color:#FF0060;text-transform:uppercase;border:1px solid rgba(255,0,96,.3);padding:4px 14px;border-radius:100px;display:inline-block;margin-bottom:14px}
 .capa-title{font-family:Cormorant Garamond,serif;font-size:30px;font-weight:700;margin-bottom:4px}
 .capa-sub{font-size:13px;color:#B0A090;margin-bottom:24px}
-.capa-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;border-top:1px solid rgba(201,168,76,.2);padding-top:20px}
+.capa-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;border-top:1px solid rgba(255,0,96,.2);padding-top:20px}
 .capa-meta .lbl{font-family:JetBrains Mono,monospace;font-size:9px;color:#8A7A5A;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}
 .capa-meta .val{font-size:14px;font-weight:700}
 .section{background:#FFFFFF;border:1px solid #E0D8C8;border-radius:12px;margin-bottom:16px;overflow:hidden;page-break-inside:avoid}
-.sec-head{display:flex;align-items:center;gap:12px;padding:16px 22px;border-bottom:1px solid #EDE8DC;background:#F8F8F8}
-.sec-num{font-family:JetBrains Mono,monospace;font-size:10px;color:#C9A84C;letter-spacing:.1em;background:rgba(201,168,76,.12);padding:3px 10px;border-radius:100px}
+.sec-head{display:flex;align-items:center;gap:12px;padding:16px 22px;border-bottom:1px solid #F4F0FB;background:#F8F8F8}
+.sec-num{font-family:JetBrains Mono,monospace;font-size:10px;color:#FF0060;letter-spacing:.1em;background:rgba(255,0,96,.12);padding:3px 10px;border-radius:100px}
 .sec-icon{font-size:18px;flex-shrink:0}
-.sec-title{font-family:Cormorant Garamond,serif;font-size:20px;font-weight:700;color:#0A0806}
+.sec-title{font-family:Cormorant Garamond,serif;font-size:20px;font-weight:700;color:#261062}
 .sec-badge{margin-left:auto;padding:3px 12px;border-radius:100px;font-size:11px;font-weight:700;white-space:nowrap}
 .sec-body{padding:20px 22px}
 p{font-size:13px;color:#4A4038;line-height:1.7;margin-bottom:10px}
 .bar-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
 .bar-lbl{font-size:12px;font-weight:700;width:130px;flex-shrink:0}
-.bar-track{flex:1;height:8px;background:#EDE8DC;border-radius:4px;overflow:hidden}
+.bar-track{flex:1;height:8px;background:#F4F0FB;border-radius:4px;overflow:hidden}
 .bar-fill{height:100%;border-radius:4px}
-.bar-val{font-family:JetBrains Mono,monospace;font-size:11px;color:#C9A84C;width:28px;text-align:right}
+.bar-val{font-family:JetBrains Mono,monospace;font-size:11px;color:#FF0060;width:28px;text-align:right}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
 .card{background:#F5F5F5;border:1px solid #E0D8C8;border-radius:10px;padding:14px}
-.card-lbl{font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px}
-.card-val{font-size:14px;font-weight:700;color:#0A0806;margin-bottom:3px}
-.card-sub{font-size:12px;color:#6A5A48;line-height:1.5}
-.insight{background:#F5F5F5;border-left:3px solid #C9A84C;padding:10px 14px;border-radius:0 8px 8px 0;font-size:12px;line-height:1.7;margin:10px 0;color:#2A2018}
-.insight strong{color:#8A6520}
+.card-lbl{font-family:JetBrains Mono,monospace;font-size:9px;color:#FF0060;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px}
+.card-val{font-size:14px;font-weight:700;color:#261062;margin-bottom:3px}
+.card-sub{font-size:12px;color:#6F667E;line-height:1.5}
+.insight{background:#F5F5F5;border-left:3px solid #FF0060;padding:10px 14px;border-radius:0 8px 8px 0;font-size:12px;line-height:1.7;margin:10px 0;color:#2A2018}
+.insight strong{color:#391694}
 .alert-box{background:#FFF0EE;border-left:3px solid #EF4444;padding:10px 14px;border-radius:0 8px 8px 0;font-size:12px;line-height:1.7;margin:8px 0;color:#7A0A0A}
 .ok-box{background:#F0FAF4;border-left:3px solid #22C55E;padding:10px 14px;border-radius:0 8px 8px 0;font-size:12px;line-height:1.7;margin:8px 0;color:#0A4A1A}
 table{width:100%;border-collapse:collapse;font-size:12px;margin:10px 0}
-th{background:#0A0806;color:#C9A84C;padding:9px 12px;text-align:left;font-family:JetBrains Mono,monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase}
-td{padding:9px 12px;border-bottom:1px solid #EDE8DC;color:#4A4038;vertical-align:top}
+th{background:#261062;color:#FF0060;padding:9px 12px;text-align:left;font-family:JetBrains Mono,monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase}
+td{padding:9px 12px;border-bottom:1px solid #F4F0FB;color:#4A4038;vertical-align:top}
 tr:last-child td{border-bottom:none}
-tr:nth-child(even)td{background:#FAF6EE}
+tr:nth-child(even)td{background:#FBF9FF}
 .pdi-item{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;border-radius:8px;margin-bottom:6px;font-size:12px;line-height:1.6}
 .pdi-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
 .sugg-box{background:#EEF4FF;border:1px solid #B0C4E8;border-radius:10px;padding:14px;margin-top:12px}
@@ -1656,43 +1675,43 @@ tr:nth-child(even)td{background:#FAF6EE}
 
 <!-- RESUMO DO PERFIL -->
 <div style="margin-bottom:20px">
-  <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px">Resumo do Perfil <span style="flex:1;height:1px;background:#E0D8C8;display:inline-block"></span></div>
-  <div style="background:#FAF6EE;border:1px solid #E0D8C8;border-radius:10px;padding:18px">
+  <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#FF0060;letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px">Resumo do Perfil <span style="flex:1;height:1px;background:#E0D8C8;display:inline-block"></span></div>
+  <div style="background:#FBF9FF;border:1px solid #E0D8C8;border-radius:10px;padding:18px">
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
       <div style="background:#fff;border:1px solid #E0D8C8;border-radius:8px;padding:12px">
-        <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">DISC</div>
+        <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#FF0060;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">DISC</div>
         <div style="font-size:16px;font-weight:800;color:${discHex[disc]}">${discN[disc]||disc}</div>
-        <div style="font-size:11px;color:#6A5A48;margin-top:2px">2º: ${discN[discSec]||discSec}</div>
+        <div style="font-size:11px;color:#6F667E;margin-top:2px">2º: ${discN[discSec]||discSec}</div>
       </div>
       <div style="background:#fff;border:1px solid #E0D8C8;border-radius:8px;padding:12px">
-        <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">TEMPERAMENTO</div>
-        <div style="font-size:15px;font-weight:700;color:${{FOGO:'#F07030',AR:'#A878E0',TERRA:'#9AB050','ÁGUA':'#4A90D4'}[r.elem_primario]||'#C9A84C'}">${{FOGO:'🔥',TERRA:'🌿','ÁGUA':'💧',AR:'💨'}[r.elem_primario]||''} ${r.elem_primario||'—'}</div>
+        <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#FF0060;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">TEMPERAMENTO</div>
+        <div style="font-size:15px;font-weight:700;color:${{FOGO:'#F07030',AR:'#A878E0',TERRA:'#9AB050','ÁGUA':'#4A90D4'}[r.elem_primario]||'#FF0060'}">${{FOGO:'🔥',TERRA:'🌿','ÁGUA':'💧',AR:'💨'}[r.elem_primario]||''} ${r.elem_primario||'—'}</div>
       </div>
       <div style="background:#fff;border:1px solid #E0D8C8;border-radius:8px;padding:12px">
-        <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">ENEAGRAMA</div>
+        <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#FF0060;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">ENEAGRAMA</div>
         <div style="font-size:14px;font-weight:700;color:#A878E0">Tipo ${ennea} · ${enneaNames[ennea]||'—'}</div>
       </div>
       <div style="background:#fff;border:1px solid #E0D8C8;border-radius:8px;padding:12px">
-        <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">ARQUÉTIPO</div>
-        <div style="font-size:14px;font-weight:700;color:#C9A84C">${r.arquetipos||'—'}</div>
+        <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#FF0060;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">ARQUÉTIPO</div>
+        <div style="font-size:14px;font-weight:700;color:#FF0060">${r.arquetipos||'—'}</div>
       </div>
       <div style="background:#fff;border:1px solid #E0D8C8;border-radius:8px;padding:12px">
-        <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">KOLB</div>
+        <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#FF0060;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">KOLB</div>
         <div style="font-size:14px;font-weight:700;color:#4A90D4">${r.kolb_estilo||'—'}</div>
       </div>
       <div style="background:#fff;border:1px solid #E0D8C8;border-radius:8px;padding:12px">
-        <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">NECESSIDADE 1ª</div>
+        <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#FF0060;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">NECESSIDADE 1ª</div>
         <div style="font-size:14px;font-weight:700;color:#F0A050">${need1}</div>
       </div>
       <div style="background:#fff;border:1px solid #E0D8C8;border-radius:8px;padding:12px">
-        <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">HOLLAND RIASEC</div>
+        <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#FF0060;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">HOLLAND RIASEC</div>
         <div style="font-size:18px;font-weight:800;color:#E8A840">${r.holland_codigo||'—'}</div>
       </div>
     </div>
   </div>
 </div>
 
-<div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px">Perfis Detalhados <span style="flex:1;height:1px;background:#E0D8C8;display:inline-block"></span></div>
+<div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#FF0060;letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px">Perfis Detalhados <span style="flex:1;height:1px;background:#E0D8C8;display:inline-block"></span></div>
 
 <!-- I. DISC -->
 <div class="section">
@@ -1718,7 +1737,7 @@ tr:nth-child(even)td{background:#FAF6EE}
   <div class="sec-head">
     <span class="sec-num">II</span><span class="sec-icon">${{FOGO:'🔥',TERRA:'🌿','ÁGUA':'💧',AR:'💨'}[r.elem_primario]||'🌿'}</span>
     <span class="sec-title">Temperamento — Elemento ${r.elem_primario||'—'}</span>
-    <span class="sec-badge" style="background:rgba(201,168,76,.12);color:#8A6520">${r.elem_primario||'—'}</span>
+    <span class="sec-badge" style="background:rgba(255,0,96,.12);color:#391694">${r.elem_primario||'—'}</span>
   </div>
   <div class="sec-body">
     <p>${{FOGO:'Energia assertiva, ritmo intenso, orientação ao comando. Alta presença e tomada de decisão rápida.',TERRA:'Energia analítica, ritmo metódico, orientação à precisão e qualidade. Rigor técnico e comprometimento.','ÁGUA':'Energia diplomática, ritmo compassivo, orientação ao pertencimento e harmonia.',AR:'Energia visionária, ritmo criativo, orientação à inovação e novas possibilidades.'}[r.elem_primario]||'—'}</p>
@@ -1749,7 +1768,7 @@ tr:nth-child(even)td{background:#FAF6EE}
   <div class="sec-head">
     <span class="sec-num">IV</span><span class="sec-icon">⚔️</span>
     <span class="sec-title">Arquétipo — ${r.arquetipos||'—'}</span>
-    <span class="sec-badge" style="background:rgba(201,168,76,.12);color:#C9A84C">${r.arquetipos||'—'}</span>
+    <span class="sec-badge" style="background:rgba(255,0,96,.12);color:#FF0060">${r.arquetipos||'—'}</span>
   </div>
   <div class="sec-body">
     <p>${{Herói:'O Herói lidera pela ação e pela superação. Autoridade vem da coragem demonstrada. Projeta visão pelo exemplo.',Mago:'O Mago lidera pela transformação e pela visão. Usa linguagem de possibilidade — projeta autoridade pelo conhecimento aplicado.',Sábio:'O Sábio lidera pelo discernimento e pela orientação. As pessoas o buscam quando precisam compreender algo complexo.',Cuidador:'O Cuidador lidera pelo serviço. Projeta autoridade pela generosidade — as pessoas o seguem por se sentirem genuinamente vistas.',Guerreiro:'O Guerreiro lidera pela integridade e pela missão. Projeta autoridade pela consistência e pelo exemplo ético.','Rei/Rainha':'O Soberano lidera pela ordem e pela visão de longo prazo. Cria estruturas e rituais que geram prosperidade coletiva.',Criador:'O Criador lidera pela inovação e pela originalidade. Transforma ambientes em espaços de possibilidade e experimentação.'}[r.arquetipos]||'Arquétipo que emergiu pelas escolhas instintivas nas situações apresentadas.'}</p>
@@ -1787,7 +1806,7 @@ tr:nth-child(even)td{background:#FAF6EE}
     ${sugg.gap?`<div class="sugg-box">
       <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#4A70B0;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">💡 Sugestão para Mudança de Padrão</div>
       <p style="color:#2A3A5A;margin-bottom:8px">${sugg.gap}</p>
-      <p style="color:#1A1612;margin-bottom:6px"><strong>Necessidades a desenvolver:</strong> ${(sugg.dev||[]).join(' + ')}</p>
+      <p style="color:#261062;margin-bottom:6px"><strong>Necessidades a desenvolver:</strong> ${(sugg.dev||[]).join(' + ')}</p>
       <p style="color:#4A4A6A;font-size:12px">${sugg.razao||''}</p>
     </div>`:''}
   </div>
@@ -1817,21 +1836,21 @@ tr:nth-child(even)td{background:#FAF6EE}
   </div>
   <div class="sec-body">
     <p>Este indicador quantifica o esforço mental invisível para sustentar comportamentos não naturais. Quanto maior o dreno, maior o risco de exaustão e menor a qualidade de decisão ao longo do tempo.</p>
-    <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.12em;text-transform:uppercase;margin:14px 0 8px">CAPACIDADE GLOBAL — PERFIL ${discN[disc]}</div>
-    <div style="position:relative;height:38px;background:#EDE8DC;border-radius:10px;overflow:hidden;margin-bottom:6px;border:1px solid #D8D0C0">
+    <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#FF0060;letter-spacing:.12em;text-transform:uppercase;margin:14px 0 8px">CAPACIDADE GLOBAL — PERFIL ${discN[disc]}</div>
+    <div style="position:relative;height:38px;background:#F4F0FB;border-radius:10px;overflow:hidden;margin-bottom:6px;border:1px solid #D8D0C0">
       <div style="position:absolute;left:0;top:0;height:100%;width:${natPct}%;background:${discHex[disc]};border-radius:10px 0 0 10px;display:flex;align-items:center;padding-left:12px">
         <span style="font-size:12px;font-weight:700;color:#fff;white-space:nowrap">${natPct}% Natural</span>
       </div>
       <div style="position:absolute;left:${natPct}%;top:0;height:100%;width:${adjPct}%;background:repeating-linear-gradient(45deg,${drenoColor}99,${drenoColor}99 4px,${drenoColor}44 4px,${drenoColor}44 8px);border-left:3px solid ${drenoColor};display:flex;align-items:center">
         ${adjPct>8?`<span style="font-size:11px;color:${drenoColor};padding-left:8px;white-space:nowrap;font-weight:700">${adjPct}% Dreno</span>`:''}
       </div>
-      <div style="position:absolute;left:${natPct+adjPct}%;top:0;height:100%;right:0;background:#EDE8DC;border-left:2px dashed #B0A090;display:flex;align-items:center;justify-content:center">
+      <div style="position:absolute;left:${natPct+adjPct}%;top:0;height:100%;right:0;background:#F4F0FB;border-left:2px dashed #B0A090;display:flex;align-items:center;justify-content:center">
         ${latentPct>6?`<span style="font-size:11px;color:#8A7A5A">${latentPct}% Latente</span>`:''}
       </div>
     </div>
     ${baterias.map(b=>`<div style="margin-bottom:12px">
-      <div style="font-size:12px;font-weight:700;color:#1A1612;margin-bottom:4px">${b.nome}</div>
-      <div style="position:relative;height:20px;background:#EDE8DC;border-radius:5px;overflow:hidden">
+      <div style="font-size:12px;font-weight:700;color:#261062;margin-bottom:4px">${b.nome}</div>
+      <div style="position:relative;height:20px;background:#F4F0FB;border-radius:5px;overflow:hidden">
         <div style="position:absolute;left:0;top:0;height:100%;width:${Math.min(b.nat,100)}%;background:${b.color}AA;border-radius:5px 0 0 5px"></div>
         <div style="position:absolute;left:${Math.min(b.nat,100)}%;top:0;height:100%;width:${Math.min(b.dreno,100-b.nat)}%;background:repeating-linear-gradient(45deg,${b.color}66,${b.color}66 3px,${b.color}22 3px,${b.color}22 6px);border-left:2px solid ${b.color}"></div>
       </div>
@@ -1886,12 +1905,12 @@ tr:nth-child(even)td{background:#FAF6EE}
 </div>
 
 <!-- PDI -->
-<div class="section" style="border-color:#C9A84C">
+<div class="section" style="border-color:#FF0060">
   <div class="sec-head">
-    <span class="sec-num" style="background:rgba(201,168,76,.2)">PDI</span>
+    <span class="sec-num" style="background:rgba(255,0,96,.2)">PDI</span>
     <span class="sec-icon">🎯</span>
     <span class="sec-title">Plano de Desenvolvimento Individual</span>
-    <span class="sec-badge" style="background:rgba(201,168,76,.12);color:#C9A84C">Foco em Liderança</span>
+    <span class="sec-badge" style="background:rgba(255,0,96,.12);color:#FF0060">Foco em Liderança</span>
   </div>
   <div class="sec-body">
     <div style="margin-bottom:14px">
@@ -1907,10 +1926,10 @@ tr:nth-child(even)td{background:#FAF6EE}
       <div class="pdi-item" style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2)"><div class="pdi-dot" style="background:#EF4444"></div><span><strong>Liderança incongruente:</strong> Atuar em ambientes que contradizem o código Holland ${r.holland_codigo||'—'} sem estratégia de compensação — incongruência vocacional é silenciosa mas acumula custo energético real</span></div>
     </div>
     <div>
-      <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#C9A84C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;font-weight:700">🟡 CONTINUAR</div>
-      <div class="pdi-item" style="background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.2)"><div class="pdi-dot" style="background:#C9A84C"></div><span><strong>Liderança autêntica:</strong> Cultivar o estilo ${discN[disc]} como principal diferencial de liderança — autenticidade comportamental é o ativo mais raro e menos replicável no mercado</span></div>
-      <div class="pdi-item" style="background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.2)"><div class="pdi-dot" style="background:#C9A84C"></div><span><strong>Liderança multiplicadora:</strong> Desenvolver conscientemente líderes com perfis complementares ao seu — especialmente ${disc==='D'?'S e C':disc==='I'?'C e S':disc==='S'?'D e I':'D e I'} — porque liderar líderes exige mais que liderar tarefas</span></div>
-      <div class="pdi-item" style="background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.2)"><div class="pdi-dot" style="background:#C9A84C"></div><span><strong>Liderança em crescimento:</strong> Manter o investimento em autoconhecimento estruturado — este diagnóstico é um ponto de partida; líderes de alto impacto revisitam seus mapas comportamentais a cada 6 meses</span></div>
+      <div style="font-family:JetBrains Mono,monospace;font-size:9px;color:#FF0060;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;font-weight:700">🟡 CONTINUAR</div>
+      <div class="pdi-item" style="background:rgba(255,0,96,.05);border:1px solid rgba(255,0,96,.2)"><div class="pdi-dot" style="background:#FF0060"></div><span><strong>Liderança autêntica:</strong> Cultivar o estilo ${discN[disc]} como principal diferencial de liderança — autenticidade comportamental é o ativo mais raro e menos replicável no mercado</span></div>
+      <div class="pdi-item" style="background:rgba(255,0,96,.05);border:1px solid rgba(255,0,96,.2)"><div class="pdi-dot" style="background:#FF0060"></div><span><strong>Liderança multiplicadora:</strong> Desenvolver conscientemente líderes com perfis complementares ao seu — especialmente ${disc==='D'?'S e C':disc==='I'?'C e S':disc==='S'?'D e I':'D e I'} — porque liderar líderes exige mais que liderar tarefas</span></div>
+      <div class="pdi-item" style="background:rgba(255,0,96,.05);border:1px solid rgba(255,0,96,.2)"><div class="pdi-dot" style="background:#FF0060"></div><span><strong>Liderança em crescimento:</strong> Manter o investimento em autoconhecimento estruturado — este diagnóstico é um ponto de partida; líderes de alto impacto revisitam seus mapas comportamentais a cada 6 meses</span></div>
     </div>
   </div>
 </div>
@@ -1950,7 +1969,7 @@ function toast(msg, type='info'){
   const el=document.getElementById('toast');
   el.textContent=msg;
   el.style.display='block';
-  el.style.borderColor=type==='warn'?'rgba(239,68,68,.4)':'rgba(201,168,76,.3)';
+  el.style.borderColor=type==='warn'?'rgba(239,68,68,.4)':'rgba(255,0,96,.3)';
   setTimeout(()=>el.style.display='none',3500);
 }
 
