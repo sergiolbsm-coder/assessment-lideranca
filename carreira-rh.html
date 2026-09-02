@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnóstico de Carreira em RH — Instituto da Liderança</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Cormorant+Garamond:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --idl-magenta:#FF0060;
+  --idl-purple:#391694;
+  --idl-purple-dark:#261062;
+  --idl-violet:#4D1DBF;
+  --idl-turquoise:#00D0C9;
+  --idl-text:#24153E;
+  --idl-text-muted:#6F667E;
+  --idl-background:#FBF9FF;
+  --idl-background-soft:#F4F0FB;
+  --idl-white:#FFFFFF;
+  --idl-border:rgba(57,22,148,.13);
+  --idl-gradient:linear-gradient(145deg,#261062,#391694 70%,#4D1DBF);
+  --idl-gradient-light:radial-gradient(ellipse 60% 40% at 15% 20%,rgba(255,0,96,.06) 0%,transparent 60%),
+                       radial-gradient(ellipse 50% 50% at 85% 75%,rgba(77,29,191,.04) 0%,transparent 55%),
+                       #FBF9FF;
+  --r:12px; --r-sm:8px;
+  --band-forte:#1CA355;
+  --band-boa:#00A79E;
+  --band-moderada:#D69A1E;
+  --band-baixa:#8B849A;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--idl-background);color:var(--idl-text);min-height:100vh}
+.bg{position:fixed;inset:0;z-index:0;background:var(--idl-gradient-light)}
+.wrap{position:relative;z-index:1;max-width:820px;margin:0 auto;padding:32px 20px 80px}
+.logo-row{display:flex;justify-content:center;margin-bottom:8px}
+.logo-row img{height:72px;width:auto;display:block}
+h1{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:var(--idl-purple-dark);text-align:center;margin-bottom:4px}
+.subtitle{font-size:13px;color:var(--idl-text-muted);text-align:center;margin-bottom:28px;font-family:'JetBrains Mono',monospace;letter-spacing:.04em}
+.card{background:var(--idl-white);border:1px solid var(--idl-border);border-radius:var(--r);padding:24px;margin-bottom:16px;box-shadow:0 2px 18px rgba(57,22,148,.05)}
+.section-title{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--idl-magenta);font-family:'JetBrains Mono',monospace;margin-bottom:14px;font-weight:700}
+.section-desc{font-size:13px;color:var(--idl-text-muted);line-height:1.6;margin-bottom:18px}
+label{display:block;font-size:13px;color:var(--idl-text-muted);margin-bottom:6px;font-weight:600}
+input,select{width:100%;background:var(--idl-white);border:1px solid var(--idl-border);border-radius:var(--r-sm);padding:12px 14px;color:var(--idl-text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+input:focus,select:focus{border-color:var(--idl-magenta)}
+.field{margin-bottom:14px}
+.checkbox-row{display:flex;align-items:flex-start;gap:10px;margin-top:4px}
+.checkbox-row input{width:18px;height:18px;flex-shrink:0;margin-top:2px}
+.checkbox-row span{font-size:13px;color:var(--idl-text-muted);line-height:1.5}
+.btn{padding:14px 30px;border-radius:100px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;transition:.2s}
+.btn-primary{background:linear-gradient(135deg,#261062,#FF0060);color:#FBF9FF}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(255,0,96,.3)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-ghost{background:transparent;border:1px solid var(--idl-border);color:var(--idl-text-muted)}
+.btn-ghost:hover{border-color:var(--idl-magenta);color:var(--idl-magenta)}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:22px;gap:12px}
+.step{display:none}
+.step.active{display:block}
+.progress-wrap{position:sticky;top:0;background:var(--idl-background);padding:10px 0 14px;z-index:5;margin-bottom:8px}
+.progress-label{font-size:10px;color:var(--idl-text-muted);font-family:'JetBrains Mono',monospace;margin-bottom:6px;display:flex;justify-content:space-between;letter-spacing:.06em;text-transform:uppercase}
+.progress-track{height:5px;background:var(--idl-background-soft);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#261062,#FF0060);border-radius:3px;transition:width .3s}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 14px;border-radius:100px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--idl-magenta);background:rgba(255,0,96,.07);border:1px solid var(--idl-border)}
+
+/* Bloco A — grupos DISC */
+.group{background:var(--idl-background-soft);border:1px solid var(--idl-border);border-radius:var(--r-sm);padding:14px 16px;margin-bottom:10px}
+.group-num{font-size:10px;color:var(--idl-text-muted);font-family:'JetBrains Mono',monospace;margin-bottom:8px;letter-spacing:.06em}
+.words{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.word-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-radius:6px;background:var(--idl-white);border:1px solid transparent}
+.word-label{font-size:13px;font-weight:600}
+.radio-group{display:flex;gap:6px;flex-shrink:0}
+.radio-btn{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--idl-border);background:transparent;cursor:pointer;font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--idl-text-muted)}
+.radio-btn.mais.active{background:var(--idl-magenta);border-color:var(--idl-magenta);color:#fff}
+.radio-btn.menos.active{background:var(--idl-purple);border-color:var(--idl-purple);color:#fff}
+.warning{font-size:12px;color:var(--idl-magenta);font-family:'JetBrains Mono',monospace;margin-top:10px;display:none}
+.warning.show{display:block}
+
+/* Bloco B — Holland */
+.holland-block{border-left:3px solid var(--idl-turquoise);padding-left:14px;margin-bottom:18px}
+.holland-dim-title{font-size:12px;font-weight:700;color:var(--idl-purple-dark);margin-bottom:10px;font-family:'JetBrains Mono',monospace;letter-spacing:.04em}
+.likert-row{margin-bottom:14px}
+.likert-text{font-size:13px;margin-bottom:8px;color:var(--idl-text)}
+.likert-scale{display:flex;gap:6px}
+.likert-opt{flex:1;text-align:center;padding:9px 4px;border-radius:8px;border:1px solid var(--idl-border);cursor:pointer;font-size:11px;color:var(--idl-text-muted);background:var(--idl-white)}
+.likert-opt.active{background:var(--idl-magenta);border-color:var(--idl-magenta);color:#fff;font-weight:700}
+
+/* Bloco C — situações */
+.scenario{margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid var(--idl-border)}
+.scenario:last-child{border-bottom:none}
+.scenario-tag{font-size:10px;color:var(--idl-turquoise);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.scenario-text{font-size:14px;line-height:1.55;margin-bottom:12px}
+.alt{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;border:1px solid var(--idl-border);margin-bottom:8px;cursor:pointer;background:var(--idl-white)}
+.alt:hover{border-color:var(--idl-magenta)}
+.alt.active{border-color:var(--idl-magenta);background:rgba(255,0,96,.05)}
+.alt-radio{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--idl-border);flex-shrink:0;margin-top:2px}
+.alt.active .alt-radio{border-color:var(--idl-magenta);background:var(--idl-magenta)}
+.alt-text{font-size:13px;line-height:1.5}
+
+/* Bloco D — experiência */
+.exp-row{border:1px solid var(--idl-border);border-radius:var(--r-sm);padding:14px 16px;margin-bottom:12px}
+.exp-title{font-size:13px;font-weight:700;color:var(--idl-purple-dark);margin-bottom:10px}
+.exp-grid{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:10px}
+.exp-grid label{font-size:11px}
+
+/* Relatório */
+.result-hero{text-align:center;padding:8px 0 20px}
+.result-name{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--idl-purple-dark)}
+.result-sub{font-size:12px;color:var(--idl-text-muted);font-family:'JetBrains Mono',monospace;margin-top:4px}
+.rank-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.rank-pos{width:22px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--idl-text-muted);flex-shrink:0}
+.rank-label{width:190px;font-size:13px;font-weight:700;flex-shrink:0}
+.rank-track{flex:1;height:16px;background:var(--idl-background-soft);border-radius:6px;overflow:hidden}
+.rank-fill{height:100%;border-radius:6px;transition:width .8s ease}
+.rank-val{width:42px;text-align:right;font-size:12px;font-family:'JetBrains Mono',monospace;flex-shrink:0}
+.band-pill{font-size:9px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:100px;color:#fff;flex-shrink:0;text-transform:uppercase;letter-spacing:.04em}
+.sub-card{border:1px solid var(--idl-border);border-radius:var(--r);padding:18px 20px;margin-bottom:14px}
+.sub-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.sub-card-title{font-size:17px;font-weight:800;color:var(--idl-purple-dark)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.mini-label{font-size:10px;color:var(--idl-text-muted);text-transform:uppercase;letter-spacing:.08em;font-family:'JetBrains Mono',monospace;margin-bottom:6px}
+.mini-bar-track{height:10px;background:var(--idl-background-soft);border-radius:5px;overflow:hidden;margin-bottom:4px}
+.mini-bar-fill{height:100%;border-radius:5px}
+.mini-val{font-size:12px;font-weight:700}
+.evidence-list{margin:10px 0;padding-left:0;list-style:none}
+.evidence-list li{font-size:13px;line-height:1.6;padding-left:18px;position:relative;margin-bottom:6px}
+.evidence-list li::before{content:'—';position:absolute;left:0;color:var(--idl-magenta)}
+.note-box{background:var(--idl-background-soft);border-radius:var(--r-sm);padding:12px 14px;font-size:12.5px;line-height:1.6;color:var(--idl-text);margin-top:8px}
+.disclaimer{font-size:11.5px;color:var(--idl-text-muted);line-height:1.7;border-top:1px solid var(--idl-border);padding-top:16px;margin-top:20px}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--idl-purple-dark);color:#FBF9FF;padding:12px 24px;border-radius:100px;font-size:13px;font-family:'DM Sans',sans-serif;z-index:9999;display:none;box-shadow:0 8px 32px rgba(57,22,148,.35)}
+@media print{ .no-print{display:none!important} .card{box-shadow:none;border:1px solid #ddd} body{background:#fff} .bg{display:none} }
+@media(max-width:640px){
+  .words{grid-template-columns:1fr}
+  .likert-scale{flex-wrap:wrap}
+  .likert-opt{min-width:18%}
+  .exp-grid{grid-template-columns:1fr}
+  .rank-label{width:120px;font-size:12px}
+  .two-col{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="wrap">
+
+  <div class="logo-row"><img src="logo.png" alt="Instituto da Liderança"></div>
+
+  <!-- STEP 0: INTRO -->
+  <div class="step active" id="step-intro">
+    <h1>Diagnóstico de Carreira em RH</h1>
+    <p class="subtitle">Instituto da Liderança · versão 1.0 (piloto)</p>
+
+    <div class="card">
+      <div class="section-title">O que é este diagnóstico</div>
+      <p class="section-desc">
+        Um instrumento orientativo que mapeia sua aderência potencial e sua prontidão atual em relação a
+        <strong>9 subáreas de Recursos Humanos</strong> — Recrutamento &amp; Seleção, Recruiter Tech, DHO/T&amp;D,
+        HR Business Partner, RH Generalista, People Analytics, Remuneração &amp; Benefícios,
+        Departamento Pessoal/Relações Trabalhistas e Employer Branding/Employee Experience.
+      </p>
+      <p class="section-desc">
+        Leva cerca de <strong>15–18 minutos</strong> e tem 4 partes: um perfil comportamental (DISC natural),
+        um mapeamento de interesses (Holland RIASEC), situações práticas de RH e um bloco sobre sua experiência
+        e conhecimento atuais. O resultado <strong>não determina se você "serve" ou "não serve"</strong> para
+        uma área — mostra aderência, prontidão, evidências e sugestões de desenvolvimento, com um nível de
+        confiança explícito. Todas as faixas e pesos são hipóteses de produto (v1), sujeitas a recalibração.
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Antes de começar</div>
+      <div class="field"><label>Nome *</label><input id="f-nome" type="text" placeholder="Seu nome"></div>
+      <div class="field"><label>E-mail</label><input id="f-email" type="email" placeholder="seu@email.com (opcional)"></div>
+      <div class="field"><label>Momento de carreira *</label>
+        <select id="f-momento">
+          <option value="">Selecione</option>
+          <option value="Considerando entrar em RH">Estou considerando entrar em RH</option>
+          <option value="Atuo em RH, buscando especialização">Já atuo em RH e busco uma especialização</option>
+          <option value="Em transição entre subáreas">Estou em transição entre subáreas de RH</option>
+          <option value="Avaliando mobilidade interna">Avalio mobilidade interna de alguém da minha equipe</option>
+        </select>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="f-consent">
+        <span>Entendo que este é um instrumento <strong>orientativo</strong>, não uma avaliação psicológica nem
+        um critério eliminatório de contratação, e concordo em responder para receber meu resultado.
+        <span id="f-consent-save-note"></span></span>
+      </div>
+    </div>
+
+    <div class="nav">
+      <span></span>
+      <button class="btn btn-primary" onclick="startAssessment()">Começar →</button>
+    </div>
+  </div>
+
+  <!-- PROGRESS (blocos A-D) -->
+  <div class="progress-wrap no-print" id="progress-wrap" style="display:none">
+    <div class="progress-label"><span id="progress-block-label">Bloco A · DISC natural</span><span id="progress-txt">0%</span></div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+
+  <!-- STEP A: DISC NATURAL -->
+  <div class="step" id="step-a">
+    <h1>Bloco A</h1>
+    <p class="subtitle">Perfil comportamental (DISC natural)</p>
+    <div class="card">
+      <div class="section-title">Como responder</div>
+      <p class="section-desc">Em cada grupo, escolha a palavra que <strong style="color:var(--idl-magenta)">MAIS</strong>
+        te representa e a que <strong style="color:var(--idl-purple)">MENOS</strong> te representa — pensando em
+        como você é <strong>naturalmente</strong>, sem o papel que exerce no trabalho.</p>
+      <div id="groups-a"></div>
+      <div class="warning" id="warn-a">⚠ Responda pelo menos 12 dos 14 grupos antes de continuar.</div>
+    </div>
+    <div class="nav">
+      <button class="btn btn-ghost" onclick="goTo('step-intro')">← Voltar</button>
+      <button class="btn btn-primary" onclick="goToBlockB()">Próximo bloco →</button>
+    </div>
+  </div>
+
+  <!-- STEP B: HOLLAND -->
+  <div class="step" id="step-b">
+    <h1>Bloco B</h1>
+    <p class="subtitle">Interesses profissionais (Holland RIASEC)</p>
+    <div class="card">
+      <p class="section-desc">Para cada frase, avalie o quanto ela descreve você — <strong>1 = discordo totalmente</strong>,
+        <strong>5 = concordo totalmente</strong>.</p>
+      <div id="holland-container"></div>
+      <div class="warning" id="warn-b">⚠ Responda todos os itens antes de continuar.</div>
+    </div>
+    <div class="nav">
+      <button class="btn btn-ghost" onclick="goTo('step-a')">← Voltar</button>
+      <button class="btn btn-primary" onclick="goToBlockC()">Próximo bloco →</button>
+    </div>
+  </div>
+
+  <!-- STEP C: SITUAÇÕES -->
+  <div class="step" id="step-c">
+    <h1>Bloco C</h1>
+    <p class="subtitle">Situações práticas de RH</p>
+    <div class="card">
+      <p class="section-desc">Não existe alternativa certa — escolha a que mais se parece com o que você
+        realmente faria.</p>
+      <div id="situ-container"></div>
+      <div class="warning" id="warn-c">⚠ Responda todos os cenários antes de continuar.</div>
+    </div>
+    <div class="nav">
+      <button class="btn btn-ghost" onclick="goTo('step-b')">← Voltar</button>
+      <button class="btn btn-primary" onclick="goToBlockD()">Próximo bloco →</button>
+    </div>
+  </div>
+
+  <!-- STEP D: EXPERIÊNCIA -->
+  <div class="step" id="step-d">
+    <h1>Bloco D</h1>
+    <p class="subtitle">Experiência e conhecimento atuais</p>
+    <div class="card">
+      <p class="section-desc">Para cada subárea, marque seu nível real de atuação, autonomia e conhecimento —
+        isso não afeta seu <em>potencial</em>, mas ajuda a estimar sua <em>prontidão atual</em>. Se nunca atuou
+        em uma subárea, deixe como "Nunca atuei" — isso é absolutamente normal e esperado para quem está
+        começando.</p>
+      <div id="exp-container"></div>
+    </div>
+    <div class="nav">
+      <button class="btn btn-ghost" onclick="goTo('step-c')">← Voltar</button>
+      <button class="btn btn-primary" onclick="calcularEMostrar()">Ver meu resultado →</button>
+    </div>
+  </div>
+
+  <!-- STEP RESULT -->
+  <div class="step" id="step-result">
+    <div class="result-hero">
+      <h1>Seu Diagnóstico de Carreira em RH</h1>
+      <div class="result-name" id="res-nome"></div>
+      <div class="result-sub" id="res-meta"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Ranking de aderência (visão combinada)</div>
+      <p class="section-desc">Combina 80% potencial (comportamento + interesses + julgamento situacional) e 20%
+        prontidão (experiência e conhecimento atuais). As duas visões completas estão detalhadas abaixo.</p>
+      <div id="res-ranking"></div>
+    </div>
+
+    <div id="res-detail"></div>
+
+    <div class="card">
+      <div class="section-title">Como o cálculo funciona</div>
+      <p class="section-desc" style="margin-bottom:0">
+        Para cada subárea: <strong>Potencial</strong> = 25% similaridade do seu DISC natural com o perfil-alvo +
+        31,25% similaridade dos seus interesses Holland com o perfil-alvo + 43,75% pontuação das suas escolhas
+        nos cenários práticos. <strong>Prontidão</strong> = 60% evidência prática declarada + 25% autopercepção
+        de conhecimento + 15% autonomia. Nenhum número é gerado por texto livre — tudo vem de funções
+        determinísticas aplicadas às suas respostas. As faixas (forte/boa/moderada/menor evidência) e os pesos
+        são hipóteses de produto v1 e serão recalibrados com dados reais e revisão de especialistas.
+      </p>
+    </div>
+
+    <div class="disclaimer">
+      <strong>Aviso:</strong> este é um instrumento orientativo de autoconhecimento de carreira, não uma
+      avaliação psicológica, não mede probabilidade de sucesso e não deve ser usado como critério único ou
+      eliminatório de contratação, promoção ou desligamento. A ausência de experiência reduz a <em>prontidão
+      atual</em>, não o <em>potencial</em>. Nenhum resultado de DISC é considerado impeditivo.
+    </div>
+
+    <div class="nav no-print" style="margin-top:20px">
+      <button class="btn btn-ghost" onclick="goTo('step-d')">← Revisar respostas</button>
+      <span style="display:flex;gap:10px">
+        <button class="btn btn-ghost" onclick="window.print()">Imprimir / salvar PDF</button>
+        <button class="btn btn-primary" id="btn-salvar" onclick="salvar()">✓ Salvar meu resultado</button>
+      </span>
+    </div>
+  </div>
+
+</div>
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════════
+// CONFIGURAÇÃO
+// ════════════════════════════════════════════════════════════════════════════
+// URL do Google Apps Script Web App dedicado a este instrumento (planilha nova,
+// isolada da planilha do assessment de liderança). Fica vazio até o deploy
+// manual do Apps Script ser concluído — nesse meio-tempo o cálculo e a
+// exibição do relatório funcionam normalmente, só o botão "Salvar" avisa que
+// ainda não há backend configurado.
+const SHEETS_URL = '';
+
+// ════════════════════════════════════════════════════════════════════════════
+// BANCO DE ITENS — BLOCO A (DISC natural)
+// Subconjunto de 14 dos 24 grupos validados usados em disc_v2.html, mesma
+// mecânica de escolha forçada MAIS/MENOS. Ver idl-sistema/disc_v2.html:214-239.
+// ════════════════════════════════════════════════════════════════════════════
+const DISC_NAMES = { D:'Dominante', I:'Influente', S:'Estável', C:'Consciencioso' };
+const DISC_COLORS = { D:'#DC503C', I:'#D69A1E', S:'#4A90D9', C:'#00A79E' };
+const GRUPOS = [
+  [{w:'Ousado',d:'D'},{w:'Expressivo',d:'I'},{w:'Paciente',d:'S'},{w:'Cuidadoso',d:'C'}],
+  [{w:'Decidido',d:'D'},{w:'Entusiasmado',d:'I'},{w:'Amigável',d:'S'},{w:'Preciso',d:'C'}],
+  [{w:'Competitivo',d:'D'},{w:'Persuasivo',d:'I'},{w:'Tolerante',d:'S'},{w:'Metódico',d:'C'}],
+  [{w:'Direto',d:'D'},{w:'Animado',d:'I'},{w:'Calmo',d:'S'},{w:'Analítico',d:'C'}],
+  [{w:'Independente',d:'D'},{w:'Sociável',d:'I'},{w:'Gentil',d:'S'},{w:'Sistemático',d:'C'}],
+  [{w:'Determinado',d:'D'},{w:'Otimista',d:'I'},{w:'Leal',d:'S'},{w:'Exato',d:'C'}],
+  [{w:'Corajoso',d:'D'},{w:'Carismático',d:'I'},{w:'Apoiador',d:'S'},{w:'Criterioso',d:'C'}],
+  [{w:'Audacioso',d:'D'},{w:'Inspirador',d:'I'},{w:'Cooperativo',d:'S'},{w:'Prudente',d:'C'}],
+  [{w:'Assertivo',d:'D'},{w:'Comunicativo',d:'I'},{w:'Estável',d:'S'},{w:'Detalhista',d:'C'}],
+  [{w:'Firme',d:'D'},{w:'Entusiasta',d:'I'},{w:'Compreensivo',d:'S'},{w:'Lógico',d:'C'}],
+  [{w:'Autoconfiante',d:'D'},{w:'Espontâneo',d:'I'},{w:'Dedicado',d:'S'},{w:'Disciplinado',d:'C'}],
+  [{w:'Vigoroso',d:'D'},{w:'Extrovertido',d:'I'},{w:'Harmonioso',d:'S'},{w:'Confiável',d:'C'}],
+  [{w:'Arrojado',d:'D'},{w:'Criativo',d:'I'},{w:'Empático',d:'S'},{w:'Rigoroso',d:'C'}],
+  [{w:'Desafiador',d:'D'},{w:'Motivador',d:'I'},{w:'Protetor',d:'S'},{w:'Investigativo',d:'C'}]
+];
+const N_GRUPOS = GRUPOS.length;
+const MIN_GRUPOS = 12;
+
+// ════════════════════════════════════════════════════════════════════════════
+// BANCO DE ITENS — BLOCO B (Holland RIASEC) — 18 itens novos, 3 por dimensão
+// ════════════════════════════════════════════════════════════════════════════
+const HOLLAND_DIM_NAMES = { R:'Realista', I:'Investigativo', A:'Artístico', S:'Social', E:'Empreendedor', C:'Convencional' };
+const HOLLAND_ITENS = [
+  {id:'r1',dim:'R',t:'Prefiro tarefas práticas e concretas a discussões teóricas longas.'},
+  {id:'r2',dim:'R',t:'Gosto de mexer com ferramentas, sistemas ou processos operacionais no dia a dia.'},
+  {id:'r3',dim:'R',t:'Sinto-me bem resolvendo problemas de forma direta, "mão na massa".'},
+  {id:'i1',dim:'I',t:'Gosto de investigar dados e entender o porquê por trás dos números.'},
+  {id:'i2',dim:'I',t:'Prefiro analisar um problema a fundo antes de agir.'},
+  {id:'i3',dim:'I',t:'Tenho curiosidade genuína por pesquisas, tendências e metodologias novas.'},
+  {id:'a1',dim:'A',t:'Gosto de criar conteúdos, campanhas ou materiais originais.'},
+  {id:'a2',dim:'A',t:'Prefiro propor soluções criativas a seguir sempre um roteiro fixo.'},
+  {id:'a3',dim:'A',t:'Sinto-me confortável propondo formatos e narrativas novas para comunicar algo.'},
+  {id:'s1',dim:'S',t:'Sinto-me energizado(a) ao ajudar, ensinar ou apoiar outras pessoas.'},
+  {id:'s2',dim:'S',t:'Gosto de mediar conversas difíceis entre pessoas ou times.'},
+  {id:'s3',dim:'S',t:'Presto atenção genuína ao bem-estar das pessoas ao meu redor.'},
+  {id:'e1',dim:'E',t:'Gosto de liderar iniciativas e assumir a responsabilidade por decisões.'},
+  {id:'e2',dim:'E',t:'Sinto-me à vontade influenciando pessoas a apoiar uma ideia.'},
+  {id:'e3',dim:'E',t:'Gosto de negociar, persuadir e fechar acordos.'},
+  {id:'c1',dim:'C',t:'Gosto de organizar informações, processos e registros com precisão.'},
+  {id:'c2',dim:'C',t:'Prefiro seguir normas e procedimentos claros a improvisar.'},
+  {id:'c3',dim:'C',t:'Sinto satisfação em manter dados e controles sempre atualizados.'}
+];
+
+// ════════════════════════════════════════════════════════════════════════════
+// BANCO DE ITENS — BLOCO C (situações práticas de RH) — 14 cenários × 4 alternativas
+// cada alternativa carrega pesos para 1-3 das 9 subáreas.
+// ════════════════════════════════════════════════════════════════════════════
+const SITUACOES = [
+{id:'s1',area:'Recrutamento',texto:'Você recebe 200 currículos para uma vaga técnica urgente. O gestor pede rapidez, mas os critérios da vaga estão vagos. O que você faz primeiro?',alts:[
+  {t:'Uso uma ferramenta de triagem automática para filtrar por palavras-chave e ganhar tempo.',w:{recruiter_tech:3,recrutamento:1}},
+  {t:'Marco uma conversa rápida com o gestor para clarear o perfil antes de avançar.',w:{hrbp:3,recrutamento:1}},
+  {t:'Defino critérios objetivos de triagem e documento o racional antes de olhar os currículos.',w:{recrutamento:3,dp_trabalhista:1}},
+  {t:'Delego a triagem inicial para o time e foco em desenhar a experiência do candidato.',w:{employer_branding:2,generalista:2}}
+]},
+{id:'s2',area:'Desenvolvimento',texto:'Depois de um treinamento, a aplicação prática no dia a dia ficou baixa. Qual sua primeira hipótese de ação?',alts:[
+  {t:'Redesenhar a trilha com prática aplicada e reforço espaçado.',w:{dho_td:3}},
+  {t:'Levantar dados de aplicação (pesquisa pós-treino, indicadores) antes de mudar qualquer coisa.',w:{people_analytics:3,dho_td:1}},
+  {t:'Conversar com os gestores das áreas para entender se o ambiente sustenta a mudança.',w:{hrbp:3,dho_td:1}},
+  {t:'Revisar se o conteúdo está alinhado com a cultura e a comunicação interna da empresa.',w:{employer_branding:2,generalista:1}}
+]},
+{id:'s3',area:'Indicadores',texto:'A diretoria pede um dashboard de turnover a partir de dados brutos de desligamento dos últimos 2 anos. Por onde você começa?',alts:[
+  {t:'Um modelo simples de correlação entre variáveis (tempo de casa, área, gestor) e turnover.',w:{people_analytics:3}},
+  {t:'Primeiro entendo com o RH de campo o contexto qualitativo por trás dos números.',w:{generalista:2,hrbp:2}},
+  {t:'Estruturo um pipeline de dados automatizado que atualiza o dashboard sozinho.',w:{recruiter_tech:2,people_analytics:2}},
+  {t:'Foco em construir uma narrativa visual clara para a diretoria entender rápido.',w:{employer_branding:2,people_analytics:1}}
+]},
+{id:'s4',area:'Legislação',texto:'Um colaborador demitido por justa causa questiona a decisão na Justiça. Qual sua atuação?',alts:[
+  {t:'Reviso toda a documentação e o histórico de advertências para garantir consistência jurídica.',w:{dp_trabalhista:3}},
+  {t:'Ajudo o gestor a entender o que fazer diferente da próxima vez, focando em prevenção.',w:{hrbp:2,dho_td:1}},
+  {t:'Levanto dados históricos de casos semelhantes para entender padrões de risco.',w:{people_analytics:2,dp_trabalhista:1}},
+  {t:'Reforço com toda a liderança os processos corretos de documentação disciplinar.',w:{generalista:2,dp_trabalhista:1}}
+]},
+{id:'s5',area:'Remuneração',texto:'Um gestor pede 30% de aumento para reter um talento-chave, fora da política salarial. O que você faz?',alts:[
+  {t:'Analiso a posição do cargo na curva salarial e o orçamento antes de decidir.',w:{remuneracao:3}},
+  {t:'Busco entender com o colaborador o que realmente motiva a permanência dele, além do salário.',w:{hrbp:2,generalista:1}},
+  {t:'Avalio se é um problema pontual ou um padrão que aparece nos dados de todo o time.',w:{people_analytics:2,remuneracao:1}},
+  {t:'Reforço com o gestor os critérios e a governança da política, mesmo sob pressão.',w:{dp_trabalhista:2,remuneracao:1}}
+]},
+{id:'s6',area:'Experiência do colaborador',texto:'O eNPS caiu 15 pontos no último trimestre sem um motivo óbvio. Primeiro passo?',alts:[
+  {t:'Rodo uma pesquisa qualitativa curta (grupos focais) para entender o motivo.',w:{employer_branding:3}},
+  {t:'Cruzo o eNPS com outros dados (turnover, absenteísmo, avaliações) para achar padrões.',w:{people_analytics:3}},
+  {t:'Falo direto com os gestores das áreas mais afetadas.',w:{hrbp:2,generalista:1}},
+  {t:'Reviso se algo mudou recentemente em benefícios, política ou processo formal.',w:{dp_trabalhista:2,remuneracao:1}}
+]},
+{id:'s7',area:'Consultoria interna',texto:'Um diretor de área quer demitir 3 pessoas do time rapidamente por "não performarem". O que você faz?',alts:[
+  {t:'Peço para ver o histórico de PDI e feedback formal de cada pessoa antes de qualquer decisão.',w:{hrbp:3}},
+  {t:'Verifico se o processo segue as exigências legais e de documentação.',w:{dp_trabalhista:3}},
+  {t:'Sugiro olhar os dados de performance de forma comparativa antes de decidir.',w:{people_analytics:2,hrbp:1}},
+  {t:'Investigo se o problema é de fit da vaga ou de onboarding malfeito.',w:{recrutamento:2,dho_td:1}}
+]},
+{id:'s8',area:'Atração de talentos',texto:'A empresa está com dificuldade para atrair candidatos para vagas de tecnologia. O que você prioriza?',alts:[
+  {t:'Testo uma ferramenta de sourcing automatizado com IA para ampliar o funil.',w:{recruiter_tech:3}},
+  {t:'Reviso a proposta de valor de empregador que está sendo comunicada.',w:{employer_branding:3}},
+  {t:'Analiso os dados do funil atual para achar onde ele está vazando.',w:{people_analytics:2,recrutamento:1}},
+  {t:'Reviso a estrutura salarial oferecida em comparação ao mercado.',w:{remuneracao:2,recrutamento:1}}
+]},
+{id:'s9',area:'RH generalista',texto:'Você é a única pessoa de RH numa empresa de 80 funcionários. Surge um conflito entre dois times ao mesmo tempo em que fecha a folha do mês. O que faz primeiro?',alts:[
+  {t:'Garanto que a folha e as obrigações legais estejam em dia — isso não pode atrasar.',w:{dp_trabalhista:3}},
+  {t:'Priorizo entender e mediar o conflito, porque pessoas vêm antes de processo.',w:{hrbp:2,generalista:2}},
+  {t:'Delego ou automatizo o que for possível para conseguir cuidar dos dois ao mesmo tempo.',w:{recruiter_tech:1,generalista:3}},
+  {t:'Comunico com transparência para os dois times o que está acontecendo e os prazos.',w:{employer_branding:2,generalista:1}}
+]},
+{id:'s10',area:'Liderança e desenvolvimento',texto:'Um gestor promovido internamente tem dificuldade de dar feedback à antiga equipe de pares. Como você atua?',alts:[
+  {t:'Desenho um programa estruturado de desenvolvimento de liderança de primeira viagem.',w:{dho_td:3}},
+  {t:'Faço um acompanhamento individual (coaching/mentoria) com esse gestor.',w:{hrbp:3}},
+  {t:'Levanto dados de clima do time para entender o impacto real.',w:{people_analytics:2,dho_td:1}},
+  {t:'Reviso se o processo de promoção interna tem lacunas a corrigir.',w:{recrutamento:2,generalista:1}}
+]},
+{id:'s11',area:'Ética de dados',texto:'Você descobre que um modelo preditivo de rotatividade da empresa usa dados com risco de viés discriminatório. O que faz?',alts:[
+  {t:'Paro o uso do modelo até revisar as variáveis e reduzir o risco de viés.',w:{people_analytics:3,dp_trabalhista:1}},
+  {t:'Levo o caso para discussão com jurídico/compliance imediatamente.',w:{dp_trabalhista:3}},
+  {t:'Comunico com transparência aos stakeholders o que foi encontrado.',w:{employer_branding:2,generalista:1}},
+  {t:'Redesenho o modelo priorizando variáveis mais defensáveis eticamente.',w:{recruiter_tech:2,people_analytics:1}}
+]},
+{id:'s12',area:'Marca empregadora',texto:'As avaliações da empresa em sites de emprego pioraram bastante. O board quer uma resposta rápida.',alts:[
+  {t:'Construo uma campanha de comunicação para reposicionar a marca empregadora.',w:{employer_branding:3}},
+  {t:'Primeiro investigo os dados por trás das avaliações negativas (temas recorrentes).',w:{people_analytics:2,employer_branding:1}},
+  {t:'Reviso se há um problema estrutural de política ou benefícios por trás disso.',w:{remuneracao:2,dp_trabalhista:1}},
+  {t:'Levo o tema para os gestores de área discutirem ações concretas com seus times.',w:{hrbp:2,generalista:1}}
+]},
+{id:'s13',area:'Benefícios',texto:'A empresa quer lançar um novo pacote de benefícios flexíveis. Por onde você começa a desenhar?',alts:[
+  {t:'Faço uma pesquisa de mercado (benchmark) de práticas de remuneração e benefícios.',w:{remuneracao:3}},
+  {t:'Rodo uma pesquisa com os colaboradores para entender o que eles mais valorizam.',w:{employer_branding:2,remuneracao:1}},
+  {t:'Modelo o impacto financeiro e os dados de adesão esperada.',w:{people_analytics:2,remuneracao:1}},
+  {t:'Verifico as implicações legais e tributárias de cada tipo de benefício.',w:{dp_trabalhista:3}}
+]},
+{id:'s14',area:'Contratação em volume',texto:'Você precisa contratar 50 pessoas em 2 meses para uma nova operação. Qual sua prioridade número 1?',alts:[
+  {t:'Estruturar um processo de triagem e entrevistas em massa, ágil e padronizado.',w:{recrutamento:3}},
+  {t:'Automatizar o máximo possível do funil com tecnologia (triagem, agendamento, testes).',w:{recruiter_tech:3}},
+  {t:'Garantir que toda a admissão e documentação estará pronta para o volume.',w:{dp_trabalhista:3}},
+  {t:'Desenhar a experiência de onboarding para reter essas pessoas logo no início.',w:{dho_td:2,employer_branding:1}}
+]}
+];
+
+// ════════════════════════════════════════════════════════════════════════════
+// MATRIZ DE PERFIS DE REFERÊNCIA — v0.1 (hipóteses de produto, a recalibrar
+// com especialistas e dados reais — ver docs/plano-assessment-carreira-rh.md §5)
+// ════════════════════════════════════════════════════════════════════════════
+const SUBAREAS = [
+  {key:'recrutamento',nome:'Recrutamento e Seleção / Talent Acquisition',
+    disc:{D:0.20,I:0.35,S:0.20,C:0.25}, holland:{R:0.05,I:0.15,A:0.05,S:0.30,E:0.30,C:0.15},
+    competencias:['avaliação de perfil','entrevistas estruturadas','gestão de funil de vagas','comunicação com candidatos'],
+    forca:'Você demonstra julgamento rápido na avaliação de pessoas e conforto em conduzir processos de decisão sob prazo.',
+    atencao:'Processos de seleção em volume alto podem exigir critérios objetivos mais documentados do que o intuitivo.',
+    desenvolvimento:'Aprofundar técnicas de entrevista estruturada e boas práticas de inclusão no processo seletivo.'},
+  {key:'recruiter_tech',nome:'Recruiter Tech',
+    disc:{D:0.15,I:0.25,S:0.10,C:0.50}, holland:{R:0.15,I:0.30,A:0.05,S:0.15,E:0.20,C:0.15},
+    competencias:['sourcing','ferramentas de ATS','automação','leitura de dados de funil'],
+    forca:'Seu perfil combina interesse analítico com apetite por ferramentas e automação de sourcing.',
+    atencao:'Depender só de tecnologia pode reduzir a leitura humana e contextual do candidato — vale balancear.',
+    desenvolvimento:'Explorar ATS, busca booleana, IA aplicada a recrutamento e métricas de funil (time-to-fill, source of hire).'},
+  {key:'dho_td',nome:'DHO / Treinamento e Desenvolvimento',
+    disc:{D:0.10,I:0.35,S:0.35,C:0.20}, holland:{R:0.03,I:0.12,A:0.20,S:0.40,E:0.15,C:0.10},
+    competencias:['design instrucional','facilitação','trilhas de aprendizagem','avaliação de eficácia'],
+    forca:'Você tem inclinação natural para ensinar, desenvolver pessoas e cuidar do crescimento de times.',
+    atencao:'Programas de desenvolvimento sem medição de impacto tendem a perder força com o tempo.',
+    desenvolvimento:'Estudar design instrucional, andragogia e metodologias de avaliação de treinamento (ex.: Kirkpatrick).'},
+  {key:'hrbp',nome:'HR Business Partner',
+    disc:{D:0.30,I:0.30,S:0.20,C:0.20}, holland:{R:0.03,I:0.15,A:0.05,S:0.27,E:0.35,C:0.15},
+    competencias:['consultoria interna','leitura de negócio','coaching de gestores','gestão de conflitos'],
+    forca:'Você combina assertividade com sensibilidade às pessoas — perfil clássico de quem transita bem entre negócio e RH.',
+    atencao:'O papel de HRBP exige dizer não a gestores com poder — vale desenvolver segurança para sustentar posições difíceis.',
+    desenvolvimento:'Aprofundar leitura de indicadores de negócio e técnicas de consultoria interna/coaching.'},
+  {key:'generalista',nome:'RH Generalista',
+    disc:{D:0.25,I:0.25,S:0.25,C:0.25}, holland:{R:0.08,I:0.15,A:0.07,S:0.25,E:0.20,C:0.25},
+    competencias:['visão ampla de RH','priorização','multitarefa','comunicação transversal'],
+    forca:'Você tem versatilidade para transitar entre diferentes frentes de RH sem perder o eixo.',
+    atencao:'Fazer um pouco de tudo pode dificultar aprofundamento técnico em uma frente específica.',
+    desenvolvimento:'Ganhar profundidade em pelo menos uma subárea complementar (ex.: DP ou T&D) além da visão ampla.'},
+  {key:'people_analytics',nome:'People Analytics',
+    disc:{D:0.20,I:0.10,S:0.10,C:0.60}, holland:{R:0.05,I:0.45,A:0.05,S:0.10,E:0.10,C:0.25},
+    competencias:['estatística aplicada','ferramentas de BI','modelagem de dados','ética de dados'],
+    forca:'Você tem inclinação natural para dados, lógica e rigor analítico aplicados a gente e gestão.',
+    atencao:'Modelos preditivos aplicados a pessoas carregam risco de viés — vale desenvolver essa sensibilidade junto com a técnica.',
+    desenvolvimento:'Aprofundar estatística aplicada, ferramentas de BI e ética de dados em RH.'},
+  {key:'remuneracao',nome:'Remuneração e Benefícios',
+    disc:{D:0.20,I:0.15,S:0.15,C:0.50}, holland:{R:0.05,I:0.20,A:0.03,S:0.10,E:0.22,C:0.40},
+    competencias:['cargos e salários','benchmarking de mercado','legislação tributária','modelagem financeira'],
+    forca:'Você tem perfil analítico e disciplinado, adequado à precisão exigida por estruturas salariais e benefícios.',
+    atencao:'Decisões de remuneração afetam pessoas diretamente — vale equilibrar rigor técnico com sensibilidade na comunicação.',
+    desenvolvimento:'Estudar metodologias de cargos e salários, benchmarking de mercado e legislação de benefícios.'},
+  {key:'dp_trabalhista',nome:'Departamento Pessoal / Relações Trabalhistas',
+    disc:{D:0.10,I:0.10,S:0.25,C:0.55}, holland:{R:0.15,I:0.10,A:0.02,S:0.13,E:0.10,C:0.50},
+    competencias:['legislação trabalhista','rotinas de folha','gestão de riscos','documentação'],
+    forca:'Você demonstra atenção a regras, processos e conformidade — essencial para essa subárea.',
+    atencao:'O lado humano das decisões trabalhistas pode ficar em segundo plano diante da urgência legal.',
+    desenvolvimento:'Aprofundar legislação trabalhista, rotinas de folha e gestão de riscos jurídicos.'},
+  {key:'employer_branding',nome:'Employer Branding / Employee Experience',
+    disc:{D:0.15,I:0.45,S:0.25,C:0.15}, holland:{R:0.03,I:0.10,A:0.30,S:0.27,E:0.20,C:0.10},
+    competencias:['storytelling de marca','pesquisa de experiência','comunicação interna','jornada do colaborador'],
+    forca:'Você tem inclinação para comunicação, criatividade e cuidado com a experiência das pessoas na empresa.',
+    atencao:'Iniciativas de marca empregadora sem dados de suporte podem parecer só estética — vale ancorar em evidência.',
+    desenvolvimento:'Estudar storytelling de marca, pesquisa de experiência do colaborador e jornada do candidato.'}
+];
+const SUBAREA_BY_KEY = Object.fromEntries(SUBAREAS.map(s=>[s.key,s]));
+const BAND = { forte:{min:80,label:'Forte aderência',color:'var(--band-forte)'},
+               boa:{min:65,label:'Boa aderência',color:'var(--band-boa)'},
+               moderada:{min:50,label:'Aderência moderada',color:'var(--band-moderada)'},
+               baixa:{min:0,label:'Menor evidência',color:'var(--band-baixa)'} };
+function bandOf(v){ if(v>=80) return BAND.forte; if(v>=65) return BAND.boa; if(v>=50) return BAND.moderada; return BAND.baixa; }
+
+// ════════════════════════════════════════════════════════════════════════════
+// ESTADO
+// ════════════════════════════════════════════════════════════════════════════
+const state = {
+  discAnswers: Array(N_GRUPOS).fill(null).map(()=>({mais:null,menos:null})),
+  hollandAnswers: {},
+  situAnswers: {},
+  expAnswers: {}
+};
+
+// ════════════════════════════════════════════════════════════════════════════
+// RENDER — BLOCO A
+// ════════════════════════════════════════════════════════════════════════════
+function renderGroups(){
+  document.getElementById('groups-a').innerHTML = GRUPOS.map((grupo,gi)=>`
+    <div class="group" id="grp-${gi}">
+      <div class="group-num">GRUPO ${gi+1} / ${N_GRUPOS}</div>
+      <div class="words">
+        ${grupo.map((item,wi)=>`
+          <div class="word-row" id="wr-${gi}-${wi}">
+            <div class="word-label">${item.w}</div>
+            <div class="radio-group">
+              <button class="radio-btn mais" onclick="selectDisc(${gi},${wi},'mais')" title="MAIS me representa">+</button>
+              <button class="radio-btn menos" onclick="selectDisc(${gi},${wi},'menos')" title="MENOS me representa">−</button>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+function selectDisc(gi,wi,tipo){
+  const ans = state.discAnswers[gi];
+  if (ans[tipo] !== null){
+    const prevBtn = document.querySelector(`#wr-${gi}-${ans[tipo]} .radio-btn.${tipo}`);
+    if (prevBtn) prevBtn.classList.remove('active');
+  }
+  if (ans[tipo] === wi){ ans[tipo] = null; }
+  else{
+    if (tipo==='mais' && ans.menos===wi) ans.menos=null;
+    if (tipo==='menos' && ans.mais===wi) ans.mais=null;
+    GRUPOS[gi].forEach((_,i)=>{ const b=document.querySelector(`#wr-${gi}-${i} .radio-btn.${tipo}`); if(b) b.classList.remove('active'); });
+    ans[tipo]=wi;
+    const btn=document.querySelector(`#wr-${gi}-${wi} .radio-btn.${tipo}`);
+    if(btn) btn.classList.add('active');
+  }
+  updateProgress();
+}
+function discCompletedCount(){ return state.discAnswers.filter(a=>a.mais!==null&&a.menos!==null).length; }
+
+// ════════════════════════════════════════════════════════════════════════════
+// RENDER — BLOCO B
+// ════════════════════════════════════════════════════════════════════════════
+function renderHolland(){
+  const dims=['R','I','A','S','E','C'];
+  document.getElementById('holland-container').innerHTML = dims.map(dim=>`
+    <div class="holland-block">
+      <div class="holland-dim-title">${dim} · ${HOLLAND_DIM_NAMES[dim]}</div>
+      ${HOLLAND_ITENS.filter(it=>it.dim===dim).map(it=>`
+        <div class="likert-row">
+          <div class="likert-text">${it.t}</div>
+          <div class="likert-scale" id="lk-${it.id}">
+            ${[1,2,3,4,5].map(v=>`<div class="likert-opt" onclick="selectHolland('${it.id}',${v})">${v}</div>`).join('')}
+          </div>
+        </div>`).join('')}
+    </div>`).join('');
+}
+function selectHolland(id,v){
+  state.hollandAnswers[id]=v;
+  document.querySelectorAll(`#lk-${id} .likert-opt`).forEach((el,i)=>el.classList.toggle('active', i+1===v));
+  updateProgress();
+}
+function hollandCompletedCount(){ return Object.keys(state.hollandAnswers).length; }
+
+// ════════════════════════════════════════════════════════════════════════════
+// RENDER — BLOCO C
+// ════════════════════════════════════════════════════════════════════════════
+function renderSitu(){
+  document.getElementById('situ-container').innerHTML = SITUACOES.map((s,si)=>`
+    <div class="scenario">
+      <div class="scenario-tag">${s.area}</div>
+      <div class="scenario-text">${si+1}. ${s.texto}</div>
+      <div id="alts-${s.id}">
+        ${s.alts.map((a,ai)=>`
+          <div class="alt" id="alt-${s.id}-${ai}" onclick="selectSitu('${s.id}',${ai})">
+            <div class="alt-radio"></div>
+            <div class="alt-text">${a.t}</div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+function selectSitu(sid,ai){
+  state.situAnswers[sid]=ai;
+  document.querySelectorAll(`#alts-${sid} .alt`).forEach((el,i)=>el.classList.toggle('active', i===ai));
+  updateProgress();
+}
+function situCompletedCount(){ return Object.keys(state.situAnswers).length; }
+
+// ════════════════════════════════════════════════════════════════════════════
+// RENDER — BLOCO D
+// ════════════════════════════════════════════════════════════════════════════
+const NIVEL_OPCOES = ['Nunca atuei','Curso/projeto acadêmico','Voluntariado/projeto pessoal','Atuação profissional eventual','Atuação profissional recorrente'];
+const AUTONOMIA_OPCOES = ['Nenhuma','Supervisionada','Moderada','Total'];
+const CONHECIMENTO_OPCOES = ['1 · Iniciante','2','3 · Intermediário','4','5 · Avançado'];
+function renderExp(){
+  document.getElementById('exp-container').innerHTML = SUBAREAS.map(s=>`
+    <div class="exp-row">
+      <div class="exp-title">${s.nome}</div>
+      <div class="exp-grid">
+        <div><label>Nível de atuação</label>
+          <select onchange="setExp('${s.key}','nivel',this.selectedIndex)">
+            ${NIVEL_OPCOES.map((o,i)=>`<option value="${i}">${o}</option>`).join('')}
+          </select>
+        </div>
+        <div><label>Autonomia</label>
+          <select onchange="setExp('${s.key}','autonomia',this.selectedIndex)">
+            ${AUTONOMIA_OPCOES.map((o,i)=>`<option value="${i}">${o}</option>`).join('')}
+          </select>
+        </div>
+        <div><label>Autopercepção de conhecimento</label>
+          <select onchange="setExp('${s.key}','conhecimento',this.selectedIndex+1)">
+            ${CONHECIMENTO_OPCOES.map((o,i)=>`<option value="${i+1}">${o}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+    </div>`).join('');
+  SUBAREAS.forEach(s=> state.expAnswers[s.key] = {nivel:0, autonomia:0, conhecimento:1, touched:false});
+}
+function setExp(key,campo,val){
+  state.expAnswers[key][campo]=val;
+  state.expAnswers[key].touched=true;
+  updateProgress();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// PROGRESSO
+// ════════════════════════════════════════════════════════════════════════════
+const BLOCK_LABELS = { a:'Bloco A · DISC natural', b:'Bloco B · Holland RIASEC', c:'Bloco C · Situações de RH', d:'Bloco D · Experiência e conhecimento' };
+function updateProgress(){
+  const step = document.querySelector('.step.active')?.id;
+  const map = { 'step-a':'a', 'step-b':'b', 'step-c':'c', 'step-d':'d' };
+  const block = map[step];
+  if(!block){ document.getElementById('progress-wrap').style.display='none'; return; }
+  document.getElementById('progress-wrap').style.display='block';
+  document.getElementById('progress-block-label').textContent = BLOCK_LABELS[block];
+  let pct = 0;
+  if(block==='a') pct = discCompletedCount()/N_GRUPOS*100;
+  if(block==='b') pct = hollandCompletedCount()/HOLLAND_ITENS.length*100;
+  if(block==='c') pct = situCompletedCount()/SITUACOES.length*100;
+  if(block==='d') pct = Object.values(state.expAnswers).filter(e=>e.touched).length/SUBAREAS.length*100;
+  pct = Math.round(pct);
+  document.getElementById('progress-fill').style.width = pct+'%';
+  document.getElementById('progress-txt').textContent = pct+'%';
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// NAVEGAÇÃO
+// ════════════════════════════════════════════════════════════════════════════
+function goTo(id){
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+  updateProgress();
+}
+function startAssessment(){
+  const nome = document.getElementById('f-nome').value.trim();
+  const momento = document.getElementById('f-momento').value;
+  const consent = document.getElementById('f-consent').checked;
+  if(!nome || !momento || !consent){ showToast('⚠ Preencha nome, momento de carreira e o consentimento.'); return; }
+  goTo('step-a');
+}
+function goToBlockB(){
+  if(discCompletedCount() < MIN_GRUPOS){ document.getElementById('warn-a').classList.add('show'); return; }
+  document.getElementById('warn-a').classList.remove('show');
+  goTo('step-b');
+}
+function goToBlockC(){
+  if(hollandCompletedCount() < HOLLAND_ITENS.length){ document.getElementById('warn-b').classList.add('show'); return; }
+  document.getElementById('warn-b').classList.remove('show');
+  goTo('step-c');
+}
+function goToBlockD(){
+  if(situCompletedCount() < SITUACOES.length){ document.getElementById('warn-c').classList.add('show'); return; }
+  document.getElementById('warn-c').classList.remove('show');
+  goTo('step-d');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// MOTOR DE PONTUAÇÃO — funções puras, determinísticas
+// ════════════════════════════════════════════════════════════════════════════
+function calcDiscRaw(){
+  const sc={D:0,I:0,S:0,C:0};
+  state.discAnswers.forEach((ans,gi)=>{
+    if(ans.mais!==null) sc[GRUPOS[gi][ans.mais].d]++;
+    if(ans.menos!==null) sc[GRUPOS[gi][ans.menos].d]--;
+  });
+  return sc;
+}
+function toShares(scoresAbsOk){
+  // converte um objeto de scores (pode ter negativos) numa distribuição de
+  // proporções não-negativas que somam 1 — usa valor absoluto, pois o que
+  // importa aqui é a intensidade de cada fator, não a direção.
+  const total = Object.values(scoresAbsOk).reduce((a,v)=>a+Math.abs(v),0) || 1;
+  const out={};
+  Object.entries(scoresAbsOk).forEach(([k,v])=> out[k]=Math.abs(v)/total);
+  return out;
+}
+function calcHollandRaw(){
+  const sc={R:0,I:0,A:0,S:0,E:0,C:0};
+  HOLLAND_ITENS.forEach(it=>{ sc[it.dim]+= (state.hollandAnswers[it.id]||1); });
+  return sc;
+}
+function simFromShares(target,resp){
+  const keys=Object.keys(target);
+  let l1=0;
+  keys.forEach(k=> l1+=Math.abs((target[k]||0)-(resp[k]||0)));
+  return Math.max(0, Math.round(100 - 50*l1));
+}
+function calcSituScores(){
+  const totals={}; const maxPossible={};
+  SUBAREAS.forEach(s=>{ totals[s.key]=0; maxPossible[s.key]=0; });
+  SITUACOES.forEach(s=>{
+    // maior peso possível por subárea, entre as 4 alternativas deste cenário
+    const bestPerSub={};
+    s.alts.forEach(a=> Object.entries(a.w).forEach(([k,v])=>{ bestPerSub[k]=Math.max(bestPerSub[k]||0,v); }));
+    Object.entries(bestPerSub).forEach(([k,v])=>{ maxPossible[k]=(maxPossible[k]||0)+v; });
+    const chosen = state.situAnswers[s.id];
+    if(chosen!==undefined){
+      Object.entries(s.alts[chosen].w).forEach(([k,v])=>{ totals[k]=(totals[k]||0)+v; });
+    }
+  });
+  const norm={};
+  SUBAREAS.forEach(s=>{ norm[s.key] = maxPossible[s.key] ? Math.round(totals[s.key]/maxPossible[s.key]*100) : 0; });
+  return norm;
+}
+function calcProntidao(key){
+  const e = state.expAnswers[key] || {nivel:0,autonomia:0,conhecimento:1};
+  const evid = e.nivel/(NIVEL_OPCOES.length-1)*100;
+  const conh = (e.conhecimento-1)/4*100;
+  const auto = e.autonomia/(AUTONOMIA_OPCOES.length-1)*100;
+  return { total: Math.round(0.60*evid + 0.25*conh + 0.15*auto), evid:Math.round(evid), conh:Math.round(conh), auto:Math.round(auto), nivelIdx:e.nivel };
+}
+function calcularResultado(){
+  const discRaw = calcDiscRaw();
+  const discShr = toShares(discRaw);
+  const hollandRaw = calcHollandRaw();
+  const hollandShr = toShares(hollandRaw);
+  const situNorm = calcSituScores();
+
+  const resultados = SUBAREAS.map(s=>{
+    const dSim = simFromShares(s.disc, discShr);
+    const hSim = simFromShares(s.holland, hollandShr);
+    const sNorm = situNorm[s.key];
+    const potencial = Math.round(0.25*dSim + 0.3125*hSim + 0.4375*sNorm);
+    const pront = calcProntidao(s.key);
+    const combinado = Math.round(0.80*potencial + 0.20*pront.total);
+    return { key:s.key, nome:s.nome, potencial, prontidao:pront.total, combinado,
+      contrib:{disc:dSim, holland:hSim, situ:sNorm}, prontDetalhe:pront };
+  }).sort((a,b)=> b.combinado - a.combinado);
+
+  const allComplete = discCompletedCount()>=MIN_GRUPOS && hollandCompletedCount()>=HOLLAND_ITENS.length && situCompletedCount()>=SITUACOES.length;
+  const gap = resultados[0].combinado - resultados[1].combinado;
+  const topExpTouched = resultados.slice(0,3).some(r=> state.expAnswers[r.key]?.touched);
+  let confianca = 'baixa';
+  if(allComplete){
+    confianca = (gap>=8 && (topExpTouched || resultados[0].prontDetalhe.nivelIdx>0)) ? 'alta' : 'moderada';
+  }
+  return { resultados, confianca, discRaw, discShr, hollandRaw, hollandShr };
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// RENDER — RESULTADO
+// ════════════════════════════════════════════════════════════════════════════
+function calcularEMostrar(){
+  const r = calcularResultado();
+  window._resultado = r;
+
+  document.getElementById('res-nome').textContent = document.getElementById('f-nome').value.trim();
+  document.getElementById('res-meta').textContent = `${document.getElementById('f-momento').value} · confiança do resultado: ${r.confianca.toUpperCase()}`;
+
+  document.getElementById('res-ranking').innerHTML = r.resultados.map((res,i)=>{
+    const band = bandOf(res.combinado);
+    return `<div class="rank-row">
+      <div class="rank-pos">${i+1}º</div>
+      <div class="rank-label">${res.nome}</div>
+      <div class="rank-track"><div class="rank-fill" style="width:${res.combinado}%;background:${band.color}"></div></div>
+      <div class="rank-val">${res.combinado}%</div>
+      <div class="band-pill" style="background:${band.color}">${band.label}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('res-detail').innerHTML = r.resultados.slice(0,3).map((res,i)=>{
+    const sub = SUBAREA_BY_KEY[res.key];
+    const adjacentes = r.resultados.filter(x=>x.key!==res.key && (res.combinado - x.combinado) <= 8).slice(0,2).map(x=>x.nome);
+    const evidencias=[];
+    if(res.contrib.disc>=65) evidencias.push(`Seu perfil comportamental (DISC natural) tem ${res.contrib.disc}% de aderência ao perfil típico desta subárea.`);
+    if(res.contrib.holland>=65) evidencias.push(`Seus interesses profissionais (Holland RIASEC) têm ${res.contrib.holland}% de aderência ao perfil típico desta subárea.`);
+    if(res.contrib.situ>=50) evidencias.push(`Nas situações práticas, suas escolhas somaram ${res.contrib.situ}% da pontuação máxima possível para esta subárea.`);
+    if(evidencias.length===0) evidencias.push('A aderência aqui vem de uma combinação equilibrada dos três fatores comportamentais, sem um único fator dominante.');
+    return `<div class="sub-card">
+      <div class="sub-card-head">
+        <div class="sub-card-title">${i+1}º · ${sub.nome}</div>
+        <span class="badge">${sub.competencias.join(' · ')}</span>
+      </div>
+      <div class="two-col">
+        <div>
+          <div class="mini-label">Potencial</div>
+          <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${res.potencial}%;background:var(--idl-magenta)"></div></div>
+          <div class="mini-val">${res.potencial}%</div>
+        </div>
+        <div>
+          <div class="mini-label">Prontidão atual</div>
+          <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${res.prontidao}%;background:var(--idl-purple)"></div></div>
+          <div class="mini-val">${res.prontidao}%</div>
+        </div>
+      </div>
+      <div class="mini-label">Evidências</div>
+      <ul class="evidence-list">${evidencias.map(e=>`<li>${e}</li>`).join('')}</ul>
+      <div class="note-box"><strong>Ponto de atenção:</strong> ${sub.atencao}</div>
+      <div class="note-box"><strong>Desenvolvimento sugerido:</strong> ${sub.desenvolvimento}</div>
+      ${adjacentes.length? `<div class="note-box"><strong>Subáreas adjacentes:</strong> ${adjacentes.join(', ')}.</div>` : ''}
+    </div>`;
+  }).join('');
+
+  goTo('step-result');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// SALVAR
+// ════════════════════════════════════════════════════════════════════════════
+async function salvar(){
+  const btn = document.getElementById('btn-salvar');
+  const r = window._resultado;
+  if(!SHEETS_URL){
+    showToast('Resultado calculado — o backend de gravação ainda não foi configurado nesta página.');
+    return;
+  }
+  btn.disabled = true; btn.textContent = 'Salvando...';
+  const payload = {
+    timestamp: new Date().toISOString(),
+    nome: document.getElementById('f-nome').value.trim(),
+    email: document.getElementById('f-email').value.trim(),
+    momento_carreira: document.getElementById('f-momento').value,
+    confianca: r.confianca,
+    disc_nat_D: r.discRaw.D, disc_nat_I: r.discRaw.I, disc_nat_S: r.discRaw.S, disc_nat_C: r.discRaw.C,
+    holland_R: r.hollandRaw.R, holland_I: r.hollandRaw.I, holland_A: r.hollandRaw.A, holland_S: r.hollandRaw.S, holland_E: r.hollandRaw.E, holland_C: r.hollandRaw.C,
+    ranking_json: JSON.stringify(r.resultados),
+    top1: r.resultados[0].key, top1_combinado: r.resultados[0].combinado,
+    top2: r.resultados[1].key, top2_combinado: r.resultados[1].combinado,
+    top3: r.resultados[2].key, top3_combinado: r.resultados[2].combinado
+  };
+  try{
+    await fetch(SHEETS_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    showToast('✓ Resultado salvo com sucesso!');
+    btn.textContent = '✓ Salvo';
+  }catch(e){
+    showToast('✗ Erro ao salvar. Tente novamente.');
+    btn.disabled = false; btn.textContent = '✓ Salvar meu resultado';
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════════════════════════════════════════
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.display='block';
+  setTimeout(()=>{ t.style.display='none'; }, 3800);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', ()=>{
+  renderGroups();
+  renderHolland();
+  renderSitu();
+  renderExp();
+});
+</script>
+</body>
+</html>
