@@ -407,10 +407,32 @@ testado de ponta a ponta (envio real pelo navegador → linha gravada na planilh
 depois removida por ser só teste). A aba da planilha foi renomeada automaticamente para `Respostas` pelo
 próprio script, como esperado. **Item 1 abaixo está resolvido.**
 
+**Atualização 2026-09-02 — matriz v0.2, Gerente de RH e painel administrativo.**
+
+- **Matriz recalibrada (v0.1 → v0.2):** vetores DISC/Holland das 9 subáreas originais foram "afiados" pra
+  reduzir sobreposição entre pares próximos (pior par caiu de 90-95% de similaridade pra ~75%, medido com
+  script de checagem). Motivado por evidência real: o primeiro teste completo (do próprio responsável do
+  produto) mostrou 6 das 9 subáreas empatadas numa faixa de 6 pontos.
+- **Nova 10ª entrada: Gerente de RH** — não é uma especialização técnica como as outras 9, é uma posição de
+  liderança formal da função de RH; perfil-alvo DISC D-dominante (o mais alto da matriz) + Holland
+  E-dominante. Recebeu peso situacional em 6 dos 14 cenários do Bloco C.
+- **Ranking de aderência agora usa só Potencial** (comportamento + interesses + julgamento situacional) —
+  Prontidão saiu da conta do ranking mas continua visível por subárea, claramente rotulada como "não conta
+  pro ranking". Mais fiel ao princípio original do plano (§2, item 3: potencial separado de experiência) do
+  que a versão anterior, que usava um combinado 80% potencial + 20% prontidão como ranking principal.
+- **Cada card do relatório** ganhou a descrição "Perfil-alvo" da subárea e Força/Atenção/Desenvolvimento
+  passaram a citar as letras dominantes com nome completo (consistente com a regra já registrada em
+  memória — letra sempre com nome, só na apresentação).
+- **Painel administrativo (`carreira-rh-admin.html`):** worklist com todas as respostas salvas (busca por
+  nome/e-mail), permitindo reabrir e reimprimir o relatório completo de qualquer resposta já salva —
+  reconstrói a partir do `ranking_json` já gravado, sem precisar reimplantar o Apps Script. Cobre parte do
+  que a Fase 6 do plano previa como "dashboard administrativo".
+
 **Pendências restantes antes de abrir para os 30–60 participantes da Fase 5:**
 
 1. ~~Implantar o Apps Script e configurar `SHEETS_URL`~~ — feito e testado.
-2. Revisão de especialista de RH na matriz de perfis v0.1 (Fase 1) — pode rodar em paralelo ao piloto, não
-   bloqueia o início.
+2. Revisão de especialista de RH na matriz de perfis **v0.2** (Fase 1) — pode rodar em paralelo ao piloto,
+   não bloqueia o início. Atenção especial pro par Gerente de RH ↔ HRBP (overlap esperado, mas vale
+   confirmar com especialista se a distinção está clara o suficiente).
 3. Protocolo do piloto (backlog item 13) — ainda não desenhado nesta conversa: como recrutar os
    participantes, roteiro de entrevista pós-teste, o que perguntar sobre clareza/utilidade.
