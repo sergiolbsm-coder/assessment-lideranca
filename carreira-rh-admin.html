@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel — Diagnóstico de Carreira em RH — Instituto da Liderança</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Cormorant+Garamond:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --idl-magenta:#FF0060;
+  --idl-purple:#391694;
+  --idl-purple-dark:#261062;
+  --idl-violet:#4D1DBF;
+  --idl-turquoise:#00D0C9;
+  --idl-text:#24153E;
+  --idl-text-muted:#6F667E;
+  --idl-background:#FBF9FF;
+  --idl-background-soft:#F4F0FB;
+  --idl-white:#FFFFFF;
+  --idl-border:rgba(57,22,148,.13);
+  --idl-gradient-light:radial-gradient(ellipse 60% 40% at 15% 20%,rgba(255,0,96,.06) 0%,transparent 60%),
+                       radial-gradient(ellipse 50% 50% at 85% 75%,rgba(77,29,191,.04) 0%,transparent 55%),
+                       #FBF9FF;
+  --r:12px; --r-sm:8px;
+  --band-forte:#1CA355;
+  --band-boa:#00A79E;
+  --band-moderada:#D69A1E;
+  --band-baixa:#8B849A;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--idl-background);color:var(--idl-text);min-height:100vh}
+.bg{position:fixed;inset:0;z-index:0;background:var(--idl-gradient-light)}
+.wrap{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:32px 20px 80px}
+.wrap-narrow{max-width:820px}
+.logo-row{display:flex;justify-content:center;margin-bottom:8px}
+.logo-row img{height:72px;width:auto;display:block}
+h1{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:var(--idl-purple-dark);text-align:center;margin-bottom:4px}
+.subtitle{font-size:13px;color:var(--idl-text-muted);text-align:center;margin-bottom:28px;font-family:'JetBrains Mono',monospace;letter-spacing:.04em}
+.card{background:var(--idl-white);border:1px solid var(--idl-border);border-radius:var(--r);padding:24px;margin-bottom:16px;box-shadow:0 2px 18px rgba(57,22,148,.05)}
+.section-title{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--idl-magenta);font-family:'JetBrains Mono',monospace;margin-bottom:14px;font-weight:700}
+.section-desc{font-size:13px;color:var(--idl-text-muted);line-height:1.6;margin-bottom:18px}
+.btn{padding:11px 22px;border-radius:100px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;transition:.2s}
+.btn-primary{background:linear-gradient(135deg,#261062,#FF0060);color:#FBF9FF}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(255,0,96,.3)}
+.btn-ghost{background:transparent;border:1px solid var(--idl-border);color:var(--idl-text-muted)}
+.btn-ghost:hover{border-color:var(--idl-magenta);color:var(--idl-magenta)}
+.btn-sm{padding:7px 14px;font-size:12px}
+.step{display:none}
+.step.active{display:block}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 14px;border-radius:100px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--idl-magenta);background:rgba(255,0,96,.07);border:1px solid var(--idl-border)}
+
+/* ── worklist ─────────────────────────────────────── */
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.toolbar input{flex:1;min-width:200px;background:var(--idl-white);border:1px solid var(--idl-border);border-radius:var(--r-sm);padding:11px 14px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none}
+.toolbar input:focus{border-color:var(--idl-magenta)}
+.count-pill{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--idl-text-muted);white-space:nowrap}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--idl-text-muted);font-weight:600;padding:0 12px 10px;border-bottom:1px solid var(--idl-border);white-space:nowrap}
+td{padding:12px;border-bottom:1px solid var(--idl-border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr.row-clickable{cursor:pointer;transition:background .15s}
+tr.row-clickable:hover{background:var(--idl-background-soft)}
+.row-nome{font-weight:700}
+.row-email{color:var(--idl-text-muted);font-size:12px}
+.mini-pill{font-size:10px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:100px;color:#fff;white-space:nowrap}
+.empty-state{text-align:center;padding:50px 20px;color:var(--idl-text-muted);font-size:13px}
+.loading{text-align:center;padding:40px;color:var(--idl-text-muted);font-family:'JetBrains Mono',monospace;font-size:12px}
+
+/* ── relatório reconstruído ──────────────────────────── */
+.result-hero{text-align:center;padding:8px 0 20px}
+.result-name{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--idl-purple-dark)}
+.result-sub{font-size:12px;color:var(--idl-text-muted);font-family:'JetBrains Mono',monospace;margin-top:4px}
+.rank-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.rank-pos{width:22px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--idl-text-muted);flex-shrink:0}
+.rank-label{width:190px;font-size:13px;font-weight:700;flex-shrink:0}
+.rank-track{flex:1;height:16px;background:var(--idl-background-soft);border-radius:6px;overflow:hidden}
+.rank-fill{height:100%;border-radius:6px}
+.rank-val{width:42px;text-align:right;font-size:12px;font-family:'JetBrains Mono',monospace;flex-shrink:0}
+.band-pill{font-size:9px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:100px;color:#fff;flex-shrink:0;text-transform:uppercase;letter-spacing:.04em}
+.sub-card{border:1px solid var(--idl-border);border-radius:var(--r);padding:18px 20px;margin-bottom:14px}
+.sub-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.sub-card-title{font-size:17px;font-weight:800;color:var(--idl-purple-dark)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.mini-label{font-size:10px;color:var(--idl-text-muted);text-transform:uppercase;letter-spacing:.08em;font-family:'JetBrains Mono',monospace;margin-bottom:6px}
+.card-rationale{font-size:12.5px;color:var(--idl-text-muted);line-height:1.55;font-style:italic}
+.mini-bar-track{height:10px;background:var(--idl-background-soft);border-radius:5px;overflow:hidden;margin-bottom:4px}
+.mini-bar-fill{height:100%;border-radius:5px}
+.mini-val{font-size:12px;font-weight:700}
+.pbar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.pbar-label{width:118px;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pbar-track{flex:1;height:9px;background:var(--idl-background-soft);border-radius:5px;overflow:hidden}
+.pbar-fill{height:100%;border-radius:5px}
+.pbar-val{width:36px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:11px;font-variant-numeric:tabular-nums;color:var(--idl-text-muted);flex-shrink:0}
+.evidence-list{margin:10px 0;padding-left:0;list-style:none}
+.evidence-list li{font-size:13px;line-height:1.6;padding-left:18px;position:relative;margin-bottom:6px}
+.evidence-list li::before{content:'—';position:absolute;left:0;color:var(--idl-magenta)}
+.note-box{background:var(--idl-background-soft);border-radius:var(--r-sm);padding:12px 14px;font-size:12.5px;line-height:1.6;color:var(--idl-text);margin-top:8px}
+.disclaimer{font-size:11.5px;color:var(--idl-text-muted);line-height:1.7;border-top:1px solid var(--idl-border);padding-top:16px;margin-top:20px}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:22px;gap:12px}
+
+@media print{
+  .no-print{display:none!important}
+  .card{box-shadow:none;border:1px solid #ddd}
+  body{background:#fff}
+  .bg{display:none}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+}
+@media(max-width:640px){
+  .two-col{grid-template-columns:1fr}
+  .rank-label{width:120px;font-size:12px}
+  .pbar-label{width:96px;font-size:9.5px}
+}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="wrap" id="wrap-list">
+
+  <div class="logo-row"><img src="logo.png" alt="Instituto da Liderança"></div>
+  <h1>Painel — Diagnóstico de Carreira em RH</h1>
+  <p class="subtitle">Instituto da Liderança · lista de respostas</p>
+
+  <!-- STEP LISTA -->
+  <div class="step active" id="step-lista">
+    <div class="card">
+      <div class="toolbar no-print">
+        <input type="text" id="f-busca" placeholder="Buscar por nome ou e-mail..." oninput="renderTabela()">
+        <span class="count-pill" id="count-pill"></span>
+        <button class="btn btn-ghost btn-sm" onclick="carregar()">↻ Atualizar</button>
+      </div>
+      <div id="tabela-area"><div class="loading">Carregando respostas…</div></div>
+    </div>
+  </div>
+
+  <!-- STEP RELATÓRIO (reconstruído) -->
+  <div class="step" id="step-relatorio">
+    <div class="nav no-print" style="margin-top:0;margin-bottom:20px">
+      <button class="btn btn-ghost" onclick="voltarLista()">← Voltar pra lista</button>
+      <button class="btn btn-primary" onclick="window.print()">Imprimir / salvar PDF</button>
+    </div>
+
+    <div class="result-hero">
+      <h1>Diagnóstico de Carreira em RH</h1>
+      <div class="result-name" id="res-nome"></div>
+      <div class="result-sub" id="res-meta"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Ranking de aderência potencial</div>
+      <p class="section-desc">Mede o quanto o comportamento (DISC natural), os interesses (Holland RIASEC) e o
+        julgamento em situações práticas combinam com cada subárea. Não inclui experiência — prontidão atual é
+        mostrada separadamente por subárea, logo abaixo.</p>
+      <div id="res-ranking"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Perfil (DISC natural e Holland RIASEC)</div>
+      <div class="two-col">
+        <div>
+          <div class="mini-label">DISC natural</div>
+          <div id="res-disc-bars"></div>
+        </div>
+        <div>
+          <div class="mini-label">Holland RIASEC</div>
+          <div id="res-holland-bars"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="res-detail"></div>
+
+    <div class="disclaimer">
+      <strong>Aviso:</strong> este é um instrumento orientativo de autoconhecimento de carreira, não uma
+      avaliação psicológica, não mede probabilidade de sucesso e não deve ser usado como critério único ou
+      eliminatório de contratação, promoção ou desligamento. A ausência de experiência reduz a <em>prontidão
+      atual</em>, não o <em>potencial</em>.
+    </div>
+  </div>
+
+</div>
+<div id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--idl-purple-dark);color:#FBF9FF;padding:12px 24px;border-radius:100px;font-size:13px;z-index:9999;display:none;box-shadow:0 8px 32px rgba(57,22,148,.35)"></div>
+
+<script>
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbytF5qtCqk_3V5_Fw2s5IJK92GztPRKwqZZSSkRMR2WIs5yzYE9XZxFSLSkGD7Z7533/exec';
+
+const DISC_NAMES = { D:'Dominante', I:'Influente', S:'Estável', C:'Conformidade' };
+const DISC_COLORS = { D:'#2a78d6', I:'#eb6834', S:'#1baf7a', C:'#eda100' };
+const HOLLAND_DIM_NAMES = { R:'Realista', I:'Investigativo', A:'Artístico', S:'Social', E:'Empreendedor', C:'Convencional' };
+const HOLLAND_COLORS = { R:'#2a78d6', I:'#eb6834', A:'#1baf7a', S:'#eda100', E:'#e87ba4', C:'#008300' };
+
+// Mesma matriz de referência do instrumento (carreira-rh.html) — usada aqui só
+// pra buscar nome/competências/textos estáticos de cada subárea por key; os
+// números do relatório (potencial, prontidão, contribuições) vêm salvos por
+// resposta no campo ranking_json, não são recalculados aqui.
+const SUBAREAS = [
+  {key:'recrutamento',nome:'Recrutamento e Seleção / Talent Acquisition',
+    racional:'Perfil-alvo: I (Influente) e S (Estável) lideram no DISC — comunicação fácil com cuidado nas relações; no Holland, S (Social) e E (Empreendedor) dominam — conectar com pessoas e "vender" a vaga.',
+    competencias:['avaliação de perfil','entrevistas estruturadas','gestão de funil de vagas','comunicação com candidatos'],
+    forca:'Seu DISC natural tem I (Influente) e S (Estável) como marcas mais fortes — comunicação fácil combinada com cuidado nas relações. No Holland, S (Social) lidera com E (Empreendedor) logo atrás: você conecta bem com candidatos e sabe "vender" a vaga.',
+    atencao:'Como C (Conformidade) não é seu traço mais forte no DISC, processos de seleção em volume alto podem exigir critérios objetivos mais documentados do que o intuitivo.',
+    desenvolvimento:'Aprofundar técnicas de entrevista estruturada — que compensam um C (Conformidade) mais baixo — e boas práticas de inclusão no processo seletivo.'},
+  {key:'recruiter_tech',nome:'Recruiter Tech',
+    racional:'Perfil-alvo: C (Conformidade) domina o DISC — precisão com dados/ferramentas; no Holland, I (Investigativo) e R (Realista) lideram — investigação técnica com mão na massa.',
+    competencias:['sourcing','ferramentas de ATS','automação','leitura de dados de funil'],
+    forca:'C (Conformidade) domina seu DISC — precisão com dados e ferramentas — e no Holland I (Investigativo) lidera com R (Realista) logo atrás: interesse analítico combinado com apetite por ferramentas concretas de automação.',
+    atencao:'Como S (Estável) e E (Empreendedor) não pesam muito no seu perfil, depender só de tecnologia pode reduzir a leitura humana e contextual do candidato — vale balancear.',
+    desenvolvimento:'Explorar ATS, busca booleana, IA aplicada a recrutamento e métricas de funil (time-to-fill, source of hire) — terreno natural pra quem tem C (Conformidade) e I (Investigativo) fortes.'},
+  {key:'dho_td',nome:'DHO / Treinamento e Desenvolvimento',
+    racional:'Perfil-alvo: S (Estável) domina o DISC — paciência para desenvolver pessoas; no Holland, S (Social) lidera com A (Artístico) em segundo — o lado criativo do design instrucional.',
+    competencias:['design instrucional','facilitação','trilhas de aprendizagem','avaliação de eficácia'],
+    forca:'S (Estável) domina seu DISC — paciência para acompanhar o desenvolvimento das pessoas — com I (Influente) logo atrás. No Holland, S (Social) lidera com folga e A (Artístico) aparece moderado, o lado criativo do design instrucional.',
+    atencao:'Como C (Conformidade) fica mais baixo no seu perfil, programas de desenvolvimento sem medição de impacto tendem a perder força com o tempo — vale complementar sua inclinação natural com rigor de avaliação.',
+    desenvolvimento:'Estudar design instrucional, andragogia e metodologias de avaliação de treinamento (ex.: Kirkpatrick) — reforça exatamente o C (Conformidade) que seu perfil tem em menor peso.'},
+  {key:'hrbp',nome:'HR Business Partner',
+    racional:'Perfil-alvo: D (Dominante) domina o DISC — assertividade para sustentar posições difíceis; no Holland, E (Empreendedor) lidera com folga — influência sobre decisões de negócio.',
+    competencias:['consultoria interna','leitura de negócio','coaching de gestores','gestão de conflitos'],
+    forca:'D (Dominante) domina seu DISC — assertividade pra sustentar posições difíceis — e no Holland E (Empreendedor) lidera com folga: o traço mais ligado a influenciar decisões de negócio.',
+    atencao:'O papel de HRBP exige dizer não a gestores com poder — mesmo com D (Dominante) forte, vale desenvolver segurança emocional pra sustentar posições difíceis sem desgaste.',
+    desenvolvimento:'Aprofundar leitura de indicadores de negócio e técnicas de consultoria interna/coaching — ampliam o E (Empreendedor), já seu traço Holland mais forte.'},
+  {key:'generalista',nome:'RH Generalista',
+    racional:'Perfil-alvo: DISC deliberadamente uniforme entre D, I, S e C — não existe "perfil único" de generalista; no Holland, C (Convencional) lidera com R (Realista) e S (Social) logo atrás.',
+    competencias:['visão ampla de RH','priorização','multitarefa','comunicação transversal'],
+    forca:'Seu DISC é deliberadamente uniforme entre D, I, S e C — não existe "perfil único" de generalista, por definição. No Holland, C (Convencional) lidera, com R (Realista) e S (Social) logo atrás: organização, praticidade e cuidado com pessoas na mesma medida.',
+    atencao:'Fazer um pouco de tudo pode dificultar aprofundamento técnico em uma frente específica — sem um traço DISC dominante, vale escolher deliberadamente onde aprofundar.',
+    desenvolvimento:'Ganhar profundidade em pelo menos uma subárea complementar (ex.: DP ou T&D) além da visão ampla.'},
+  {key:'people_analytics',nome:'People Analytics',
+    racional:'Perfil-alvo: C (Conformidade) domina o DISC com folga; no Holland, I (Investigativo) lidera com folga ainda maior — a combinação mais "pura" de rigor analítico da matriz.',
+    competencias:['estatística aplicada','ferramentas de BI','modelagem de dados','ética de dados'],
+    forca:'C (Conformidade) domina seu DISC com folga, e I (Investigativo) lidera com folga ainda maior no Holland — a combinação mais "pura" de rigor analítico de toda a matriz.',
+    atencao:'Modelos preditivos aplicados a pessoas carregam risco de viés — mesmo com C (Conformidade) e I (Investigativo) fortes, vale desenvolver essa sensibilidade ética junto com a técnica.',
+    desenvolvimento:'Aprofundar estatística aplicada, ferramentas de BI e ética de dados em RH.'},
+  {key:'remuneracao',nome:'Remuneração e Benefícios',
+    racional:'Perfil-alvo: C (Conformidade) domina o DISC; no Holland, C (Convencional) lidera com E (Empreendedor) em segundo — precisão normativa com apetite por negociação de mercado.',
+    competencias:['cargos e salários','benchmarking de mercado','legislação tributária','modelagem financeira'],
+    forca:'C (Conformidade) domina seu DISC, e no Holland C (Convencional) lidera com E (Empreendedor) como segundo traço — precisão normativa combinada com apetite por negociação e benchmarking de mercado.',
+    atencao:'Decisões de remuneração afetam pessoas diretamente — vale equilibrar o C (Conformidade) forte com sensibilidade na comunicação, principalmente quando o E (Empreendedor) leva você a negociar.',
+    desenvolvimento:'Estudar metodologias de cargos e salários, benchmarking de mercado e legislação de benefícios.'},
+  {key:'dp_trabalhista',nome:'Departamento Pessoal / Relações Trabalhistas',
+    racional:'Perfil-alvo: C (Conformidade) domina o DISC com o maior peso da matriz; no Holland, C (Convencional) lidera com R (Realista) em segundo — foco quase total em regras e rotina operacional.',
+    competencias:['legislação trabalhista','rotinas de folha','gestão de riscos','documentação'],
+    forca:'C (Conformidade) domina seu DISC com o maior peso de toda a matriz, e no Holland C (Convencional) lidera com R (Realista) em segundo — perfil quase inteiramente voltado a regras, processos e rotina operacional.',
+    atencao:'Com E (Empreendedor) e I (Investigativo) baixos no seu perfil, o lado humano das decisões trabalhistas pode ficar em segundo plano diante da urgência legal — vale atenção deliberada a isso.',
+    desenvolvimento:'Aprofundar legislação trabalhista, rotinas de folha e gestão de riscos jurídicos.'},
+  {key:'employer_branding',nome:'Employer Branding / Employee Experience',
+    racional:'Perfil-alvo: I (Influente) domina o DISC com folga; no Holland, A (Artístico) lidera — a subárea mais criativa da matriz — com E (Empreendedor) e S (Social) logo atrás.',
+    competencias:['storytelling de marca','pesquisa de experiência','comunicação interna','jornada do colaborador'],
+    forca:'I (Influente) domina seu DISC com folga, e no Holland A (Artístico) lidera — a subárea mais criativa da matriz — com E (Empreendedor) e S (Social) logo atrás, equilibrando persuasão e cuidado com a experiência das pessoas.',
+    atencao:'Iniciativas de marca empregadora sem dados de suporte podem parecer só estética — mesmo com A (Artístico) forte, vale ancorar em evidência.',
+    desenvolvimento:'Estudar storytelling de marca, pesquisa de experiência do colaborador e jornada do candidato.'},
+  {key:'gerente_rh',nome:'Gerente de RH',
+    racional:'Perfil-alvo: D (Dominante) domina o DISC com folga — o mais alto de toda a matriz; no Holland, E (Empreendedor) lidera com força ainda maior que no HRBP — liderança formal do time e da função de RH, não só influência.',
+    competencias:['gestão de equipe de RH','decisão orçamentária','liderança organizacional','representação executiva'],
+    forca:'D (Dominante) domina seu DISC com folga — o traço mais forte de toda a matriz — e no Holland E (Empreendedor) lidera com ainda mais peso que no HRBP: você tende a assumir a responsabilidade final e liderar formalmente, não só influenciar.',
+    atencao:'É uma posição além das especializações técnicas — cobra visão do RH como um todo (orçamento, equipe, resultado) mesmo sem profundidade em cada subárea; vale contar com especialistas em vez de tentar dominar tudo sozinho.',
+    desenvolvimento:'Aprofundar gestão orçamentária, liderança de equipes e como representar o RH perante a diretoria e o board.'}
+];
+const SUBAREA_BY_KEY = Object.fromEntries(SUBAREAS.map(s=>[s.key,s]));
+const BAND = { forte:{min:80,label:'Forte aderência',color:'var(--band-forte)'},
+               boa:{min:65,label:'Boa aderência',color:'var(--band-boa)'},
+               moderada:{min:50,label:'Aderência moderada',color:'var(--band-moderada)'},
+               baixa:{min:0,label:'Menor evidência',color:'var(--band-baixa)'} };
+function bandOf(v){ if(v>=80) return BAND.forte; if(v>=65) return BAND.boa; if(v>=50) return BAND.moderada; return BAND.baixa; }
+
+function toShares(raw){
+  const total = Object.values(raw).reduce((a,v)=>a+Math.abs(v),0) || 1;
+  const out={};
+  Object.entries(raw).forEach(([k,v])=> out[k]=Math.abs(v)/total);
+  return out;
+}
+
+let allData = [];
+
+async function carregar(){
+  document.getElementById('tabela-area').innerHTML = '<div class="loading">Carregando respostas…</div>';
+  try{
+    const r = await fetch(`${SHEETS_URL}?t=${Date.now()}`);
+    const d = await r.json();
+    if(d.status!=='ok') throw new Error(d.mensagem||'erro desconhecido');
+    allData = (d.respostas||[]).filter(r=>r.nome).reverse(); // mais recentes primeiro
+    renderTabela();
+  }catch(e){
+    document.getElementById('tabela-area').innerHTML = `<div class="empty-state">✗ Não foi possível carregar as respostas (${e.message}).<br>Confira se o Apps Script está implantado e acessível.</div>`;
+  }
+}
+
+function renderTabela(){
+  const termo = document.getElementById('f-busca').value.trim().toLowerCase();
+  const filtrado = allData.filter(r=>
+    !termo || (r.nome||'').toLowerCase().includes(termo) || (r.email||'').toLowerCase().includes(termo));
+  document.getElementById('count-pill').textContent = `${filtrado.length} de ${allData.length} resposta(s)`;
+  if(allData.length===0){
+    document.getElementById('tabela-area').innerHTML = '<div class="empty-state">Nenhuma resposta salva ainda. Assim que alguém concluir o diagnóstico e clicar em "Salvar meu resultado", a resposta aparece aqui.</div>';
+    return;
+  }
+  if(filtrado.length===0){
+    document.getElementById('tabela-area').innerHTML = '<div class="empty-state">Nenhuma resposta encontrada pra essa busca.</div>';
+    return;
+  }
+  document.getElementById('tabela-area').innerHTML = `
+    <div class="table-wrap"><table>
+      <thead><tr><th>Nome</th><th>Momento</th><th>Data</th><th>1º lugar</th><th>Confiança</th><th></th></tr></thead>
+      <tbody>
+        ${filtrado.map((r,i)=>{
+          const idx = allData.indexOf(r);
+          const top1 = SUBAREA_BY_KEY[r.top1]?.nome || r.top1 || '—';
+          const data = r.timestamp ? new Date(r.timestamp).toLocaleDateString('pt-BR') : '—';
+          return `<tr class="row-clickable" onclick="abrirRelatorio(${idx})">
+            <td><div class="row-nome">${r.nome||'—'}</div><div class="row-email">${r.email||''}</div></td>
+            <td>${r.momento_carreira||'—'}</td>
+            <td>${data}</td>
+            <td>${top1}${r.top1_combinado!==undefined && r.top1_combinado!=='' ? ` · ${r.top1_combinado}%` : ''}</td>
+            <td><span class="mini-pill" style="background:${r.confianca==='alta'?'var(--band-forte)':r.confianca==='moderada'?'var(--band-moderada)':'var(--band-baixa)'}">${(r.confianca||'—').toUpperCase()}</span></td>
+            <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();abrirRelatorio(${idx})">Ver relatório →</button></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table></div>`;
+}
+
+function voltarLista(){
+  document.getElementById('step-relatorio').classList.remove('active');
+  document.getElementById('step-lista').classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function abrirRelatorio(idx){
+  const row = allData[idx];
+  let resultados = [];
+  try{ resultados = JSON.parse(row.ranking_json||'[]'); }catch(e){}
+  if(!resultados.length){ showToast('✗ Essa resposta não tem os dados detalhados salvos (ranking_json ausente).'); return; }
+
+  const discRaw = {D:Number(row.disc_nat_D)||0, I:Number(row.disc_nat_I)||0, S:Number(row.disc_nat_S)||0, C:Number(row.disc_nat_C)||0};
+  const hollandRaw = {R:Number(row.holland_R)||0, I:Number(row.holland_I)||0, A:Number(row.holland_A)||0, S:Number(row.holland_S)||0, E:Number(row.holland_E)||0, C:Number(row.holland_C)||0};
+  const discShr = toShares(discRaw);
+  const hollandShr = toShares(hollandRaw);
+
+  document.getElementById('res-nome').textContent = row.nome || '—';
+  const dataFmt = row.timestamp ? new Date(row.timestamp).toLocaleString('pt-BR') : '—';
+  document.getElementById('res-meta').textContent = `${row.momento_carreira||'—'} · confiança do resultado: ${(row.confianca||'—').toUpperCase()} · respondido em ${dataFmt}`;
+
+  document.getElementById('res-disc-bars').innerHTML = ['D','I','S','C'].map(k=>`
+    <div class="pbar-row">
+      <div class="pbar-label" style="color:${DISC_COLORS[k]}" title="${k} · ${DISC_NAMES[k]}">${k} · ${DISC_NAMES[k]}</div>
+      <div class="pbar-track"><div class="pbar-fill" style="width:${Math.round(discShr[k]*100)}%;background:${DISC_COLORS[k]}"></div></div>
+      <div class="pbar-val">${Math.round(discShr[k]*100)}%</div>
+    </div>`).join('');
+  document.getElementById('res-holland-bars').innerHTML = ['R','I','A','S','E','C'].map(k=>`
+    <div class="pbar-row">
+      <div class="pbar-label" style="color:${HOLLAND_COLORS[k]}" title="${k} · ${HOLLAND_DIM_NAMES[k]}">${k} · ${HOLLAND_DIM_NAMES[k]}</div>
+      <div class="pbar-track"><div class="pbar-fill" style="width:${Math.round(hollandShr[k]*100)}%;background:${HOLLAND_COLORS[k]}"></div></div>
+      <div class="pbar-val">${Math.round(hollandShr[k]*100)}%</div>
+    </div>`).join('');
+
+  document.getElementById('res-ranking').innerHTML = resultados.map((res,i)=>{
+    const band = bandOf(res.potencial);
+    return `<div class="rank-row">
+      <div class="rank-pos">${i+1}º</div>
+      <div class="rank-label">${res.nome}</div>
+      <div class="rank-track"><div class="rank-fill" style="width:${res.potencial}%;background:${band.color}"></div></div>
+      <div class="rank-val">${res.potencial}%</div>
+      <div class="band-pill" style="background:${band.color}">${band.label}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('res-detail').innerHTML = resultados.slice(0,3).map((res,i)=>{
+    const sub = SUBAREA_BY_KEY[res.key];
+    if(!sub) return '';
+    const adjacentes = resultados.filter(x=>x.key!==res.key && (res.potencial - x.potencial) <= 8).slice(0,2).map(x=>x.nome);
+    const evidencias=[];
+    if(res.contrib?.disc>=65) evidencias.push(`O perfil comportamental (DISC natural) tem ${res.contrib.disc}% de aderência ao perfil típico desta subárea.`);
+    if(res.contrib?.holland>=65) evidencias.push(`Os interesses profissionais (Holland RIASEC) têm ${res.contrib.holland}% de aderência ao perfil típico desta subárea.`);
+    if(res.contrib?.situ>=50) evidencias.push(`Nas situações práticas, as escolhas somaram ${res.contrib.situ}% da pontuação máxima possível para esta subárea.`);
+    if(evidencias.length===0) evidencias.push('A aderência aqui vem de uma combinação equilibrada dos três fatores comportamentais, sem um único fator dominante.');
+    return `<div class="sub-card">
+      <div class="sub-card-head">
+        <div class="sub-card-title">${i+1}º · ${sub.nome}</div>
+        <span class="badge">${sub.competencias.join(' · ')}</span>
+      </div>
+      ${sub.racional? `<p class="card-rationale" style="margin:2px 0 12px">${sub.racional}</p>` : ''}
+      <div class="two-col">
+        <div>
+          <div class="mini-label">Potencial (define o ranking)</div>
+          <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${res.potencial}%;background:var(--idl-magenta)"></div></div>
+          <div class="mini-val">${res.potencial}%</div>
+        </div>
+        <div>
+          <div class="mini-label">Prontidão atual (não conta pro ranking)</div>
+          <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${res.prontidao}%;background:var(--idl-purple)"></div></div>
+          <div class="mini-val">${res.prontidao}%</div>
+        </div>
+      </div>
+      <div class="mini-label">Evidências</div>
+      <ul class="evidence-list">${evidencias.map(e=>`<li>${e}</li>`).join('')}</ul>
+      <div class="note-box"><strong>Força:</strong> ${sub.forca}</div>
+      <div class="note-box"><strong>Ponto de atenção:</strong> ${sub.atencao}</div>
+      <div class="note-box"><strong>Desenvolvimento sugerido:</strong> ${sub.desenvolvimento}</div>
+      ${adjacentes.length? `<div class="note-box"><strong>Subáreas adjacentes:</strong> ${adjacentes.join(', ')}.</div>` : ''}
+    </div>`;
+  }).join('');
+
+  document.getElementById('step-lista').classList.remove('active');
+  document.getElementById('step-relatorio').classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.display='block';
+  setTimeout(()=>{ t.style.display='none'; }, 3800);
+}
+
+if(document.readyState==='loading'){ window.addEventListener('DOMContentLoaded', carregar); } else { carregar(); }
+</script>
+</body>
+</html>
