@@ -401,12 +401,15 @@ A versão 1 estará pronta para piloto quando:
 Fechada em 2026-09-01, tag git `v1.0-piloto-carreira-rh`, publicada em
 `https://assessment.institutodalideranca.com.br/carreira-rh.html` (confirmado no ar, servindo esta versão).
 
-**Pendências antes de abrir para os 30–60 participantes da Fase 5:**
+**Atualização 2026-09-02 — persistência ativada.** Apps Script "Carreira RH - Backend" implantado (App da
+Web, executar como o dono, acesso "Qualquer pessoa"), `SHEETS_URL` configurado em `carreira-rh.html` e
+testado de ponta a ponta (envio real pelo navegador → linha gravada na planilha com o ranking completo,
+depois removida por ser só teste). A aba da planilha foi renomeada automaticamente para `Respostas` pelo
+próprio script, como esperado. **Item 1 abaixo está resolvido.**
 
-1. **Implantar o Apps Script** (`APPS_SCRIPT_CARREIRA_RH.gs`, passo a passo no topo do arquivo) e colar a
-   URL `/exec` na constante `SHEETS_URL` de `carreira-rh.html` — sem isso, **nenhuma resposta do piloto é
-   registrada**, cada pessoa só vê o próprio relatório na hora. Bloqueante para qualquer análise agregada do
-   piloto (taxa de conclusão, abandono, concordância com autoidentificação — seção 8 do plano).
+**Pendências restantes antes de abrir para os 30–60 participantes da Fase 5:**
+
+1. ~~Implantar o Apps Script e configurar `SHEETS_URL`~~ — feito e testado.
 2. Revisão de especialista de RH na matriz de perfis v0.1 (Fase 1) — pode rodar em paralelo ao piloto, não
    bloqueia o início.
 3. Protocolo do piloto (backlog item 13) — ainda não desenhado nesta conversa: como recrutar os
