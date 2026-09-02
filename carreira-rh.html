@@ -117,6 +117,7 @@ input:focus,select:focus{border-color:var(--idl-magenta)}
 .sub-card-title{font-size:17px;font-weight:800;color:var(--idl-purple-dark)}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
 .mini-label{font-size:10px;color:var(--idl-text-muted);text-transform:uppercase;letter-spacing:.08em;font-family:'JetBrains Mono',monospace;margin-bottom:6px}
+.card-rationale{font-size:12.5px;color:var(--idl-text-muted);line-height:1.55;font-style:italic}
 .mini-bar-track{height:10px;background:var(--idl-background-soft);border-radius:5px;overflow:hidden;margin-bottom:4px}
 .mini-bar-fill{height:100%;border-radius:5px}
 .mini-val{font-size:12px;font-weight:700}
@@ -153,7 +154,6 @@ input:focus,select:focus{border-color:var(--idl-magenta)}
 <body>
 <div class="bg"></div>
 <div class="wrap">
-
   <div class="logo-row"><img src="logo.png" alt="Instituto da Liderança"></div>
 
   <!-- STEP 0: INTRO -->
@@ -165,9 +165,9 @@ input:focus,select:focus{border-color:var(--idl-magenta)}
       <div class="section-title">O que é este diagnóstico</div>
       <p class="section-desc">
         Um instrumento orientativo que mapeia sua aderência potencial e sua prontidão atual em relação a
-        <strong>9 subáreas de Recursos Humanos</strong> — Recrutamento &amp; Seleção, Recruiter Tech, DHO/T&amp;D,
+        <strong>10 frentes de Recursos Humanos</strong> — Recrutamento &amp; Seleção, Recruiter Tech, DHO/T&amp;D,
         HR Business Partner, RH Generalista, People Analytics, Remuneração &amp; Benefícios,
-        Departamento Pessoal/Relações Trabalhistas e Employer Branding/Employee Experience.
+        Departamento Pessoal/Relações Trabalhistas, Employer Branding/Employee Experience e Gerente de RH.
       </p>
       <p class="section-desc">
         Leva cerca de <strong>15–18 minutos</strong> e tem 4 partes: um perfil comportamental (DISC natural),
@@ -287,9 +287,11 @@ input:focus,select:focus{border-color:var(--idl-magenta)}
     </div>
 
     <div class="card">
-      <div class="section-title">Ranking de aderência (visão combinada)</div>
-      <p class="section-desc">Combina 80% potencial (comportamento + interesses + julgamento situacional) e 20%
-        prontidão (experiência e conhecimento atuais). As duas visões completas estão detalhadas abaixo.</p>
+      <div class="section-title">Ranking de aderência potencial</div>
+      <p class="section-desc">Mede o quanto seu comportamento (DISC natural), seus interesses (Holland RIASEC) e
+        seu julgamento em situações práticas combinam com cada subárea. <strong>Não inclui experiência</strong> —
+        prontidão atual é uma pergunta separada, mostrada por subárea logo abaixo: mesmo quem está começando do
+        zero pode ter alta aderência potencial.</p>
       <div id="res-ranking"></div>
     </div>
 
@@ -314,12 +316,15 @@ input:focus,select:focus{border-color:var(--idl-magenta)}
     <div class="card">
       <div class="section-title">Como o cálculo funciona</div>
       <p class="section-desc" style="margin-bottom:0">
-        Para cada subárea: <strong>Potencial</strong> = 25% similaridade do seu DISC natural com o perfil-alvo +
-        31,25% similaridade dos seus interesses Holland com o perfil-alvo + 43,75% pontuação das suas escolhas
-        nos cenários práticos. <strong>Prontidão</strong> = 60% evidência prática declarada + 25% autopercepção
-        de conhecimento + 15% autonomia. Nenhum número é gerado por texto livre — tudo vem de funções
-        determinísticas aplicadas às suas respostas. As faixas (forte/boa/moderada/menor evidência) e os pesos
-        são hipóteses de produto v1 e serão recalibrados com dados reais e revisão de especialistas.
+        Para cada subárea: <strong>Potencial</strong> (o que define o ranking acima) = 25% similaridade do seu
+        DISC natural com o perfil-alvo + 31,25% similaridade dos seus interesses Holland com o perfil-alvo +
+        43,75% pontuação das suas escolhas nos cenários práticos — não depende de experiência prévia.
+        <strong>Prontidão</strong> = 60% evidência prática declarada + 25% autopercepção de conhecimento + 15%
+        autonomia — mostrada separadamente em cada subárea, mas não entra no ranking: são duas perguntas
+        diferentes ("essa área combina com você?" e "o quanto você já anda nela hoje?"). Nenhum número é gerado
+        por texto livre — tudo vem de funções determinísticas aplicadas às suas respostas. As faixas
+        (forte/boa/moderada/menor evidência) e os pesos são hipóteses de produto v1 e serão recalibrados com
+        dados reais e revisão de especialistas.
       </p>
     </div>
 
@@ -432,13 +437,13 @@ const SITUACOES = [
   {t:'Reviso toda a documentação e o histórico de advertências para garantir consistência jurídica.',w:{dp_trabalhista:3}},
   {t:'Ajudo o gestor a entender o que fazer diferente da próxima vez, focando em prevenção.',w:{hrbp:2,dho_td:1}},
   {t:'Levanto dados históricos de casos semelhantes para entender padrões de risco.',w:{people_analytics:2,dp_trabalhista:1}},
-  {t:'Reforço com toda a liderança os processos corretos de documentação disciplinar.',w:{generalista:2,dp_trabalhista:1}}
+  {t:'Reforço com toda a liderança os processos corretos de documentação disciplinar.',w:{generalista:2,dp_trabalhista:1,gerente_rh:2}}
 ]},
 {id:'s5',area:'Remuneração',texto:'Um gestor pede 30% de aumento para reter um talento-chave, fora da política salarial. O que você faz?',alts:[
   {t:'Analiso a posição do cargo na curva salarial e o orçamento antes de decidir.',w:{remuneracao:3}},
   {t:'Busco entender com o colaborador o que realmente motiva a permanência dele, além do salário.',w:{hrbp:2,generalista:1}},
   {t:'Avalio se é um problema pontual ou um padrão que aparece nos dados de todo o time.',w:{people_analytics:2,remuneracao:1}},
-  {t:'Reforço com o gestor os critérios e a governança da política, mesmo sob pressão.',w:{dp_trabalhista:2,remuneracao:1}}
+  {t:'Reforço com o gestor os critérios e a governança da política, mesmo sob pressão.',w:{dp_trabalhista:2,remuneracao:1,gerente_rh:2}}
 ]},
 {id:'s6',area:'Experiência do colaborador',texto:'O eNPS caiu 15 pontos no último trimestre sem um motivo óbvio. Primeiro passo?',alts:[
   {t:'Rodo uma pesquisa qualitativa curta (grupos focais) para entender o motivo.',w:{employer_branding:3}},
@@ -447,7 +452,7 @@ const SITUACOES = [
   {t:'Reviso se algo mudou recentemente em benefícios, política ou processo formal.',w:{dp_trabalhista:2,remuneracao:1}}
 ]},
 {id:'s7',area:'Consultoria interna',texto:'Um diretor de área quer demitir 3 pessoas do time rapidamente por "não performarem". O que você faz?',alts:[
-  {t:'Peço para ver o histórico de PDI e feedback formal de cada pessoa antes de qualquer decisão.',w:{hrbp:3}},
+  {t:'Peço para ver o histórico de PDI e feedback formal de cada pessoa antes de qualquer decisão.',w:{hrbp:3,gerente_rh:2}},
   {t:'Verifico se o processo segue as exigências legais e de documentação.',w:{dp_trabalhista:3}},
   {t:'Sugiro olhar os dados de performance de forma comparativa antes de decidir.',w:{people_analytics:2,hrbp:1}},
   {t:'Investigo se o problema é de fit da vaga ou de onboarding malfeito.',w:{recrutamento:2,dho_td:1}}
@@ -461,11 +466,11 @@ const SITUACOES = [
 {id:'s9',area:'RH generalista',texto:'Você é a única pessoa de RH numa empresa de 80 funcionários. Surge um conflito entre dois times ao mesmo tempo em que fecha a folha do mês. O que faz primeiro?',alts:[
   {t:'Garanto que a folha e as obrigações legais estejam em dia — isso não pode atrasar.',w:{dp_trabalhista:3}},
   {t:'Priorizo entender e mediar o conflito, porque pessoas vêm antes de processo.',w:{hrbp:2,generalista:2}},
-  {t:'Delego ou automatizo o que for possível para conseguir cuidar dos dois ao mesmo tempo.',w:{recruiter_tech:1,generalista:3}},
+  {t:'Delego ou automatizo o que for possível para conseguir cuidar dos dois ao mesmo tempo.',w:{recruiter_tech:1,generalista:3,gerente_rh:2}},
   {t:'Comunico com transparência para os dois times o que está acontecendo e os prazos.',w:{employer_branding:2,generalista:1}}
 ]},
 {id:'s10',area:'Liderança e desenvolvimento',texto:'Um gestor promovido internamente tem dificuldade de dar feedback à antiga equipe de pares. Como você atua?',alts:[
-  {t:'Desenho um programa estruturado de desenvolvimento de liderança de primeira viagem.',w:{dho_td:3}},
+  {t:'Desenho um programa estruturado de desenvolvimento de liderança de primeira viagem.',w:{dho_td:3,gerente_rh:2}},
   {t:'Faço um acompanhamento individual (coaching/mentoria) com esse gestor.',w:{hrbp:3}},
   {t:'Levanto dados de clima do time para entender o impacto real.',w:{people_analytics:2,dho_td:1}},
   {t:'Reviso se o processo de promoção interna tem lacunas a corrigir.',w:{recrutamento:2,generalista:1}}
@@ -477,7 +482,7 @@ const SITUACOES = [
   {t:'Redesenho o modelo priorizando variáveis mais defensáveis eticamente.',w:{recruiter_tech:2,people_analytics:1}}
 ]},
 {id:'s12',area:'Marca empregadora',texto:'As avaliações da empresa em sites de emprego pioraram bastante. O board quer uma resposta rápida.',alts:[
-  {t:'Construo uma campanha de comunicação para reposicionar a marca empregadora.',w:{employer_branding:3}},
+  {t:'Construo uma campanha de comunicação para reposicionar a marca empregadora.',w:{employer_branding:3,gerente_rh:1}},
   {t:'Primeiro investigo os dados por trás das avaliações negativas (temas recorrentes).',w:{people_analytics:2,employer_branding:1}},
   {t:'Reviso se há um problema estrutural de política ou benefícios por trás disso.',w:{remuneracao:2,dp_trabalhista:1}},
   {t:'Levo o tema para os gestores de área discutirem ações concretas com seus times.',w:{hrbp:2,generalista:1}}
@@ -502,59 +507,75 @@ const SITUACOES = [
 // ════════════════════════════════════════════════════════════════════════════
 const SUBAREAS = [
   {key:'recrutamento',nome:'Recrutamento e Seleção / Talent Acquisition',
-    disc:{D:0.20,I:0.35,S:0.20,C:0.25}, holland:{R:0.05,I:0.15,A:0.05,S:0.30,E:0.30,C:0.15},
+    disc:{D:0.15,I:0.40,S:0.30,C:0.15}, holland:{R:0.05,I:0.10,A:0.05,S:0.40,E:0.30,C:0.10},
+    racional:'Perfil-alvo: I (Influente) e S (Estável) lideram no DISC — comunicação fácil com cuidado nas relações; no Holland, S (Social) e E (Empreendedor) dominam — conectar com pessoas e "vender" a vaga.',
     competencias:['avaliação de perfil','entrevistas estruturadas','gestão de funil de vagas','comunicação com candidatos'],
-    forca:'Você demonstra julgamento rápido na avaliação de pessoas e conforto em conduzir processos de decisão sob prazo.',
-    atencao:'Processos de seleção em volume alto podem exigir critérios objetivos mais documentados do que o intuitivo.',
-    desenvolvimento:'Aprofundar técnicas de entrevista estruturada e boas práticas de inclusão no processo seletivo.'},
+    forca:'Seu DISC natural tem I (Influente) e S (Estável) como marcas mais fortes — comunicação fácil combinada com cuidado nas relações. No Holland, S (Social) lidera com E (Empreendedor) logo atrás: você conecta bem com candidatos e sabe "vender" a vaga.',
+    atencao:'Como C (Conformidade) não é seu traço mais forte no DISC, processos de seleção em volume alto podem exigir critérios objetivos mais documentados do que o intuitivo.',
+    desenvolvimento:'Aprofundar técnicas de entrevista estruturada — que compensam um C (Conformidade) mais baixo — e boas práticas de inclusão no processo seletivo.'},
   {key:'recruiter_tech',nome:'Recruiter Tech',
-    disc:{D:0.15,I:0.25,S:0.10,C:0.50}, holland:{R:0.15,I:0.30,A:0.05,S:0.15,E:0.20,C:0.15},
+    disc:{D:0.15,I:0.25,S:0.10,C:0.50}, holland:{R:0.25,I:0.35,A:0.05,S:0.05,E:0.15,C:0.15},
+    racional:'Perfil-alvo: C (Conformidade) domina o DISC — precisão com dados/ferramentas; no Holland, I (Investigativo) e R (Realista) lideram — investigação técnica com mão na massa.',
     competencias:['sourcing','ferramentas de ATS','automação','leitura de dados de funil'],
-    forca:'Seu perfil combina interesse analítico com apetite por ferramentas e automação de sourcing.',
-    atencao:'Depender só de tecnologia pode reduzir a leitura humana e contextual do candidato — vale balancear.',
-    desenvolvimento:'Explorar ATS, busca booleana, IA aplicada a recrutamento e métricas de funil (time-to-fill, source of hire).'},
+    forca:'C (Conformidade) domina seu DISC — precisão com dados e ferramentas — e no Holland I (Investigativo) lidera com R (Realista) logo atrás: interesse analítico combinado com apetite por ferramentas concretas de automação.',
+    atencao:'Como S (Estável) e E (Empreendedor) não pesam muito no seu perfil, depender só de tecnologia pode reduzir a leitura humana e contextual do candidato — vale balancear.',
+    desenvolvimento:'Explorar ATS, busca booleana, IA aplicada a recrutamento e métricas de funil (time-to-fill, source of hire) — terreno natural pra quem tem C (Conformidade) e I (Investigativo) fortes.'},
   {key:'dho_td',nome:'DHO / Treinamento e Desenvolvimento',
-    disc:{D:0.10,I:0.35,S:0.35,C:0.20}, holland:{R:0.03,I:0.12,A:0.20,S:0.40,E:0.15,C:0.10},
+    disc:{D:0.05,I:0.25,S:0.50,C:0.20}, holland:{R:0.02,I:0.08,A:0.25,S:0.55,E:0.05,C:0.05},
+    racional:'Perfil-alvo: S (Estável) domina o DISC — paciência para desenvolver pessoas; no Holland, S (Social) lidera com A (Artístico) em segundo — o lado criativo do design instrucional.',
     competencias:['design instrucional','facilitação','trilhas de aprendizagem','avaliação de eficácia'],
-    forca:'Você tem inclinação natural para ensinar, desenvolver pessoas e cuidar do crescimento de times.',
-    atencao:'Programas de desenvolvimento sem medição de impacto tendem a perder força com o tempo.',
-    desenvolvimento:'Estudar design instrucional, andragogia e metodologias de avaliação de treinamento (ex.: Kirkpatrick).'},
+    forca:'S (Estável) domina seu DISC — paciência para acompanhar o desenvolvimento das pessoas — com I (Influente) logo atrás. No Holland, S (Social) lidera com folga e A (Artístico) aparece moderado, o lado criativo do design instrucional.',
+    atencao:'Como C (Conformidade) fica mais baixo no seu perfil, programas de desenvolvimento sem medição de impacto tendem a perder força com o tempo — vale complementar sua inclinação natural com rigor de avaliação.',
+    desenvolvimento:'Estudar design instrucional, andragogia e metodologias de avaliação de treinamento (ex.: Kirkpatrick) — reforça exatamente o C (Conformidade) que seu perfil tem em menor peso.'},
   {key:'hrbp',nome:'HR Business Partner',
-    disc:{D:0.30,I:0.30,S:0.20,C:0.20}, holland:{R:0.03,I:0.15,A:0.05,S:0.27,E:0.35,C:0.15},
+    disc:{D:0.45,I:0.15,S:0.20,C:0.20}, holland:{R:0.03,I:0.15,A:0.02,S:0.15,E:0.55,C:0.10},
+    racional:'Perfil-alvo: D (Dominante) domina o DISC — assertividade para sustentar posições difíceis; no Holland, E (Empreendedor) lidera com folga — influência sobre decisões de negócio.',
     competencias:['consultoria interna','leitura de negócio','coaching de gestores','gestão de conflitos'],
-    forca:'Você combina assertividade com sensibilidade às pessoas — perfil clássico de quem transita bem entre negócio e RH.',
-    atencao:'O papel de HRBP exige dizer não a gestores com poder — vale desenvolver segurança para sustentar posições difíceis.',
-    desenvolvimento:'Aprofundar leitura de indicadores de negócio e técnicas de consultoria interna/coaching.'},
+    forca:'D (Dominante) domina seu DISC — assertividade pra sustentar posições difíceis — e no Holland E (Empreendedor) lidera com folga: o traço mais ligado a influenciar decisões de negócio.',
+    atencao:'O papel de HRBP exige dizer não a gestores com poder — mesmo com D (Dominante) forte, vale desenvolver segurança emocional pra sustentar posições difíceis sem desgaste.',
+    desenvolvimento:'Aprofundar leitura de indicadores de negócio e técnicas de consultoria interna/coaching — ampliam o E (Empreendedor), já seu traço Holland mais forte.'},
   {key:'generalista',nome:'RH Generalista',
-    disc:{D:0.25,I:0.25,S:0.25,C:0.25}, holland:{R:0.08,I:0.15,A:0.07,S:0.25,E:0.20,C:0.25},
+    disc:{D:0.25,I:0.25,S:0.25,C:0.25}, holland:{R:0.20,I:0.15,A:0.05,S:0.20,E:0.10,C:0.30},
+    racional:'Perfil-alvo: DISC deliberadamente uniforme entre D, I, S e C — não existe "perfil único" de generalista; no Holland, C (Convencional) lidera com R (Realista) e S (Social) logo atrás.',
     competencias:['visão ampla de RH','priorização','multitarefa','comunicação transversal'],
-    forca:'Você tem versatilidade para transitar entre diferentes frentes de RH sem perder o eixo.',
-    atencao:'Fazer um pouco de tudo pode dificultar aprofundamento técnico em uma frente específica.',
+    forca:'Seu DISC é deliberadamente uniforme entre D, I, S e C — não existe "perfil único" de generalista, por definição. No Holland, C (Convencional) lidera, com R (Realista) e S (Social) logo atrás: organização, praticidade e cuidado com pessoas na mesma medida.',
+    atencao:'Fazer um pouco de tudo pode dificultar aprofundamento técnico em uma frente específica — sem um traço DISC dominante, vale escolher deliberadamente onde aprofundar.',
     desenvolvimento:'Ganhar profundidade em pelo menos uma subárea complementar (ex.: DP ou T&D) além da visão ampla.'},
   {key:'people_analytics',nome:'People Analytics',
-    disc:{D:0.20,I:0.10,S:0.10,C:0.60}, holland:{R:0.05,I:0.45,A:0.05,S:0.10,E:0.10,C:0.25},
+    disc:{D:0.10,I:0.05,S:0.05,C:0.80}, holland:{R:0.02,I:0.60,A:0.03,S:0.05,E:0.05,C:0.25},
+    racional:'Perfil-alvo: C (Conformidade) domina o DISC com folga; no Holland, I (Investigativo) lidera com folga ainda maior — a combinação mais "pura" de rigor analítico da matriz.',
     competencias:['estatística aplicada','ferramentas de BI','modelagem de dados','ética de dados'],
-    forca:'Você tem inclinação natural para dados, lógica e rigor analítico aplicados a gente e gestão.',
-    atencao:'Modelos preditivos aplicados a pessoas carregam risco de viés — vale desenvolver essa sensibilidade junto com a técnica.',
+    forca:'C (Conformidade) domina seu DISC com folga, e I (Investigativo) lidera com folga ainda maior no Holland — a combinação mais "pura" de rigor analítico de toda a matriz.',
+    atencao:'Modelos preditivos aplicados a pessoas carregam risco de viés — mesmo com C (Conformidade) e I (Investigativo) fortes, vale desenvolver essa sensibilidade ética junto com a técnica.',
     desenvolvimento:'Aprofundar estatística aplicada, ferramentas de BI e ética de dados em RH.'},
   {key:'remuneracao',nome:'Remuneração e Benefícios',
-    disc:{D:0.20,I:0.15,S:0.15,C:0.50}, holland:{R:0.05,I:0.20,A:0.03,S:0.10,E:0.22,C:0.40},
+    disc:{D:0.15,I:0.15,S:0.10,C:0.60}, holland:{R:0.03,I:0.20,A:0.02,S:0.05,E:0.25,C:0.45},
+    racional:'Perfil-alvo: C (Conformidade) domina o DISC; no Holland, C (Convencional) lidera com E (Empreendedor) em segundo — precisão normativa com apetite por negociação de mercado.',
     competencias:['cargos e salários','benchmarking de mercado','legislação tributária','modelagem financeira'],
-    forca:'Você tem perfil analítico e disciplinado, adequado à precisão exigida por estruturas salariais e benefícios.',
-    atencao:'Decisões de remuneração afetam pessoas diretamente — vale equilibrar rigor técnico com sensibilidade na comunicação.',
+    forca:'C (Conformidade) domina seu DISC, e no Holland C (Convencional) lidera com E (Empreendedor) como segundo traço — precisão normativa combinada com apetite por negociação e benchmarking de mercado.',
+    atencao:'Decisões de remuneração afetam pessoas diretamente — vale equilibrar o C (Conformidade) forte com sensibilidade na comunicação, principalmente quando o E (Empreendedor) leva você a negociar.',
     desenvolvimento:'Estudar metodologias de cargos e salários, benchmarking de mercado e legislação de benefícios.'},
   {key:'dp_trabalhista',nome:'Departamento Pessoal / Relações Trabalhistas',
-    disc:{D:0.10,I:0.10,S:0.25,C:0.55}, holland:{R:0.15,I:0.10,A:0.02,S:0.13,E:0.10,C:0.50},
+    disc:{D:0.05,I:0.05,S:0.15,C:0.75}, holland:{R:0.25,I:0.05,A:0.01,S:0.09,E:0.02,C:0.58},
+    racional:'Perfil-alvo: C (Conformidade) domina o DISC com o maior peso da matriz; no Holland, C (Convencional) lidera com R (Realista) em segundo — foco quase total em regras e rotina operacional.',
     competencias:['legislação trabalhista','rotinas de folha','gestão de riscos','documentação'],
-    forca:'Você demonstra atenção a regras, processos e conformidade — essencial para essa subárea.',
-    atencao:'O lado humano das decisões trabalhistas pode ficar em segundo plano diante da urgência legal.',
+    forca:'C (Conformidade) domina seu DISC com o maior peso de toda a matriz, e no Holland C (Convencional) lidera com R (Realista) em segundo — perfil quase inteiramente voltado a regras, processos e rotina operacional.',
+    atencao:'Com E (Empreendedor) e I (Investigativo) baixos no seu perfil, o lado humano das decisões trabalhistas pode ficar em segundo plano diante da urgência legal — vale atenção deliberada a isso.',
     desenvolvimento:'Aprofundar legislação trabalhista, rotinas de folha e gestão de riscos jurídicos.'},
   {key:'employer_branding',nome:'Employer Branding / Employee Experience',
-    disc:{D:0.15,I:0.45,S:0.25,C:0.15}, holland:{R:0.03,I:0.10,A:0.30,S:0.27,E:0.20,C:0.10},
+    disc:{D:0.10,I:0.50,S:0.20,C:0.20}, holland:{R:0.02,I:0.08,A:0.45,S:0.20,E:0.20,C:0.05},
+    racional:'Perfil-alvo: I (Influente) domina o DISC com folga; no Holland, A (Artístico) lidera — a subárea mais criativa da matriz — com E (Empreendedor) e S (Social) logo atrás.',
     competencias:['storytelling de marca','pesquisa de experiência','comunicação interna','jornada do colaborador'],
-    forca:'Você tem inclinação para comunicação, criatividade e cuidado com a experiência das pessoas na empresa.',
-    atencao:'Iniciativas de marca empregadora sem dados de suporte podem parecer só estética — vale ancorar em evidência.',
-    desenvolvimento:'Estudar storytelling de marca, pesquisa de experiência do colaborador e jornada do candidato.'}
+    forca:'I (Influente) domina seu DISC com folga, e no Holland A (Artístico) lidera — a subárea mais criativa da matriz — com E (Empreendedor) e S (Social) logo atrás, equilibrando persuasão e cuidado com a experiência das pessoas.',
+    atencao:'Iniciativas de marca empregadora sem dados de suporte podem parecer só estética — mesmo com A (Artístico) forte, vale ancorar em evidência.',
+    desenvolvimento:'Estudar storytelling de marca, pesquisa de experiência do colaborador e jornada do candidato.'},
+  {key:'gerente_rh',nome:'Gerente de RH',
+    disc:{D:0.55,I:0.10,S:0.10,C:0.25}, holland:{R:0.03,I:0.10,A:0.02,S:0.10,E:0.60,C:0.15},
+    racional:'Perfil-alvo: D (Dominante) domina o DISC com folga — o mais alto de toda a matriz; no Holland, E (Empreendedor) lidera com força ainda maior que no HRBP — liderança formal do time e da função de RH, não só influência.',
+    competencias:['gestão de equipe de RH','decisão orçamentária','liderança organizacional','representação executiva'],
+    forca:'D (Dominante) domina seu DISC com folga — o traço mais forte de toda a matriz — e no Holland E (Empreendedor) lidera com ainda mais peso que no HRBP: você tende a assumir a responsabilidade final e liderar formalmente, não só influenciar.',
+    atencao:'É uma posição além das especializações técnicas — cobra visão do RH como um todo (orçamento, equipe, resultado) mesmo sem profundidade em cada subárea; vale contar com especialistas em vez de tentar dominar tudo sozinho.',
+    desenvolvimento:'Aprofundar gestão orçamentária, liderança de equipes e como representar o RH perante a diretoria e o board.'}
 ];
 const SUBAREA_BY_KEY = Object.fromEntries(SUBAREAS.map(s=>[s.key,s]));
 const BAND = { forte:{min:80,label:'Forte aderência',color:'var(--band-forte)'},
@@ -810,19 +831,21 @@ function calcularResultado(){
   const hollandShr = toShares(hollandRaw);
   const situNorm = calcSituScores();
 
+  // Aderência = Potencial puro (comportamento + interesses + julgamento situacional).
+  // Prontidão é reportada por subárea mas NÃO entra no ranking — são duas perguntas
+  // diferentes ("essa área combina com você?" vs. "o quanto você já anda nela hoje?").
   const resultados = SUBAREAS.map(s=>{
     const dSim = simFromShares(s.disc, discShr);
     const hSim = simFromShares(s.holland, hollandShr);
     const sNorm = situNorm[s.key];
     const potencial = Math.round(0.25*dSim + 0.3125*hSim + 0.4375*sNorm);
     const pront = calcProntidao(s.key);
-    const combinado = Math.round(0.80*potencial + 0.20*pront.total);
-    return { key:s.key, nome:s.nome, potencial, prontidao:pront.total, combinado,
+    return { key:s.key, nome:s.nome, potencial, prontidao:pront.total,
       contrib:{disc:dSim, holland:hSim, situ:sNorm}, prontDetalhe:pront };
-  }).sort((a,b)=> b.combinado - a.combinado);
+  }).sort((a,b)=> b.potencial - a.potencial);
 
   const allComplete = discCompletedCount()>=MIN_GRUPOS && hollandCompletedCount()>=HOLLAND_ITENS.length && situCompletedCount()>=SITUACOES.length;
-  const gap = resultados[0].combinado - resultados[1].combinado;
+  const gap = resultados[0].potencial - resultados[1].potencial;
   const topExpTouched = resultados.slice(0,3).some(r=> state.expAnswers[r.key]?.touched);
   let confianca = 'baixa';
   if(allComplete){
@@ -855,19 +878,19 @@ function calcularEMostrar(){
     </div>`).join('');
 
   document.getElementById('res-ranking').innerHTML = r.resultados.map((res,i)=>{
-    const band = bandOf(res.combinado);
+    const band = bandOf(res.potencial);
     return `<div class="rank-row">
       <div class="rank-pos">${i+1}º</div>
       <div class="rank-label">${res.nome}</div>
-      <div class="rank-track"><div class="rank-fill" style="width:${res.combinado}%;background:${band.color}"></div></div>
-      <div class="rank-val">${res.combinado}%</div>
+      <div class="rank-track"><div class="rank-fill" style="width:${res.potencial}%;background:${band.color}"></div></div>
+      <div class="rank-val">${res.potencial}%</div>
       <div class="band-pill" style="background:${band.color}">${band.label}</div>
     </div>`;
   }).join('');
 
   document.getElementById('res-detail').innerHTML = r.resultados.slice(0,3).map((res,i)=>{
     const sub = SUBAREA_BY_KEY[res.key];
-    const adjacentes = r.resultados.filter(x=>x.key!==res.key && (res.combinado - x.combinado) <= 8).slice(0,2).map(x=>x.nome);
+    const adjacentes = r.resultados.filter(x=>x.key!==res.key && (res.potencial - x.potencial) <= 8).slice(0,2).map(x=>x.nome);
     const evidencias=[];
     if(res.contrib.disc>=65) evidencias.push(`Seu perfil comportamental (DISC natural) tem ${res.contrib.disc}% de aderência ao perfil típico desta subárea.`);
     if(res.contrib.holland>=65) evidencias.push(`Seus interesses profissionais (Holland RIASEC) têm ${res.contrib.holland}% de aderência ao perfil típico desta subárea.`);
@@ -878,14 +901,15 @@ function calcularEMostrar(){
         <div class="sub-card-title">${i+1}º · ${sub.nome}</div>
         <span class="badge">${sub.competencias.join(' · ')}</span>
       </div>
+      ${sub.racional? `<p class="card-rationale" style="margin:2px 0 12px">${sub.racional}</p>` : ''}
       <div class="two-col">
         <div>
-          <div class="mini-label">Potencial</div>
+          <div class="mini-label">Potencial (define o ranking)</div>
           <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${res.potencial}%;background:var(--idl-magenta)"></div></div>
           <div class="mini-val">${res.potencial}%</div>
         </div>
         <div>
-          <div class="mini-label">Prontidão atual</div>
+          <div class="mini-label">Prontidão atual (não conta pro ranking)</div>
           <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${res.prontidao}%;background:var(--idl-purple)"></div></div>
           <div class="mini-val">${res.prontidao}%</div>
         </div>
@@ -922,9 +946,9 @@ async function salvar(){
     disc_nat_D: r.discRaw.D, disc_nat_I: r.discRaw.I, disc_nat_S: r.discRaw.S, disc_nat_C: r.discRaw.C,
     holland_R: r.hollandRaw.R, holland_I: r.hollandRaw.I, holland_A: r.hollandRaw.A, holland_S: r.hollandRaw.S, holland_E: r.hollandRaw.E, holland_C: r.hollandRaw.C,
     ranking_json: JSON.stringify(r.resultados),
-    top1: r.resultados[0].key, top1_combinado: r.resultados[0].combinado,
-    top2: r.resultados[1].key, top2_combinado: r.resultados[1].combinado,
-    top3: r.resultados[2].key, top3_combinado: r.resultados[2].combinado
+    top1: r.resultados[0].key, top1_combinado: r.resultados[0].potencial,
+    top2: r.resultados[1].key, top2_combinado: r.resultados[1].potencial,
+    top3: r.resultados[2].key, top3_combinado: r.resultados[2].potencial
   };
   try{
     await fetch(SHEETS_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
