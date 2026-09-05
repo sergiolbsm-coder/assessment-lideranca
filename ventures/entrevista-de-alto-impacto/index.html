@@ -4,252 +4,158 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Entrevista de Alto Impacto</title>
+<meta name="description" content="Treine para a entrevista que decide sua próxima vaga: perguntas reais, orientação de como responder, feedback automático da IA e a visão de uma especialista.">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Cormorant+Garamond:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app.css">
+<style>
+.landing-hero{position:relative;z-index:1;max-width:720px;margin:0 auto;text-align:center;padding:56px 20px 20px}
+.kicker{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--idl-purple);background:rgba(57,22,148,.06);border:1px solid var(--idl-border);border-radius:100px;padding:5px 14px;margin-bottom:20px}
+.landing-hero h1{font-size:44px;line-height:1.1}
+.landing-hero .lead{color:var(--idl-text-muted);font-size:17px;line-height:1.6;margin-top:16px;max-width:560px;margin-left:auto;margin-right:auto}
+.hero-ctas{display:flex;gap:14px;justify-content:center;margin-top:30px;flex-wrap:wrap}
+.hero-ctas .btn-primary{padding:15px 32px;font-size:15px}
+.hero-photo-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:34px;font-size:12.5px;color:var(--idl-text-muted)}
+.hero-photo-row img{width:30px;height:30px;border-radius:50%;object-fit:cover;border:1px solid var(--idl-border)}
+.hero-photo-row b{color:var(--idl-purple)}
+
+.section{position:relative;z-index:1;max-width:920px;margin:0 auto;padding:56px 20px}
+.section-narrow{max-width:680px}
+.section .eyebrow{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--idl-magenta);margin-bottom:10px;display:block;text-align:center}
+.section h2{font-size:30px;text-align:center}
+.section .lead{color:var(--idl-text-muted);font-size:15px;line-height:1.7;text-align:center;margin-top:14px}
+
+.steps-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:36px}
+.step-card{background:var(--idl-white);border:1px solid var(--idl-border);border-radius:var(--r);padding:24px 20px;position:relative}
+.step-num{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;color:rgba(255,0,96,.28);line-height:1}
+.step-card h3{font-size:16px;margin-top:10px}
+.step-card p{color:var(--idl-text-muted);font-size:13.5px;line-height:1.6;margin-top:6px}
+
+.tipo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:36px}
+.tipo-card{background:var(--idl-white);border:1px solid var(--idl-border);border-radius:var(--r);padding:22px 20px;text-align:center}
+.tipo-card .tipo-dot{width:38px;height:38px;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff}
+.tipo-card.direta .tipo-dot{background:var(--idl-magenta)}
+.tipo-card.reflexiva .tipo-dot{background:#0a9c96}
+.tipo-card.star .tipo-dot{background:var(--idl-purple)}
+.tipo-card h3{font-size:16px}
+.tipo-card p{color:var(--idl-text-muted);font-size:13px;line-height:1.6;margin-top:8px}
+
+.about-wrap{background:var(--idl-white);border:1px solid var(--idl-border);border-radius:20px;padding:40px;display:grid;grid-template-columns:200px 1fr;gap:36px;align-items:center}
+.about-photo{width:200px;height:200px;border-radius:20px;object-fit:cover;box-shadow:0 12px 32px rgba(57,22,148,.18)}
+.about-role{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--idl-magenta);margin-bottom:6px}
+.about-wrap h2{text-align:left;font-size:26px}
+.about-wrap p{color:var(--idl-text-muted);font-size:14.5px;line-height:1.75;margin-top:12px}
+.about-quote{margin-top:18px;padding-left:16px;border-left:3px solid var(--idl-magenta);font-family:'Cormorant Garamond',serif;font-style:italic;font-size:17px;color:var(--idl-purple-dark)}
+@media (max-width:640px){
+  .about-wrap{grid-template-columns:1fr;text-align:center;padding:30px 24px}
+  .about-photo{margin:0 auto}
+  .about-wrap h2{text-align:center}
+  .about-quote{border-left:none;border-top:3px solid var(--idl-magenta);padding-left:0;padding-top:14px}
+  .landing-hero h1{font-size:32px}
+}
+
+.site-footer{position:relative;z-index:1;border-top:1px solid var(--idl-border);margin-top:40px;background:var(--idl-background)}
+.footer-inner{max-width:920px;margin:0 auto;padding:40px 20px;display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap}
+.footer-brand{display:flex;align-items:center;gap:10px}
+.footer-links{display:flex;gap:18px;flex-wrap:wrap}
+.footer-links a{font-size:13px;font-weight:600;color:var(--idl-text-muted)}
+.footer-links a:hover{color:var(--idl-magenta)}
+.footer-credit{width:100%;text-align:center;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--idl-text-muted);margin-top:10px;letter-spacing:.03em}
+</style>
 </head>
 <body>
 <div class="bg"></div>
 <div class="topbar">
   <div class="topbar-inner">
-    <div class="brand">
+    <a class="brand" href="index.html">
       <img class="logo-mark" src="logo.svg" alt="Entrevista de Alto Impacto">
       <div>
         <div class="brand-name">Entrevista de Alto Impacto</div>
         <div class="brand-sub"><img class="idealizadora-avatar" src="franciane-novais.jpg" alt="Franciane Novais">Idealizadora <b>Franciane Novais</b><br>Venture desenvolvida em parceria com o Instituto da Liderança</div>
       </div>
-    </div>
+    </a>
     <div class="tabs" id="tabs"></div>
   </div>
 </div>
-<div id="app"></div>
+
+<div class="landing-hero">
+  <span class="kicker">✦ Venture em parceria com o Instituto da Liderança</span>
+  <h1>A entrevista que decide sua próxima vaga merece um ensaio de verdade.</h1>
+  <p class="lead">Responda perguntas reais de entrevista, descubra como responder melhor cada uma, receba um feedback automático da IA na hora — e depois, a leitura humana de uma especialista sobre cada resposta.</p>
+  <div class="hero-ctas">
+    <a class="btn-primary" href="responder.html">Iniciar minha simulação</a>
+    <a class="btn-secondary" style="display:inline-flex;align-items:center" href="relatorio.html">Ver como fica o relatório</a>
+  </div>
+  <div class="hero-photo-row"><img src="franciane-novais.jpg" alt="Franciane Novais"> Idealizado por <b>Franciane Novais</b></div>
+</div>
+
+<div class="section section-narrow">
+  <span class="eyebrow">Por que existe</span>
+  <h2>Ninguém treina de verdade para o momento que mais pesa.</h2>
+  <p class="lead">A entrevista de emprego é um dos momentos mais decisivos de uma trajetória profissional — e um dos que menos se pratica de verdade. A maioria das pessoas chega ali tendo só pensado nas respostas, nunca dito em voz alta. O Entrevista de Alto Impacto existe para mudar isso: um ensaio real, com orientação clara sobre como responder cada pergunta e um feedback que combina a IA com o olhar de uma especialista.</p>
+</div>
+
+<div class="section">
+  <span class="eyebrow">Como funciona</span>
+  <h2>Quatro passos, do ensaio ao relatório</h2>
+  <div class="steps-grid">
+    <div class="step-card"><div class="step-num">01</div><h3>Você responde</h3><p>Uma simulação com perguntas reais de entrevista, uma de cada vez — como se fosse a entrevista de verdade.</p></div>
+    <div class="step-card"><div class="step-num">02</div><h3>Descubra como responder melhor</h3><p>Só depois de responder, você vê a orientação certa para aquela pergunta — pra treinar de verdade, sem colar.</p></div>
+    <div class="step-card"><div class="step-num">03</div><h3>Feedback automático da IA</h3><p>Uma análise instantânea da sua resposta, com base no critério definido para aquela pergunta específica.</p></div>
+    <div class="step-card"><div class="step-num">04</div><h3>Feedback da especialista</h3><p>Uma especialista revisa e personaliza a devolutiva, pergunta a pergunta, no seu relatório final.</p></div>
+  </div>
+</div>
+
+<div class="section">
+  <span class="eyebrow">Metodologia</span>
+  <h2>Três padrões de resposta, um propósito</h2>
+  <p class="lead">Cada pergunta é pensada para um jeito específico de responder — e a orientação que você recebe é ajustada a ele.</p>
+  <div class="tipo-grid">
+    <div class="tipo-card direta"><div class="tipo-dot">D</div><h3>Resposta Direta</h3><p>Perguntas objetivas e factuais — sobre formação, disponibilidade, pretensão salarial. O treino aqui é ser claro e direto.</p></div>
+    <div class="tipo-card reflexiva"><div class="tipo-dot">R</div><h3>Resposta Reflexiva</h3><p>Perguntas sobre autoconhecimento e visão de carreira — pontos fortes, motivação, por que essa empresa. O treino é ter clareza sobre si.</p></div>
+    <div class="tipo-card star"><div class="tipo-dot">S</div><h3>Método STAR</h3><p>Perguntas comportamentais, que pedem uma história real — Situação, Tarefa, Ação, Resultado. O treino é estruturar o relato.</p></div>
+  </div>
+</div>
+
+<div class="section">
+  <span class="eyebrow">Quem criou</span>
+  <div class="about-wrap">
+    <img class="about-photo" src="franciane-novais.jpg" alt="Franciane Novais">
+    <div>
+      <div class="about-role">Idealizadora</div>
+      <h2>Franciane Novais</h2>
+      <p>Franciane criou o Entrevista de Alto Impacto a partir de uma constatação simples: a entrevista de emprego é um dos momentos mais decisivos de uma trajetória profissional — e um dos que menos se treina de verdade. A proposta é direta: prática real, orientação clara sobre como responder cada pergunta, e um olhar humano e especializado sobre cada resposta, para que ninguém chegue a uma entrevista importante sem ter se preparado de fato.</p>
+      <div class="about-quote">"Ninguém deveria chegar a uma entrevista decisiva sem ter praticado de verdade."</div>
+    </div>
+  </div>
+</div>
+
+<div class="section section-narrow" style="text-align:center;padding-top:20px;padding-bottom:70px">
+  <h2 style="font-size:26px">Pronto para o seu ensaio?</h2>
+  <p class="lead">Leva menos de 15 minutos — e você sai sabendo exatamente onde melhorar.</p>
+  <div class="hero-ctas"><a class="btn-primary" href="responder.html">Iniciar minha simulação</a></div>
+</div>
+
+<div class="site-footer">
+  <div class="footer-inner">
+    <a class="footer-brand" href="index.html">
+      <img class="logo-mark" style="height:28px;width:28px" src="logo.svg" alt="Entrevista de Alto Impacto">
+      <span class="brand-name" style="font-size:15px">Entrevista de Alto Impacto</span>
+    </a>
+    <div class="footer-links">
+      <a href="responder.html">Responder</a>
+      <a href="especialista.html">Especialista</a>
+      <a href="relatorio.html">Relatório</a>
+      <a href="admin.html">Parametrizar</a>
+    </div>
+    <div class="footer-credit">Idealizadora Franciane Novais · Venture desenvolvida em parceria com o Instituto da Liderança</div>
+  </div>
+</div>
+
 <div id="toast-host"></div>
 <script src="app.js"></script>
 <script>
 "use strict";
-renderNav('responder');
-
-const CANDIDATE_ID = qs('id');
-let currentInterview = null;
-let qIndex = 0;
-let pollTimer = null;
-
-function firstUnansweredIndex(interview){
-  var snap = interview.questionsSnapshot;
-  for(var i=0;i<snap.length;i++){
-    var a = interview.answers[snap[i].qid];
-    if(!a || !String(a.text||'').trim()) return i;
-  }
-  return snap.length-1;
-}
-
-async function boot(){
-  if(!CANDIDATE_ID){ await renderStart(); return; }
-  document.getElementById('app').innerHTML = loadingHtml('Carregando sua simulação…');
-  try{
-    const interview = await Api.getInterview(CANDIDATE_ID);
-    if(!interview){ document.getElementById('app').innerHTML = '<div class="wrap"><div class="empty">Simulação não encontrada. Confira o link.</div></div>'; return; }
-    currentInterview = interview;
-    if(interview.status === 'em_andamento'){
-      qIndex = firstUnansweredIndex(interview);
-      renderAnswering();
-    } else {
-      renderResults();
-      maybePoll();
-    }
-  }catch(err){
-    document.getElementById('app').innerHTML = errorHtml(err);
-  }
-}
-
-// ---------------- início / nova simulação ----------------
-async function renderStart(){
-  const app = document.getElementById('app');
-  app.innerHTML = loadingHtml('Carregando perguntas…');
-  let questions = [];
-  try{ questions = await Api.listQuestions(); }
-  catch(err){ app.innerHTML = errorHtml(err); return; }
-
-  const activeQs = questions.filter(function(q){ return q.ativa; });
-  const mine = myInterviews();
-  const listHtml = mine.length ? mine.map(function(m){
-    return '<a class="list-row" href="index.html?id='+encodeURIComponent(m.id)+'">'+
-      '<div><div class="name">'+esc(m.candidateName)+'</div><div class="sub">'+(m.targetRole?esc(m.targetRole)+' · ':'')+fmtDate(m.createdAt)+'</div></div>'+
-      '<div class="spacer"></div><span class="badge muted">Continuar</span></a>';
-  }).join('') : '<p class="hint">Nenhuma simulação recente neste navegador.</p>';
-
-  app.innerHTML =
-    '<div class="wrap">'+
-      '<div class="hero"><h1>Entrevista de Alto Impacto</h1>'+
-      '<p>Treine respostas reais, receba orientação de como responder cada pergunta e feedback automático da IA — depois, feedback personalizado de uma especialista.</p></div>'+
-      '<div class="card">'+
-        '<div class="field"><label>Seu nome completo</label><input id="r-nome" placeholder="Ex: Maria Silva"></div>'+
-        '<div class="field"><label>Cargo / vaga alvo (opcional)</label><input id="r-cargo" placeholder="Ex: Analista de RH Pleno"></div>'+
-        '<button class="btn-primary" id="r-start-btn" '+(activeQs.length===0?'disabled':'')+' onclick="Responder.start()">Iniciar simulação</button>'+
-        (activeQs.length===0?'<p class="hint">Nenhuma pergunta está ativa no momento — peça para alguém ativar perguntas na tela Parametrizar.</p>':
-          '<p class="hint">Você vai responder '+activeQs.length+' pergunta'+(activeQs.length===1?'':'s')+'.</p>')+
-      '</div>'+
-      '<div class="divider"></div>'+
-      '<h2 style="font-size:19px">Minhas simulações</h2>'+
-      '<div style="margin-top:12px">'+listHtml+'</div>'+
-    '</div>';
-
-  window._activeQuestions = activeQs;
-}
-
-const Responder = {
-  start: async function(){
-    const name = (document.getElementById('r-nome').value||'').trim();
-    const cargo = (document.getElementById('r-cargo').value||'').trim();
-    if(!name){ toast('Informe seu nome para começar.'); return; }
-    const btn = document.getElementById('r-start-btn');
-    btn.disabled = true; btn.textContent = 'Iniciando…';
-    const activeQs = (window._activeQuestions||[]).slice().sort(function(a,b){ return (a.order||0)-(b.order||0); });
-    const snapshot = activeQs.map(function(q){ return {qid:q.id, text:q.text, tipo:q.tipo, orientacao:q.orientacao||'', aiGuidance:q.aiGuidance||'', order:q.order||0}; });
-    const id = uid();
-    const createdAt = new Date().toISOString();
-    try{
-      await Api.post('createInterview', {id:id, candidateName:name, targetRole:cargo, questionsSnapshot:snapshot, createdAt:createdAt});
-      addMyInterview({id:id, candidateName:name, targetRole:cargo, createdAt:createdAt});
-      location.href = 'index.html?id=' + encodeURIComponent(id);
-    }catch(err){
-      toast('Erro ao iniciar: ' + err.message);
-      btn.disabled = false; btn.textContent = 'Iniciar simulação';
-    }
-  },
-  next: function(){ saveCurrentAnswer(); if(qIndex < currentInterview.questionsSnapshot.length-1){ qIndex++; } renderAnswering(); },
-  prev: function(){ saveCurrentAnswer(); if(qIndex>0){ qIndex--; } renderAnswering(); },
-  finish: async function(){
-    saveCurrentAnswer();
-    const snap = currentInterview.questionsSnapshot;
-    const blanks = snap.filter(function(s){ return !String((currentInterview.answers[s.qid]||{}).text||'').trim(); }).length;
-    if(blanks>0 && !confirm('Você deixou '+blanks+' pergunta(s) em branco. Concluir mesmo assim?')) return;
-    const app = document.getElementById('app');
-    app.innerHTML = '<div class="wrap"><div class="card" style="text-align:center;padding:50px 30px">'+
-      '<h2>Enviando suas respostas…</h2>'+
-      '<p class="muted" style="margin-top:10px">Gerando o feedback automático da IA — isso pode levar até 1 minuto.</p>'+
-      '<div class="spinner-line" style="justify-content:center;margin-top:16px"><span class="spinner-dot"></span><span class="spinner-dot"></span><span class="spinner-dot"></span></div>'+
-      '</div></div>';
-    try{
-      await Api.post('finishInterview', {id: currentInterview.id, answers: currentInterview.answers});
-    }catch(err){ /* segue mesmo assim — o poll abaixo confirma o estado real */ }
-    try{
-      currentInterview = await Api.getInterview(currentInterview.id);
-    }catch(err){}
-    renderResults();
-    maybePoll();
-  },
-  retryAi: async function(){
-    try{ await Api.post('retryAiFeedback', {id: currentInterview.id}); }catch(e){}
-    currentInterview = await Api.getInterview(currentInterview.id).catch(function(){ return currentInterview; });
-    renderResults();
-    maybePoll();
-  },
-  copyLink: function(){
-    const url = location.origin + location.pathname.replace(/index\.html$/,'') + 'index.html?id=' + encodeURIComponent(currentInterview.id);
-    if(navigator.clipboard){ navigator.clipboard.writeText(url).then(function(){ toast('Link copiado.'); }); }
-    else toast(url);
-  }
-};
-
-function saveCurrentAnswer(){
-  const q = currentInterview.questionsSnapshot[qIndex];
-  const el = document.getElementById('ans-'+q.qid);
-  if(!el) return;
-  const val = el.value||'';
-  currentInterview.answers[q.qid] = {text:val, answeredAt:new Date().toISOString()};
-  Api.post('saveAnswer', {id: currentInterview.id, qid: q.qid, text: val}).catch(function(){});
-}
-
-function renderAnswering(){
-  const app = document.getElementById('app');
-  const snap = currentInterview.questionsSnapshot;
-  const q = snap[qIndex];
-  const existing = (currentInterview.answers[q.qid] && currentInterview.answers[q.qid].text) || '';
-  const isLast = qIndex === snap.length-1;
-  app.innerHTML =
-    '<div class="wrap">'+
-      '<div class="qcounter">Pergunta '+(qIndex+1)+' de '+snap.length+' · '+esc(currentInterview.candidateName)+'</div>'+
-      '<div class="progress-bar"><div class="progress-fill" style="width:'+Math.round((qIndex/snap.length)*100)+'%"></div></div>'+
-      '<div class="card">'+
-        '<div class="qbig">'+esc(q.text)+'</div>'+
-        '<textarea id="ans-'+q.qid+'" rows="7" placeholder="Digite sua resposta como se estivesse numa entrevista real…">'+esc(existing)+'</textarea>'+
-        '<div class="nav-row">'+
-          '<button class="btn-secondary" '+(qIndex===0?'disabled':'')+' onclick="Responder.prev()">← Voltar</button>'+
-          (isLast ? '<button class="btn-primary" onclick="Responder.finish()">Concluir simulação</button>' :
-                    '<button class="btn-primary" onclick="Responder.next()">Próxima →</button>')+
-        '</div>'+
-      '</div>'+
-    '</div>';
-}
-
-function renderResults(){
-  const app = document.getElementById('app');
-  const interview = currentInterview;
-  const snap = interview.questionsSnapshot;
-  const ai = interview.aiFeedback || {status:'none'};
-  const spec = (interview.specialistFeedback && interview.specialistFeedback.byQuestion) || {};
-
-  const cards = snap.map(function(q, i){
-    const ans = (interview.answers[q.qid] && interview.answers[q.qid].text) || '';
-    const meta = TIPO_META[q.tipo] || TIPO_META.direta;
-    const aiText = ai.byQuestion && ai.byQuestion[q.qid];
-    let aiBlock;
-    if(ai.status==='pending') aiBlock = '<div class="spinner-line"><span class="spinner-dot"></span><span class="spinner-dot"></span><span class="spinner-dot"></span> Gerando feedback automático…</div>';
-    else if(ai.status==='unavailable') aiBlock = '<p class="muted">Feedback automático da IA indisponível no momento.</p>';
-    else if(ai.status==='error') aiBlock = '<p class="muted">Não foi possível gerar o feedback automático. <button class="btn-ghost" onclick="Responder.retryAi()">Tentar novamente</button></p>';
-    else if(aiText) aiBlock = '<p>'+nl2br(aiText)+'</p>';
-    else aiBlock = '<p class="muted">—</p>';
-
-    const specEntry = spec[q.qid];
-    const specBlock = specEntry ? '<p>'+nl2br(specEntry.text)+'</p>' : '<p class="muted">Ainda não avaliado pela especialista.</p>';
-
-    return '<div class="rescard">'+
-      '<div class="qn">Pergunta '+(i+1)+' de '+snap.length+' · <span class="badge muted" style="margin-left:4px">'+esc(meta.short)+'</span></div>'+
-      '<h3>'+esc(q.text)+'</h3>'+
-      '<div class="res-block answer"><div class="lbl">Sua resposta</div><p>'+nl2br(ans||'(em branco)')+'</p></div>'+
-      '<div class="res-block orient"><div class="lbl">💡 Como responder melhor</div><p>'+nl2br(q.orientacao||'—')+'</p>'+
-        (q.tipo==='star'?starLegendHtml():'')+
-      '</div>'+
-      '<div class="res-block ai"><div class="lbl">🤖 Feedback automático da IA</div>'+aiBlock+'</div>'+
-      '<div class="res-block specialist"><div class="lbl">🧑‍🏫 Feedback da especialista</div>'+specBlock+'</div>'+
-    '</div>';
-  }).join('');
-
-  const st = STATUS_META[interview.status]||{};
-  app.innerHTML =
-    '<div class="wrap">'+
-      '<div class="section-title"><h2>Resultado da simulação</h2><span class="badge '+st.cls+'">'+st.label+'</span></div>'+
-      '<p class="hint">'+esc(interview.candidateName)+(interview.targetRole?' · '+esc(interview.targetRole):'')+' · enviado em '+fmtDate(interview.submittedAt)+'</p>'+
-      '<div class="divider"></div>'+
-      cards+
-      '<div class="nav-row">'+
-        '<button class="btn-secondary" onclick="Responder.copyLink()">Copiar link desta simulação</button>'+
-        '<a class="btn-primary" style="display:inline-block;text-align:center" href="relatorio.html?id='+encodeURIComponent(interview.id)+'">Ver relatório completo →</a>'+
-      '</div>'+
-    '</div>';
-}
-
-function maybePoll(){
-  if(pollTimer) clearInterval(pollTimer);
-  let tries = 0;
-  const needsPoll = function(){
-    return currentInterview && (
-      (currentInterview.aiFeedback && currentInterview.aiFeedback.status === 'pending') ||
-      currentInterview.status === 'submetido'
-    );
-  };
-  if(!needsPoll()) return;
-  pollTimer = setInterval(async function(){
-    tries++;
-    if(tries > 40 || !needsPoll()){ clearInterval(pollTimer); return; }
-    try{
-      const fresh = await Api.getInterview(currentInterview.id);
-      if(fresh){ currentInterview = fresh; renderResults(); if(!needsPoll()) clearInterval(pollTimer); }
-    }catch(e){}
-  }, 6000);
-}
-
-boot();
+renderNav('inicio');
 </script>
 </body>
 </html>

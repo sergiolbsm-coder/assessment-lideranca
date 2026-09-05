@@ -124,7 +124,8 @@ function configWarningHtml(){
 // ---------- navegação ----------
 function renderNav(active){
   var tabs = [
-    {href:'index.html', k:'responder', label:'Responder'},
+    {href:'index.html', k:'inicio', label:'Início'},
+    {href:'responder.html', k:'responder', label:'Responder'},
     {href:'especialista.html', k:'especialista', label:'Especialista'},
     {href:'relatorio.html', k:'relatorio', label:'Relatório'},
     {href:'admin.html', k:'admin', label:'Parametrizar'}

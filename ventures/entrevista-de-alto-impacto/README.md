@@ -12,10 +12,15 @@ identificados.
 
 | Papel | Arquivo | O que faz |
 |---|---|---|
-| Candidato | `index.html` | Inicia/retoma uma simulação, responde pergunta a pergunta, vê orientação + feedback da IA ao final |
+| Início | `index.html` | Mini-site: o que é o projeto, como funciona, os 3 padrões de resposta, e a seção sobre a idealizadora |
+| Candidato | `responder.html` | Inicia/retoma uma simulação, responde pergunta a pergunta, vê orientação + feedback da IA ao final |
 | Especialista | `especialista.html` | Lista simulações enviadas, escreve feedback personalizado por pergunta |
 | Relatório | `relatorio.html` | Relatório completo e imprimível (pergunta, resposta, orientação, feedback IA + especialista) |
 | Parametrização | `admin.html` | Cadastra perguntas, define o padrão de resposta (Direta / Reflexiva / Método STAR), a orientação e o critério da IA |
+
+A seção "sobre a idealizadora" em `index.html` está com texto genérico de missão/propósito
+(não inventei formação, cargos ou trajetória da Franciane) — trocar pelo texto real quando
+disponível.
 
 Links depois de publicado (domínio já configurado via CNAME do repositório):
 `https://assessment.institutodalideranca.com.br/ventures/entrevista-de-alto-impacto/`
