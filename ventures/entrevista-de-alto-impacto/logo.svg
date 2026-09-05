@@ -1,0 +1,12 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Entrevista de Alto Impacto">
+  <defs>
+    <linearGradient id="eaiGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#261062"/>
+      <stop offset="0.55" stop-color="#7A1CB8"/>
+      <stop offset="1" stop-color="#FF0060"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#eaiGrad)"/>
+  <path d="M16 40 L32 17 L48 40" stroke="#FFFFFF" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <circle cx="32" cy="47" r="4.5" fill="#FFFFFF"/>
+</svg>

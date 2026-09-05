@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Entrevista de Alto Impacto — Especialista</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Cormorant+Garamond:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div class="bg"></div>
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <img class="logo-mark" src="logo.svg" alt="Entrevista de Alto Impacto">
+      <div>
+        <div class="brand-name">Entrevista de Alto Impacto</div>
+        <div class="brand-sub"><img class="idealizadora-avatar" src="franciane-novais.jpg" alt="Franciane Novais">Idealizadora <b>Franciane Novais</b><br>Venture desenvolvida em parceria com o Instituto da Liderança</div>
+      </div>
+    </div>
+    <div class="tabs" id="tabs"></div>
+  </div>
+</div>
+<div id="app"></div>
+<div id="toast-host"></div>
+<script src="app.js"></script>
+<script>
+"use strict";
+renderNav('especialista');
+const INTERVIEW_ID = qs('id');
+let currentInterview = null;
+
+async function boot(){
+  if(!INTERVIEW_ID){ await renderList(); return; }
+  document.getElementById('app').innerHTML = loadingHtml('Carregando…');
+  try{
+    const interview = await Api.getInterview(INTERVIEW_ID);
+    if(!interview){ document.getElementById('app').innerHTML = '<div class="wrap"><div class="empty">Simulação não encontrada.</div></div>'; return; }
+    currentInterview = interview;
+    renderDetail();
+  }catch(err){
+    document.getElementById('app').innerHTML = errorHtml(err);
+  }
+}
+
+async function renderList(){
+  const app = document.getElementById('app');
+  app.innerHTML = loadingHtml('Carregando simulações…');
+  let rows = [];
+  try{ rows = await Api.listInterviews(); }
+  catch(err){ app.innerHTML = errorHtml(err); return; }
+
+  rows = rows.filter(function(i){ return i.status==='submetido' || i.status==='avaliado'; })
+    .sort(function(a,b){ return new Date(b.submittedAt||b.createdAt) - new Date(a.submittedAt||a.createdAt); });
+
+  const listHtml = rows.length ? rows.map(function(i){
+    const st = STATUS_META[i.status]||{};
+    return '<a class="list-row" href="especialista.html?id='+encodeURIComponent(i.id)+'">'+
+      '<div><div class="name">'+esc(i.candidateName)+'</div><div class="sub">'+(i.targetRole?esc(i.targetRole)+' · ':'')+'enviado em '+fmtDate(i.submittedAt)+'</div></div>'+
+      '<div class="spacer"></div><span class="badge '+st.cls+'">'+st.label+'</span></a>';
+  }).join('') : '<div class="empty">Nenhuma simulação enviada para avaliação ainda.</div>';
+
+  app.innerHTML =
+    '<div class="wrap wrap-wide">'+
+      '<div class="section-title"><h2>Avaliação da especialista</h2>'+
+        '<button class="btn-secondary" onclick="location.reload()">Atualizar lista</button></div>'+
+      '<div class="field" style="max-width:320px"><label>Seu nome (aparece no feedback salvo)</label>'+
+        '<input id="esp-nome" value="'+esc(specialistName())+'" placeholder="Ex: Ana Souza" onchange="setSpecialistName(this.value.trim())"></div>'+
+      '<div class="divider"></div>'+
+      listHtml+
+    '</div>';
+}
+
+function renderDetail(){
+  const app = document.getElementById('app');
+  const interview = currentInterview;
+  const snap = interview.questionsSnapshot;
+  const ai = interview.aiFeedback || {};
+  const spec = (interview.specialistFeedback && interview.specialistFeedback.byQuestion) || {};
+  const overall = (interview.specialistFeedback && interview.specialistFeedback.overall) || null;
+
+  const cards = snap.map(function(q, i){
+    const ans = (interview.answers[q.qid] && interview.answers[q.qid].text) || '';
+    const meta = TIPO_META[q.tipo] || TIPO_META.direta;
+    const aiText = (ai.byQuestion && ai.byQuestion[q.qid]) || (ai.status==='pending' ? 'Gerando…' : (ai.status==='unavailable'?'Indisponível':'—'));
+    const specEntry = spec[q.qid];
+    return '<div class="rescard">'+
+      '<div class="qn">Pergunta '+(i+1)+' de '+snap.length+' · <span class="badge muted" style="margin-left:4px">'+esc(meta.short)+'</span></div>'+
+      '<h3>'+esc(q.text)+'</h3>'+
+      '<div class="res-block answer"><div class="lbl">Resposta do candidato</div><p>'+nl2br(ans||'(em branco)')+'</p></div>'+
+      '<div class="res-block ai"><div class="lbl">🤖 Feedback automático da IA</div><p>'+nl2br(aiText)+'</p></div>'+
+      '<div class="field" style="margin-top:14px"><label>Seu feedback para esta pergunta</label>'+
+        '<textarea id="sf-'+q.qid+'" rows="3" placeholder="Escreva um feedback específico…">'+esc(specEntry?specEntry.text:'')+'</textarea>'+
+        '<button class="btn-primary" style="margin-top:8px" onclick="Especialista.saveOne(\''+q.qid+'\')">Salvar feedback</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+
+  const st = STATUS_META[interview.status]||{};
+  app.innerHTML =
+    '<div class="wrap">'+
+      '<a class="btn-ghost" href="especialista.html">← Voltar à lista</a>'+
+      '<div class="section-title"><h2>'+esc(interview.candidateName)+'</h2><span class="badge '+st.cls+'">'+st.label+'</span></div>'+
+      '<p class="hint">'+(interview.targetRole?esc(interview.targetRole)+' · ':'')+'enviado em '+fmtDate(interview.submittedAt)+'</p>'+
+      '<div class="divider"></div>'+
+      cards+
+      '<div class="card">'+
+        '<div class="field"><label>Comentário geral (opcional)</label><textarea id="sf-overall" rows="3" placeholder="Uma síntese da entrevista como um todo…">'+esc(overall?overall.text:'')+'</textarea></div>'+
+        '<button class="btn-secondary" onclick="Especialista.saveOverall()">Salvar comentário geral</button>'+
+      '</div>'+
+      '<div class="nav-row">'+
+        (interview.status==='avaliado' ?
+          '<button class="btn-secondary" onclick="Especialista.reopen()">Reabrir avaliação</button>' :
+          '<button class="btn-primary" onclick="Especialista.complete()">Marcar avaliação como concluída</button>')+
+        '<a class="btn-secondary" style="display:inline-block;text-align:center" href="relatorio.html?id='+encodeURIComponent(interview.id)+'">Ver relatório →</a>'+
+      '</div>'+
+    '</div>';
+}
+
+const Especialista = {
+  saveOne: async function(qid){
+    const text = document.getElementById('sf-'+qid).value||'';
+    const name = specialistName() || 'Especialista';
+    try{
+      await Api.post('saveSpecialistFeedback', {id: currentInterview.id, qid: qid, text: text, specialistName: name});
+      const sf = currentInterview.specialistFeedback || {byQuestion:{}, overall:null};
+      sf.byQuestion[qid] = {text:text, specialistName:name, updatedAt:new Date().toISOString()};
+      currentInterview.specialistFeedback = sf;
+      toast('Feedback salvo.');
+    }catch(err){ toast('Erro: ' + err.message); }
+  },
+  saveOverall: async function(){
+    const text = document.getElementById('sf-overall').value||'';
+    const name = specialistName() || 'Especialista';
+    try{
+      await Api.post('saveOverallFeedback', {id: currentInterview.id, text: text, specialistName: name});
+      toast('Comentário geral salvo.');
+    }catch(err){ toast('Erro: ' + err.message); }
+  },
+  complete: async function(){
+    const name = specialistName() || 'Especialista';
+    try{
+      await Api.post('completeReview', {id: currentInterview.id, specialistName: name});
+      currentInterview.status = 'avaliado';
+      renderDetail();
+      toast('Avaliação concluída.');
+    }catch(err){ toast('Erro: ' + err.message); }
+  },
+  reopen: async function(){
+    try{
+      await Api.post('reopenReview', {id: currentInterview.id});
+      currentInterview.status = 'submetido';
+      renderDetail();
+      toast('Avaliação reaberta.');
+    }catch(err){ toast('Erro: ' + err.message); }
+  }
+};
+
+boot();
+</script>
+</body>
+</html>

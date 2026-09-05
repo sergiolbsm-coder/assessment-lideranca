@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Entrevista de Alto Impacto — Parametrizar</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Cormorant+Garamond:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div class="bg"></div>
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <img class="logo-mark" src="logo.svg" alt="Entrevista de Alto Impacto">
+      <div>
+        <div class="brand-name">Entrevista de Alto Impacto</div>
+        <div class="brand-sub"><img class="idealizadora-avatar" src="franciane-novais.jpg" alt="Franciane Novais">Idealizadora <b>Franciane Novais</b><br>Venture desenvolvida em parceria com o Instituto da Liderança</div>
+      </div>
+    </div>
+    <div class="tabs" id="tabs"></div>
+  </div>
+</div>
+<div id="app"></div>
+<div id="toast-host"></div>
+<script src="app.js"></script>
+<script>
+"use strict";
+renderNav('admin');
+
+let questions = [];
+let openId = null;
+let draftTipo = {};
+
+async function boot(){
+  document.getElementById('app').innerHTML = loadingHtml('Carregando perguntas…');
+  try{ await reload(); }
+  catch(err){ document.getElementById('app').innerHTML = errorHtml(err); }
+}
+async function reload(){
+  questions = (await Api.listQuestions()).sort(function(a,b){ return (a.order||0)-(b.order||0); });
+  render();
+}
+
+function render(){
+  const app = document.getElementById('app');
+  const rows = questions.map(renderRow).join('') || '<div class="empty">Nenhuma pergunta cadastrada ainda.</div>';
+  const seedBtn = questions.length===0
+    ? '<button class="btn-secondary" onclick="Admin.seedBank()">Carregar banco de exemplo (44 perguntas)</button>'
+    : '';
+  app.innerHTML =
+    '<div class="wrap wrap-wide">'+
+      '<div class="section-title"><h2>Parametrizar perguntas</h2>'+
+        '<div style="display:flex;gap:8px;flex-wrap:wrap">'+seedBtn+'<button class="btn-primary" onclick="Admin.newQuestion()">+ Nova pergunta</button></div></div>'+
+      '<p class="hint">Cada pergunta tem um padrão de resposta esperado (Direta, Reflexiva ou Método STAR), a orientação que o candidato recebe depois de responder, e o critério que a IA usa para gerar o feedback automático. Só perguntas <b>ativas</b> entram em novas simulações.</p>'+
+      '<div class="divider"></div>'+
+      '<div class="qlist" id="qlist">'+rows+'</div>'+
+    '</div>';
+}
+
+function renderRow(q){
+  const open = openId === q.id;
+  const meta = TIPO_META[q.tipo] || TIPO_META.direta;
+  const dTipo = draftTipo[q.id] || q.tipo || 'direta';
+  return '<div class="qitem'+(open?' open':'')+(q.ativa?'':' inactive')+'">'+
+    '<div class="qitem-head">'+
+      '<div class="qtext">'+esc(q.text)+'</div>'+
+      '<div class="qitem-actions">'+
+        '<button class="btn-icon" title="Mover para cima" onclick="Admin.move(\''+q.id+'\',-1)">↑</button>'+
+        '<button class="btn-icon" title="Mover para baixo" onclick="Admin.move(\''+q.id+'\',1)">↓</button>'+
+        '<button class="btn-icon" title="Editar" onclick="Admin.toggleOpen(\''+q.id+'\')">'+(open?'▲':'✎')+'</button>'+
+      '</div>'+
+    '</div>'+
+    '<div class="qitem-meta">'+
+      '<span class="badge'+(q.tipo==='star'?' purple':(q.tipo==='reflexiva'?' turq':''))+'">'+esc(meta.short)+'</span>'+
+      '<span class="badge muted">'+(q.ativa?'Ativa':'Inativa')+'</span>'+
+    '</div>'+
+    (open ? renderDetail(q, dTipo) : '')+
+  '</div>';
+}
+
+function renderDetail(q, dTipo){
+  const tipos = ['direta','reflexiva','star'];
+  return '<div class="qitem-detail" style="display:block">'+
+    '<div class="field"><label>Pergunta</label><textarea rows="2" id="f-text-'+q.id+'">'+esc(q.text)+'</textarea></div>'+
+    '<div class="field"><label>Padrão de resposta esperado</label>'+
+      '<div class="tipo-picker">'+
+      tipos.map(function(t){
+        const m = TIPO_META[t];
+        return '<button type="button" class="tipo-opt'+(dTipo===t?' sel':'')+'" onclick="Admin.pickTipo(\''+q.id+'\',\''+t+'\')">'+m.label+'<small>'+m.desc+'</small></button>';
+      }).join('')+
+      '</div>'+
+      '<button class="btn-ghost" onclick="Admin.useTemplate(\''+q.id+'\')">Usar modelo padrão de orientação para este tipo</button>'+
+    '</div>'+
+    '<div class="field"><label>Orientação (mostrada ao candidato depois de responder)</label><textarea rows="3" id="f-orient-'+q.id+'">'+esc(q.orientacao||'')+'</textarea></div>'+
+    '<div class="field"><label>Critério para a IA gerar feedback automático</label><textarea rows="3" id="f-ai-'+q.id+'">'+esc(q.aiGuidance||'')+'</textarea></div>'+
+    '<div class="field" style="display:flex;align-items:center;gap:8px">'+
+      '<input type="checkbox" id="f-ativa-'+q.id+'" '+(q.ativa?'checked':'')+' style="width:auto"> <label style="margin:0" for="f-ativa-'+q.id+'">Ativa (entra em novas simulações)</label>'+
+    '</div>'+
+    '<div class="nav-row" style="justify-content:flex-start">'+
+      '<button class="btn-primary" onclick="Admin.save(\''+q.id+'\')">Salvar</button>'+
+      '<button class="btn-secondary" onclick="Admin.remove(\''+q.id+'\')">Excluir</button>'+
+    '</div>'+
+  '</div>';
+}
+
+const Admin = {
+  toggleOpen: function(id){
+    openId = (openId===id) ? null : id;
+    if(openId){ const q = questions.find(function(x){return x.id===id;}); draftTipo[id] = q ? q.tipo : 'direta'; }
+    render();
+  },
+  pickTipo: function(id, tipo){ draftTipo[id]=tipo; render(); },
+  useTemplate: function(id){
+    const tipo = draftTipo[id] || 'direta';
+    const tpl = TEMPLATES[tipo];
+    const o = document.getElementById('f-orient-'+id), a = document.getElementById('f-ai-'+id);
+    if(o) o.value = tpl.orientacao;
+    if(a) a.value = tpl.aiGuidance;
+  },
+  newQuestion: async function(){
+    const maxOrder = questions.reduce(function(m,q){ return Math.max(m, q.order||0); }, 0);
+    const id = uid();
+    try{
+      await Api.post('upsertQuestion', {
+        id: id, text:'Nova pergunta — edite o texto', tipo:'direta',
+        orientacao: TEMPLATES.direta.orientacao, aiGuidance: TEMPLATES.direta.aiGuidance,
+        ativa:false, order:maxOrder+1
+      });
+      await reload();
+      openId = id; draftTipo[id]='direta'; render();
+    }catch(err){ toast('Erro: ' + err.message); }
+  },
+  save: async function(id){
+    const text = (document.getElementById('f-text-'+id).value||'').trim();
+    const orientacao = document.getElementById('f-orient-'+id).value||'';
+    const aiGuidance = document.getElementById('f-ai-'+id).value||'';
+    const ativa = document.getElementById('f-ativa-'+id).checked;
+    const tipo = draftTipo[id] || 'direta';
+    if(!text){ toast('A pergunta não pode ficar em branco.'); return; }
+    try{
+      await Api.post('upsertQuestion', {id:id, text:text, tipo:tipo, orientacao:orientacao, aiGuidance:aiGuidance, ativa:ativa});
+      openId = null;
+      await reload();
+      toast('Pergunta salva.');
+    }catch(err){ toast('Erro ao salvar: ' + err.message); }
+  },
+  remove: async function(id){
+    if(!confirm('Excluir esta pergunta do banco? Simulações já respondidas mantêm uma cópia da pergunta.')) return;
+    try{ await Api.post('deleteQuestion', {id:id}); await reload(); toast('Pergunta excluída.'); }
+    catch(err){ toast('Erro: ' + err.message); }
+  },
+  seedBank: async function(){
+    if(!confirm('Carregar o banco de 44 perguntas de exemplo? 10 delas já entram ativas, formando uma primeira simulação equilibrada.')) return;
+    try{
+      await Api.post('seedQuestions', {questions: SEED_QUESTIONS});
+      await reload();
+      toast('Banco de exemplo carregado.');
+    }catch(err){ toast('Erro: ' + err.message); }
+  },
+  move: async function(id, dir){
+    const idx = questions.findIndex(function(q){return q.id===id;});
+    const swapIdx = idx+dir;
+    if(idx<0 || swapIdx<0 || swapIdx>=questions.length) return;
+    try{
+      await Api.post('reorderQuestions', {idA: questions[idx].id, idB: questions[swapIdx].id});
+      await reload();
+    }catch(err){ toast('Erro ao reordenar: ' + err.message); }
+  }
+};
+
+boot();
+</script>
+</body>
+</html>

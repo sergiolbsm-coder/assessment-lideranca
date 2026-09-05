@@ -24,6 +24,10 @@ Sistema integrado de diagnóstico com **7 instrumentos de liderança**.
 - Gestão de Turmas e Fases do Diagnóstico
 - Exportação PDF individual e em grupo
 
+## Ventures
+Produtos em parceria, publicados em `assessment.institutodalideranca.com.br/ventures/<nome>/`:
+- 🎤 [Entrevista de Alto Impacto](ventures/entrevista-de-alto-impacto/) — simulador de entrevista de emprego (idealizadora: Franciane Novais). Ver `ventures/entrevista-de-alto-impacto/README.md`.
+
 ---
 *Instituto da Liderança · CNPJ 22.233.124/0001-50*
 *Atualizado: $(date '+%Y-%m-%d %H:%M')*
