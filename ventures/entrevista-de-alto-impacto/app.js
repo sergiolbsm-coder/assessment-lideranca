@@ -4,9 +4,7 @@
 // ============================================================
 "use strict";
 
-// PASSO OBRIGATÓRIO ANTES DE PUBLICAR: troque pela URL /exec do Apps Script
-// (veja APPS_SCRIPT_ENTREVISTA_ALTO_IMPACTO.gs para o passo a passo de deploy).
-const API_URL = "COLE_AQUI_A_URL_DO_APPS_SCRIPT_/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyPMOzOz9gyD6Wg1_J1Ro1507xATg_wbnMp5l8ZrVUsPMi3_LTiNdNo34g0hUFikLAXWg/exec";
 
 const TIPO_META = {
   direta:    { label:"Resposta Direta",    short:"Direta",    desc:"Objetiva e factual" },
