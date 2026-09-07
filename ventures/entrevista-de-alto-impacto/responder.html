@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Entrevista de Alto Impacto — Responder</title>
+<title>Entrevista de Alto Impacto · Responder</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Cormorant+Garamond:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app.css">
 </head>
@@ -80,12 +80,12 @@ async function renderStart(){
   app.innerHTML =
     '<div class="wrap">'+
       '<div class="hero"><h1>Entrevista de Alto Impacto</h1>'+
-      '<p>Treine respostas reais, receba orientação de como responder cada pergunta e feedback automático da IA — depois, feedback personalizado de uma especialista.</p></div>'+
+      '<p>Treine respostas reais, receba orientação de como responder cada pergunta e feedback automático da IA. Depois, feedback personalizado de uma especialista.</p></div>'+
       '<div class="card">'+
         '<div class="field"><label>Seu nome completo</label><input id="r-nome" placeholder="Ex: Maria Silva"></div>'+
         '<div class="field"><label>Cargo / vaga alvo (opcional)</label><input id="r-cargo" placeholder="Ex: Analista de RH Pleno"></div>'+
         '<button class="btn-primary" id="r-start-btn" '+(activeQs.length===0?'disabled':'')+' onclick="Responder.start()">Iniciar simulação</button>'+
-        (activeQs.length===0?'<p class="hint">Nenhuma pergunta está ativa no momento — peça para alguém ativar perguntas na tela Parametrizar.</p>':
+        (activeQs.length===0?'<p class="hint">Nenhuma pergunta está ativa no momento. Peça para alguém ativar perguntas na tela Parametrizar.</p>':
           '<p class="hint">Você vai responder '+activeQs.length+' pergunta'+(activeQs.length===1?'':'s')+'.</p>')+
       '</div>'+
       '<div class="divider"></div>'+
@@ -126,12 +126,12 @@ const Responder = {
     const app = document.getElementById('app');
     app.innerHTML = '<div class="wrap"><div class="card" style="text-align:center;padding:50px 30px">'+
       '<h2>Enviando suas respostas…</h2>'+
-      '<p class="muted" style="margin-top:10px">Gerando o feedback automático da IA — isso pode levar até 1 minuto.</p>'+
+      '<p class="muted" style="margin-top:10px">Gerando o feedback automático da IA. Isso pode levar até 1 minuto.</p>'+
       '<div class="spinner-line" style="justify-content:center;margin-top:16px"><span class="spinner-dot"></span><span class="spinner-dot"></span><span class="spinner-dot"></span></div>'+
       '</div></div>';
     try{
       await Api.post('finishInterview', {id: currentInterview.id, answers: currentInterview.answers});
-    }catch(err){ /* segue mesmo assim — o poll abaixo confirma o estado real */ }
+    }catch(err){ /* segue mesmo assim: o poll abaixo confirma o estado real */ }
     try{
       currentInterview = await Api.getInterview(currentInterview.id);
     }catch(err){}
@@ -198,7 +198,7 @@ function renderResults(){
     else if(ai.status==='unavailable') aiBlock = '<p class="muted">Feedback automático da IA indisponível no momento.</p>';
     else if(ai.status==='error') aiBlock = '<p class="muted">Não foi possível gerar o feedback automático. <button class="btn-ghost" onclick="Responder.retryAi()">Tentar novamente</button></p>';
     else if(aiText) aiBlock = '<p>'+nl2br(aiText)+'</p>';
-    else aiBlock = '<p class="muted">—</p>';
+    else aiBlock = '<p class="muted">-</p>';
 
     const specEntry = spec[q.qid];
     const specBlock = specEntry ? '<p>'+nl2br(specEntry.text)+'</p>' : '<p class="muted">Ainda não avaliado pela especialista.</p>';
@@ -207,7 +207,7 @@ function renderResults(){
       '<div class="qn">Pergunta '+(i+1)+' de '+snap.length+' · <span class="badge muted" style="margin-left:4px">'+esc(meta.short)+'</span></div>'+
       '<h3>'+esc(q.text)+'</h3>'+
       '<div class="res-block answer"><div class="lbl">Sua resposta</div><p>'+nl2br(ans||'(em branco)')+'</p></div>'+
-      '<div class="res-block orient"><div class="lbl">💡 Como responder melhor</div><p>'+nl2br(q.orientacao||'—')+'</p>'+
+      '<div class="res-block orient"><div class="lbl">💡 Como responder melhor</div><p>'+nl2br(q.orientacao||'-')+'</p>'+
         (q.tipo==='star'?starLegendHtml():'')+
       '</div>'+
       '<div class="res-block ai"><div class="lbl">🤖 Feedback automático da IA</div>'+aiBlock+'</div>'+

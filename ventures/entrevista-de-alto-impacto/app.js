@@ -1,5 +1,5 @@
 // ============================================================
-// Entrevista de Alto Impacto — lógica compartilhada (4 páginas)
+// Entrevista de Alto Impacto · lógica compartilhada (4 páginas)
 // Idealizadora: Franciane Novais · Venture em parceria com o IDL
 // ============================================================
 "use strict";
@@ -14,7 +14,7 @@ const TIPO_META = {
 
 const TEMPLATES = {
   direta: {
-    orientacao: "Responda de forma objetiva e direta, com fatos concretos e relevantes para a vaga. Evite respostas genéricas ou longas demais — vá direto ao ponto.",
+    orientacao: "Responda de forma objetiva e direta, com fatos concretos e relevantes para a vaga. Evite respostas genéricas ou longas demais: vá direto ao ponto.",
     aiGuidance: "Avalie se a resposta é objetiva, específica e relevante para a vaga (não genérica ou evasiva), e se tem duração adequada (nem curta demais nem prolixa)."
   },
   reflexiva: {
@@ -40,7 +40,7 @@ function esc(s){
 }
 function nl2br(s){ return esc(s); } // white-space:pre-wrap no CSS cuida das quebras de linha
 function fmtDate(iso){
-  if(!iso) return "—";
+  if(!iso) return "-";
   try{
     var d = new Date(iso);
     return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'}) + " às " +
@@ -82,7 +82,7 @@ function setSpecialistName(n){ lsSet('eai_especialista_nome', n); }
 // ---------- API client ----------
 // GET é lido normalmente (o Apps Script permite leitura cross-origin).
 // POST usa mode:'no-cors' (contorna a falta de suporte a preflight do Apps
-// Script) — a resposta fica opaca, então toda escrita é "dispara e confirma
+// Script), a resposta fica opaca, então toda escrita é "dispara e confirma
 // via um novo GET" (padrão já usado no carreira-rh.html).
 const Api = {
   async get(params){
@@ -141,7 +141,7 @@ function renderNav(active){
 // banco pronto para o admin ativar conforme a vaga.
 const SEED_QUESTIONS = [
   { text:"Fale um pouco sobre sua formação acadêmica.", tipo:"direta", ativa:false,
-    orientacao:"Conecte sua formação diretamente com as exigências da vaga: destaque cursos, projetos ou disciplinas mais relevantes, e seja breve — no máximo 60 segundos de resposta.",
+    orientacao:"Conecte sua formação diretamente com as exigências da vaga: destaque cursos, projetos ou disciplinas mais relevantes, e seja breve, no máximo 60 segundos de resposta.",
     aiGuidance:"Verifique se a resposta é objetiva (não uma lista cronológica completa), se conecta a formação à vaga/área de interesse, e se dura o suficiente sem ser genérica." },
   { text:"Como você ficou sabendo desta vaga?", tipo:"direta", ativa:false,
     orientacao:"Seja específico (indicação, LinkedIn, site da empresa) e aproveite para demonstrar que você pesquisou sobre a empresa antes da entrevista.",
@@ -168,10 +168,10 @@ const SEED_QUESTIONS = [
     orientacao:"Escolha pontos reais e relevantes, mas que não sejam desqualificantes para a vaga; mostre também o que você já fez para evoluir em cada um.",
     aiGuidance:"Verifique se os pontos citados são plausíveis e não desqualificantes, e se a resposta mostra ação concreta de melhoria para cada um." },
   { text:"Você tem planos de carreira internacional?", tipo:"direta", ativa:false,
-    orientacao:"Seja honesto sobre sua real disponibilidade e planos — alinhar expectativas agora evita problemas depois.",
+    orientacao:"Seja honesto sobre sua real disponibilidade e planos. Alinhar expectativas agora evita problemas depois.",
     aiGuidance:"Avalie se a resposta é honesta, direta e coerente com o restante do perfil do candidato." },
   { text:"Você teria disponibilidade para viajar a trabalho?", tipo:"direta", ativa:false,
-    orientacao:"Seja honesto sobre sua real disponibilidade para viagens — alinhar expectativas agora evita problemas depois.",
+    orientacao:"Seja honesto sobre sua real disponibilidade para viagens. Alinhar expectativas agora evita problemas depois.",
     aiGuidance:"Avalie se a resposta é honesta, direta e coerente com o restante do perfil do candidato." },
   { text:"Conte sobre a realização de carreira da qual mais se orgulha.", tipo:"star", ativa:true,
     orientacao:TEMPLATES.star.orientacao, aiGuidance:TEMPLATES.star.aiGuidance },
@@ -196,7 +196,7 @@ const SEED_QUESTIONS = [
     orientacao:"Nunca fale mal do empregador atual/anterior. Foque no que você busca (crescimento, desafio, alinhamento) e não no que está fugindo.",
     aiGuidance:"Verifique se a resposta evita críticas ao empregador atual/ex-chefe e se é orientada a motivos positivos de busca, não de fuga." },
   { text:"Você trabalharia em fins de semana e feriados?", tipo:"direta", ativa:false,
-    orientacao:"Seja honesto sobre sua real disponibilidade — alinhar expectativas agora evita problemas depois.",
+    orientacao:"Seja honesto sobre sua real disponibilidade. Alinhar expectativas agora evita problemas depois.",
     aiGuidance:"Avalie se a resposta é honesta, direta e coerente com o restante do perfil do candidato." },
   { text:"Como você lidaria com um cliente insatisfeito?", tipo:"star", ativa:false,
     orientacao:TEMPLATES.star.orientacao, aiGuidance:TEMPLATES.star.aiGuidance },
@@ -246,8 +246,8 @@ const SEED_QUESTIONS = [
     orientacao:"Escolha algo genuíno e não polêmico demais para o contexto profissional; mostre capacidade de pensar de forma independente com argumentos bem construídos.",
     aiGuidance:"Avalie originalidade genuína, qualidade da argumentação e adequação ao contexto profissional (evitar temas sensíveis/polêmicos demais)." },
   { text:"Quais perguntas você quer fazer para mim?", tipo:"direta", ativa:true,
-    orientacao:"Sempre tenha 2-3 perguntas preparadas sobre a vaga, o time ou os desafios do momento — nunca diga 'não tenho perguntas'.",
-    aiGuidance:"Verifique se o candidato apresentou perguntas reais e relevantes (não genéricas) — sinalizar como ponto de atenção se a resposta for 'não tenho perguntas'." }
+    orientacao:"Sempre tenha 2-3 perguntas preparadas sobre a vaga, o time ou os desafios do momento. Nunca diga 'não tenho perguntas'.",
+    aiGuidance:"Verifique se o candidato apresentou perguntas reais e relevantes (não genéricas). Sinalize como ponto de atenção se a resposta for 'não tenho perguntas'." }
 ];
 
 function loadingHtml(msg){

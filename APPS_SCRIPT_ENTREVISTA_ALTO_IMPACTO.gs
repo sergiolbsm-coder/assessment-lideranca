@@ -2,16 +2,16 @@
  * Apps Script dedicado à venture "Entrevista de Alto Impacto"
  * (ventures/entrevista-de-alto-impacto/*.html). Isolado dos outros Apps
  * Script deste repositório (assessment de liderança e diagnóstico de
- * carreira) — não mexe nas planilhas nem nos scripts existentes.
+ * carreira), não mexe nas planilhas nem nos scripts existentes.
  *
  * Acesso é público (candidatos externos não têm conta Google/Claude), então
- * TODA a persistência e a chamada de IA passam por aqui — a página estática
+ * TODA a persistência e a chamada de IA passam por aqui: a página estática
  * nunca fala diretamente com a Anthropic (a chave de API nunca é exposta
  * no navegador).
  *
- * COMO IMPLANTAR (passo a passo manual — só o dono da conta consegue fazer):
+ * COMO IMPLANTAR (passo a passo manual, só o dono da conta consegue fazer):
  *   1. Crie uma planilha nova no Google Sheets, nomeie
- *      "IDL — Entrevista de Alto Impacto — Dados".
+ *      "IDL · Entrevista de Alto Impacto · Dados".
  *   2. Menu Extensões → Apps Script.
  *   3. Apague o conteúdo padrão de Code.gs e cole este arquivo inteiro.
  *   4. Menu ⚙️ Configurações do projeto → Propriedades do script → "Adicionar
@@ -150,8 +150,8 @@ function doPost(e) {
   } catch (err) {
     return jsonOut_({ status: 'erro', mensagem: String(err) });
   }
-  // Nota: como o cliente chama com mode:'no-cors', ele nunca lê este corpo —
-  // mas mantemos a resposta JSON normal para permitir testes manuais (ex:
+  // Nota: como o cliente chama com mode:'no-cors', ele nunca lê este corpo.
+  // Mantemos a resposta JSON normal para permitir testes manuais (ex:
   // Postman) e depuração pelo log de execuções do Apps Script.
 }
 
@@ -343,7 +343,7 @@ function buildAiPrompt_(snapshot, answers) {
   }).join('\n\n');
   return 'Você é um coach de entrevistas de emprego experiente, avaliando as respostas de um candidato numa simulação. ' +
     'Para CADA pergunta abaixo, escreva um feedback construtivo em português do Brasil (2 a 4 frases), citando o critério de avaliação indicado, ' +
-    'reconhecendo o que funcionou e apontando 1 a 2 melhorias específicas e acionáveis. Seja direto, gentil e específico — nunca genérico.\n\n' +
+    'reconhecendo o que funcionou e apontando 1 a 2 melhorias específicas e acionáveis. Seja direto, gentil e específico, nunca genérico.\n\n' +
     blocks +
     '\n\nResponda SOMENTE com um array JSON no formato [{"id":"<id da pergunta>","feedback":"<texto>"}], um objeto por pergunta, na mesma ordem. Nenhum texto fora do array.';
 }

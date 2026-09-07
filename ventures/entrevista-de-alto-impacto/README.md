@@ -1,10 +1,10 @@
 # Entrevista de Alto Impacto
 
-Simulador de entrevista de emprego. Idealizadora: **Franciane Novais** — venture
+Simulador de entrevista de emprego. Idealizadora: **Franciane Novais**, venture
 desenvolvida em parceria com o Instituto da Liderança.
 
 Site estático (sem login) + Google Sheets/Apps Script como backend, porque o
-público (candidatos de vaga) não tem conta Google/Claude — diferente dos
+público (candidatos de vaga) não tem conta Google/Claude, diferente dos
 outros instrumentos deste repositório, que rodam para participantes já
 identificados.
 
@@ -19,17 +19,17 @@ identificados.
 | Parametrização | `admin.html` | Cadastra perguntas, define o padrão de resposta (Direta / Reflexiva / Método STAR), a orientação e o critério da IA |
 
 A seção "sobre a idealizadora" em `index.html` está com texto genérico de missão/propósito
-(não inventei formação, cargos ou trajetória da Franciane) — trocar pelo texto real quando
+(não inventei formação, cargos ou trajetória da Franciane). Trocar pelo texto real quando
 disponível.
 
 Links depois de publicado (domínio já configurado via CNAME do repositório):
 `https://assessment.institutodalideranca.com.br/ventures/entrevista-de-alto-impacto/`
 
 ## Arquivos compartilhados
-- `app.css` — design system IDL (tokens, componentes).
-- `app.js` — utilitários, cliente da API (`Api.*`), banco de 44 perguntas de exemplo (`SEED_QUESTIONS`).
-- `logo.svg` — marca própria da venture (não é a logo do Instituto).
-- `franciane-novais.jpg` — foto da idealizadora, usada no cabeçalho e no relatório.
+- `app.css`: design system IDL (tokens, componentes).
+- `app.js`: utilitários, cliente da API (`Api.*`), banco de 44 perguntas de exemplo (`SEED_QUESTIONS`).
+- `logo.svg`: marca própria da venture (não é a logo do Instituto).
+- `franciane-novais.jpg`: foto da idealizadora, usada no cabeçalho e no relatório.
 
 ## Backend
 

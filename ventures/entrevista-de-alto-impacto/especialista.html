@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Entrevista de Alto Impacto — Especialista</title>
+<title>Entrevista de Alto Impacto · Especialista</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Cormorant+Garamond:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app.css">
 </head>
@@ -82,7 +82,7 @@ function renderDetail(){
   const cards = snap.map(function(q, i){
     const ans = (interview.answers[q.qid] && interview.answers[q.qid].text) || '';
     const meta = TIPO_META[q.tipo] || TIPO_META.direta;
-    const aiText = (ai.byQuestion && ai.byQuestion[q.qid]) || (ai.status==='pending' ? 'Gerando…' : (ai.status==='unavailable'?'Indisponível':'—'));
+    const aiText = (ai.byQuestion && ai.byQuestion[q.qid]) || (ai.status==='pending' ? 'Gerando…' : (ai.status==='unavailable'?'Indisponível':'-'));
     const specEntry = spec[q.qid];
     return '<div class="rescard">'+
       '<div class="qn">Pergunta '+(i+1)+' de '+snap.length+' · <span class="badge muted" style="margin-left:4px">'+esc(meta.short)+'</span></div>'+

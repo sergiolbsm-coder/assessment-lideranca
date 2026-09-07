@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Entrevista de Alto Impacto — Relatório</title>
+<title>Entrevista de Alto Impacto · Relatório</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Cormorant+Garamond:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app.css">
 </head>
@@ -75,17 +75,17 @@ function renderReport(interview){
   const cards = snap.map(function(q, i){
     const ans = (interview.answers[q.qid] && interview.answers[q.qid].text) || '';
     const meta = TIPO_META[q.tipo] || TIPO_META.direta;
-    const aiText = (ai.byQuestion && ai.byQuestion[q.qid]) || (ai.status==='pending' ? 'Em geração…' : (ai.status==='unavailable' ? 'Indisponível' : '—'));
+    const aiText = (ai.byQuestion && ai.byQuestion[q.qid]) || (ai.status==='pending' ? 'Em geração…' : (ai.status==='unavailable' ? 'Indisponível' : '-'));
     const specEntry = spec[q.qid];
     return '<div class="rescard">'+
       '<div class="qn">Pergunta '+(i+1)+' de '+snap.length+' · <span class="badge muted" style="margin-left:4px">'+esc(meta.short)+'</span></div>'+
       '<h3>'+esc(q.text)+'</h3>'+
       '<div class="res-block answer"><div class="lbl">Resposta do candidato</div><p>'+nl2br(ans||'(em branco)')+'</p></div>'+
-      '<div class="res-block orient"><div class="lbl">💡 Como responder melhor</div><p>'+nl2br(q.orientacao||'—')+'</p>'+
+      '<div class="res-block orient"><div class="lbl">💡 Como responder melhor</div><p>'+nl2br(q.orientacao||'-')+'</p>'+
         (q.tipo==='star'?starLegendHtml():'')+
       '</div>'+
       '<div class="res-block ai"><div class="lbl">🤖 Feedback automático da IA</div><p>'+nl2br(aiText)+'</p></div>'+
-      '<div class="res-block specialist"><div class="lbl">🧑‍🏫 Feedback da especialista'+(specEntry?(' — '+esc(specEntry.specialistName)):'')+'</div><p>'+
+      '<div class="res-block specialist"><div class="lbl">🧑‍🏫 Feedback da especialista'+(specEntry?(' · '+esc(specEntry.specialistName)):'')+'</div><p>'+
         (specEntry?nl2br(specEntry.text):'Aguardando avaliação da especialista.')+'</p></div>'+
     '</div>';
   }).join('');
@@ -103,7 +103,7 @@ function renderReport(interview){
         '<span class="badge '+st.cls+'" style="margin-top:10px">'+st.label+'</span>'+
       '</div>'+
       cards+
-      (overall ? '<div class="overall-note"><div class="res-block specialist" style="background:none;padding:0"><div class="lbl">🧑‍🏫 Síntese geral da especialista — '+esc(overall.specialistName)+'</div><p>'+nl2br(overall.text)+'</p></div></div>' : '')+
+      (overall ? '<div class="overall-note"><div class="res-block specialist" style="background:none;padding:0"><div class="lbl">🧑‍🏫 Síntese geral da especialista · '+esc(overall.specialistName)+'</div><p>'+nl2br(overall.text)+'</p></div></div>' : '')+
       '<div class="nav-row noprint"><a class="btn-secondary" href="relatorio.html">← Todos os relatórios</a><button class="btn-primary" onclick="window.print()">Imprimir / salvar PDF</button></div>'+
     '</div>';
 }

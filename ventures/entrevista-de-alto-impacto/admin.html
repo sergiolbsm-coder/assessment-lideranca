@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Entrevista de Alto Impacto — Parametrizar</title>
+<title>Entrevista de Alto Impacto · Parametrizar</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Cormorant+Garamond:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app.css">
 </head>
@@ -123,7 +123,7 @@ const Admin = {
     const id = uid();
     try{
       await Api.post('upsertQuestion', {
-        id: id, text:'Nova pergunta — edite o texto', tipo:'direta',
+        id: id, text:'Nova pergunta (edite o texto)', tipo:'direta',
         orientacao: TEMPLATES.direta.orientacao, aiGuidance: TEMPLATES.direta.aiGuidance,
         ativa:false, order:maxOrder+1
       });
