@@ -413,6 +413,71 @@ function mostrarGate(){
     });
   }
 
+  // Tabela principal enxuta + coluna Token (pedido do usuário: tirar
+  // Eneagrama/Arquétipo/Kolb/Need. 1ª/Holland, adicionar Token pra
+  // rastreabilidade). renderTable() é código ofuscado — em vez de editar
+  // ele direto (arriscado, os índices de string ali são compartilhados com
+  // o resto do bundle), um MutationObserver reprocessa cada linha assim
+  // que ela é (re)desenhada: remove os 5 <td> que sobraram e insere o de
+  // Token. O valor do token vem de uma busca própria e independente na
+  // mesma URL/ação padrão que a tabela já usa pra carregar os dados — como
+  // os dois leem a mesma planilha na mesma ordem, o índice de cada resposta
+  // no array bate com o "_id" que o admin já usa internamente (índice de
+  // carga, não veio da planilha).
+  function instalarColunaToken() {
+    var tokensPorId = {};
+    function carregarTokens() {
+      fetch(SHEETS_URL + '?t=' + Date.now())
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          if (d && d.status === 'ok' && Array.isArray(d.data)) {
+            tokensPorId = {};
+            d.data.forEach(function(row, i){ tokensPorId[i] = row.token || ''; });
+            processarTabela();
+          }
+        })
+        .catch(function(){});
+    }
+
+    // Índices ORIGINAIS (antes de qualquer remoção) de cada <td> na linha
+    // que renderTable() desenha: 0 checkbox, 1 #, 2 Nome, 3 Turma, 4 Fase,
+    // 5 DISC, 6 Temp., 7 Eneagrama, 8 Arquétipo, 9 Kolb, 10 Need. 1ª,
+    // 11 Holland, 12 Data, 13 Ações. Remove em ordem DECRESCENTE pra um
+    // índice não deslocar o próximo antes de ser usado.
+    var COLS_REMOVER = [11, 10, 9, 8, 7];
+    var IDX_TOKEN = 7; // depois de remover os 5 acima, vira o índice logo antes de Data
+
+    function processarLinha(tr) {
+      if (tr.getAttribute('data-token-ok') === '1') return;
+      var btn = tr.querySelector('button[onclick^="openProfile("]');
+      var id = btn ? parseInt(btn.getAttribute('onclick').replace(/[^0-9]/g, ''), 10) : null;
+      COLS_REMOVER.forEach(function(idx) {
+        var cel = tr.children[idx];
+        if (cel) cel.remove();
+      });
+      var td = document.createElement('td');
+      td.style.color = 'var(--mid)';
+      td.style.fontFamily = "'JetBrains Mono',monospace";
+      td.style.fontSize = '10px';
+      // Vazio de propósito pra respostas antigas (sem token registrado) —
+      // pedido explícito do usuário, sem "—" de placeholder aqui.
+      td.textContent = (id !== null && tokensPorId[id]) ? tokensPorId[id] : '';
+      var ref = tr.children[IDX_TOKEN];
+      if (ref) tr.insertBefore(td, ref); else tr.appendChild(td);
+      tr.setAttribute('data-token-ok', '1');
+    }
+
+    function processarTabela() {
+      var tbody = document.getElementById('table-body');
+      if (!tbody) return;
+      Array.from(tbody.children).forEach(processarLinha);
+    }
+
+    var tbody = document.getElementById('table-body');
+    if (tbody) new MutationObserver(processarTabela).observe(tbody, { childList: true });
+    carregarTokens();
+  }
+
   document.addEventListener('DOMContentLoaded', function(){
     // Gate aparece antes de qualquer coisa. Se já tem senha salva de uma
     // visita anterior, confirma que ainda é válida antes de liberar —
@@ -434,6 +499,7 @@ function mostrarGate(){
     el('lic-ver-stats').addEventListener('click', verStats);
     el('lic-emp-btn').addEventListener('click', definirSenhaEmpresa);
     montarCheckboxesInstrumentos();
+    instalarColunaToken();
   });
 })();
 </script>
@@ -504,8 +570,12 @@ function mostrarGate(){
             <tr>
               <th class="check-col"><input type="checkbox" id="chk-all" onchange="toggleAll(this)"></th>
               <th>#</th><th>Nome</th><th>Turma</th><th>Fase</th>
-              <th>DISC</th><th>Temp.</th><th>Eneagrama</th><th>Arquétipo</th>
-              <th>Kolb</th><th>Need. 1ª</th><th>Holland</th><th>Data</th><th>Ações</th>
+              <th>DISC</th><th>Temp.</th><th>Token</th><th>Data</th><th>Ações</th>
+              <!-- Eneagrama/Arquétipo/Kolb/Need. 1ª/Holland removidas a
+                   pedido (tabela mais enxuta) — o JS logo abaixo
+                   (instalarColunaToken) remove os <td> correspondentes de
+                   cada linha renderizada e insere o de Token no lugar
+                   certo; ver comentário lá. -->
             </tr>
           </thead>
           <tbody id="table-body"></tbody>
