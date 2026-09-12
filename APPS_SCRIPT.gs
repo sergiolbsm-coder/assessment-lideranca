@@ -9,6 +9,8 @@ var ABA_RANKING    = 'Ranking';
 var ABA_TURMAS     = 'Turmas';   // ← nova aba: fonte única de verdade
 var ABA_TOKENS     = 'Tokens';   // ← licenças de acesso: 1 token = 1 resposta
 var CAB_TOKENS     = ['codigo','cliente','status','gerado_em','usado_em','respondente_email'];
+var ABA_EMPRESAS   = 'Empresas'; // ← login da empresa (view-only dos próprios tokens)
+var CAB_EMPRESAS   = ['cliente','senha_hash','definido_em'];
 
 // Segredo pra proteger geração/listagem de tokens (ações administrativas e
 // financeiramente sensíveis — não podem ficar abertas como o resto do doGet
@@ -54,6 +56,8 @@ function doGet(e) {
     if (action === 'getTurmas')     return out.setContent(JSON.stringify(doGetTurmas()));
     if (action === 'checkToken')    return out.setContent(JSON.stringify(doCheckToken(e.parameter.token)));
     if (action === 'getTokens')     return out.setContent(JSON.stringify(doListTokens(e.parameter.secret)));
+    if (action === 'loginEmpresa')  return out.setContent(JSON.stringify(doLoginEmpresa(e.parameter.cliente, e.parameter.senha)));
+    if (action === 'tokensEmpresa') return out.setContent(JSON.stringify(doTokensEmpresa(e.parameter.cliente, e.parameter.senha)));
     return out.setContent(JSON.stringify(sheetToJson(ABA_RESPOSTAS)));
   } catch(err) {
     return out.setContent(JSON.stringify({status:'error', message:err.toString()}));
@@ -86,6 +90,7 @@ function doPost(e) {
     if (data.action === 'saveRanking')   return out.setContent(JSON.stringify(doSaveRanking(data.rows)));
     if (data.action === 'saveTurmas')    return out.setContent(JSON.stringify(doSaveTurmas(data.turmas)));
     if (data.action === 'gerarTokens')   return out.setContent(JSON.stringify(doGerarTokens(data.cliente, data.quantidade, data.secret)));
+    if (data.action === 'definirSenhaEmpresa') return out.setContent(JSON.stringify(doDefinirSenhaEmpresa(data.cliente, data.senha, data.secret)));
     return out.setContent(JSON.stringify(doSaveResposta(data)));
   } catch(err) {
     Logger.log('Erro doPost: ' + err.toString());
@@ -230,6 +235,86 @@ function consumirToken(codigo, email) {
   sheet.getRange(achou.row, 5).setValue(new Date().toISOString());
   sheet.getRange(achou.row, 6).setValue(email || '');
   return {ok: true};
+}
+
+// ── Login de empresa (view-only dos próprios tokens) ────────────────────────
+function configurarAbaEmpresas() {
+  var ss    = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName(ABA_EMPRESAS);
+  if (!sheet) {
+    sheet = ss.insertSheet(ABA_EMPRESAS);
+    var h = sheet.getRange(1, 1, 1, CAB_EMPRESAS.length);
+    h.setValues([CAB_EMPRESAS]);
+    h.setFontWeight('bold'); h.setBackground('#0A0806'); h.setFontColor('#C9A84C');
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+// Hash simples (SHA-256) — não guardamos senha em texto puro na planilha.
+// Não é bcrypt/argon2 (Apps Script não tem), mas já evita que qualquer um
+// que abra a planilha veja a senha direto.
+function hashSenha(senha) {
+  var bytes = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, String(senha));
+  return bytes.map(function(b) { return (b < 0 ? b + 256 : b).toString(16).padStart(2, '0'); }).join('');
+}
+
+function encontrarLinhaEmpresa(cliente) {
+  if (!cliente) return null;
+  var norm = String(cliente).trim().toLowerCase();
+  var sheet = configurarAbaEmpresas();
+  if (sheet.getLastRow() <= 1) return null;
+  var vals = sheet.getRange(2, 1, sheet.getLastRow() - 1, CAB_EMPRESAS.length).getValues();
+  for (var i = 0; i < vals.length; i++) {
+    if (String(vals[i][0]).trim().toLowerCase() === norm) {
+      return {row: i + 2, cliente: vals[i][0], senha_hash: vals[i][1]};
+    }
+  }
+  return null;
+}
+
+// Define/atualiza a senha de acesso de uma empresa. Ação de admin — exige
+// ADMIN_SECRET, igual gerarTokens/getTokens.
+function doDefinirSenhaEmpresa(cliente, senha, secret) {
+  if (!ADMIN_SECRET || secret !== ADMIN_SECRET) {
+    return {status: 'error', message: 'Não autorizado'};
+  }
+  if (!cliente || !senha || String(senha).length < 6) {
+    return {status: 'error', message: 'Informe cliente e uma senha com pelo menos 6 caracteres'};
+  }
+  var sheet = configurarAbaEmpresas();
+  var achou = encontrarLinhaEmpresa(cliente);
+  var hash = hashSenha(senha);
+  if (achou) {
+    sheet.getRange(achou.row, 2).setValue(hash);
+    sheet.getRange(achou.row, 3).setValue(new Date().toISOString());
+  } else {
+    sheet.appendRow([cliente, hash, new Date().toISOString()]);
+  }
+  return {status: 'ok', cliente: cliente};
+}
+
+// Login da empresa — retorna só válido/inválido, nenhum dado junto (evita
+// vazar algo além do necessário mesmo numa resposta de "login ok").
+function doLoginEmpresa(cliente, senha) {
+  var achou = encontrarLinhaEmpresa(cliente);
+  if (!achou) return {status: 'ok', valido: false, message: 'Empresa ou senha incorretos'};
+  if (achou.senha_hash !== hashSenha(senha)) return {status: 'ok', valido: false, message: 'Empresa ou senha incorretos'};
+  return {status: 'ok', valido: true};
+}
+
+// Tokens de UMA empresa — revalida login a cada chamada (nunca confia em
+// "já logado" vindo só do navegador) e devolve só o que é daquele cliente.
+function doTokensEmpresa(cliente, senha) {
+  var login = doLoginEmpresa(cliente, senha);
+  if (!login.valido) return {status: 'error', message: login.message || 'Não autorizado'};
+  var todos = sheetToJson(ABA_TOKENS);
+  var norm = String(cliente).trim().toLowerCase();
+  var meus = (todos.data || []).filter(function(t) {
+    return String(t.cliente).trim().toLowerCase() === norm;
+  });
+  // Não devolve o hash de ninguém, nem dados de outras empresas.
+  return {status: 'ok', cliente: cliente, data: meus, total: meus.length};
 }
 
 // ── Salvar resposta do assessment ────────────────────────────────────────────

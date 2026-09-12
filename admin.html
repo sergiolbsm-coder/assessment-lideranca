@@ -229,6 +229,14 @@ tr:hover td{background:rgba(255,255,255,.02)}
     <a id="lic-ver-stats">ver uso de tokens ↻</a>
     <div id="lic-stats-out"></div>
   </div>
+  <div class="stats">
+    <label style="margin:0 0 5px;">Acesso da empresa ao Portal (portal-empresa.html) — escolha quais assessments essa empresa pode ver</label>
+    <input type="text" id="lic-emp-cliente" placeholder="Nome do cliente (igual ao usado acima)">
+    <input type="password" id="lic-emp-senha" placeholder="Senha de acesso" style="margin-top:8px;">
+    <div id="lic-emp-instrumentos" style="margin-top:10px;font-size:12px;"></div>
+    <button class="gerar" id="lic-emp-btn" type="button" style="margin-top:10px;">Liberar acesso</button>
+    <div class="msg" id="lic-emp-msg"></div>
+  </div>
 </div>
 <script>
 (function(){
@@ -340,6 +348,61 @@ function mostrarGate(){
       }).catch(function(){ target.textContent = 'Erro de conexão.'; });
   }
 
+  // Mesma lista do portal-empresa.html — mantenha as duas em sincronia ao
+  // adicionar um instrumento novo (quando o backend dele tiver
+  // loginEmpresa/tokensEmpresa/definirSenhaEmpresa implementados).
+  var INSTRUMENTOS = [
+    { id: 'assessment-lideranca', nome: 'Assessment de Liderança (este)', url: SHEETS_URL }
+    // { id: 'dna-geracional', nome: 'DNA Geracional', url: '...' },
+    // { id: 'carreira-rh', nome: 'Diagnóstico de Carreira em RH', url: '...' }
+  ];
+
+  function montarCheckboxesInstrumentos(){
+    var wrap = el('lic-emp-instrumentos');
+    wrap.innerHTML = INSTRUMENTOS.map(function(inst){
+      return '<label style="display:flex;align-items:center;gap:6px;margin:4px 0;font-size:12px;color:#24153E;">' +
+             '<input type="checkbox" class="lic-emp-inst" value="' + inst.id + '" checked style="width:auto;"> ' + inst.nome + '</label>';
+    }).join('');
+  }
+
+  function definirSenhaEmpresa(){
+    var secret = getSecret();
+    var cliente = (el('lic-emp-cliente').value || '').trim();
+    var senha = (el('lic-emp-senha').value || '').trim();
+    var msg = el('lic-emp-msg'); var btn = el('lic-emp-btn');
+    msg.className = 'msg'; msg.textContent = '';
+    if (!cliente) { msg.className = 'msg erro'; msg.textContent = 'Informe o cliente.'; return; }
+    if (!senha || senha.length < 6) { msg.className = 'msg erro'; msg.textContent = 'Senha precisa ter pelo menos 6 caracteres.'; return; }
+    var marcados = Array.prototype.slice.call(document.querySelectorAll('.lic-emp-inst:checked')).map(function(c){ return c.value; });
+    if (!marcados.length) { msg.className = 'msg erro'; msg.textContent = 'Marque pelo menos um assessment.'; return; }
+    var alvos = INSTRUMENTOS.filter(function(i){ return marcados.indexOf(i.id) !== -1; });
+
+    btn.disabled = true; msg.textContent = 'Aplicando…';
+    // Usa o MESMO secret (o desta sessão de login) em todos os alvos — só
+    // funciona nos instrumentos que tiverem o mesmo ADMIN_SECRET
+    // configurado. Se algum tiver um secret diferente, ele retorna
+    // "Não autorizado" e aparece no relatório de erro abaixo.
+    Promise.all(alvos.map(function(inst){
+      return fetch(inst.url, {
+        method: 'POST',
+        body: JSON.stringify({action: 'definirSenhaEmpresa', cliente: cliente, senha: senha, secret: secret})
+      }).then(function(r){ return r.json(); })
+        .then(function(d){ return {nome: inst.nome, ok: !!(d && d.status === 'ok'), erro: d && d.message}; })
+        .catch(function(){ return {nome: inst.nome, ok: false, erro: 'erro de conexão'}; });
+    })).then(function(resultados){
+      btn.disabled = false;
+      var falhas = resultados.filter(function(r){ return !r.ok; });
+      if (!falhas.length) {
+        msg.className = 'msg ok';
+        msg.textContent = 'Acesso liberado em: ' + resultados.map(function(r){ return r.nome; }).join(', ') + '.';
+        el('lic-emp-senha').value = '';
+      } else {
+        msg.className = 'msg erro';
+        msg.textContent = 'Falhou em: ' + falhas.map(function(r){ return r.nome + ' (' + (r.erro || 'erro') + ')'; }).join('; ');
+      }
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function(){
     // Gate aparece antes de qualquer coisa. Se já tem senha salva de uma
     // visita anterior, confirma que ainda é válida antes de liberar —
@@ -359,6 +422,8 @@ function mostrarGate(){
     el('lic-logout').addEventListener('click', logout);
     el('lic-gerar-btn').addEventListener('click', gerar);
     el('lic-ver-stats').addEventListener('click', verStats);
+    el('lic-emp-btn').addEventListener('click', definirSenhaEmpresa);
+    montarCheckboxesInstrumentos();
   });
 })();
 </script>

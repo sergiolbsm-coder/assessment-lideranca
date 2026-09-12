@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portal da Empresa · Instituto da Liderança</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Cormorant+Garamond:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --idl-magenta:#FF0060; --idl-purple:#391694; --idl-purple-dark:#261062;
+  --idl-text:#24153E; --idl-text-muted:#6F667E;
+  --idl-background:#FBF9FF; --idl-white:#FFFFFF; --idl-border:rgba(57,22,148,.13);
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:'DM Sans',sans-serif;background:var(--idl-background);color:var(--idl-text);min-height:100vh;}
+.bg{position:fixed;inset:0;z-index:0;background:
+  radial-gradient(ellipse 60% 40% at 15% 20%,rgba(255,0,96,.06) 0%,transparent 60%),
+  radial-gradient(ellipse 50% 50% at 85% 75%,rgba(77,29,191,.04) 0%,transparent 55%),
+  var(--idl-background);}
+.wrap{position:relative;z-index:1;max-width:640px;margin:0 auto;padding:60px 20px;}
+
+/* ── login ── */
+#login-box{background:var(--idl-white);border:1px solid var(--idl-border);border-radius:16px;padding:40px 36px;text-align:center;box-shadow:0 24px 64px rgba(57,22,148,.12);}
+#login-box h1{font-family:'Cormorant Garamond',serif;color:var(--idl-purple-dark);font-size:28px;font-weight:700;margin:0 0 8px;}
+#login-box p{color:var(--idl-text-muted);font-size:13px;line-height:1.6;margin:0 0 24px;}
+#login-box input{width:100%;box-sizing:border-box;background:var(--idl-white);border:1px solid var(--idl-border);color:var(--idl-text);padding:13px 16px;border-radius:8px;font-size:15px;margin-bottom:12px;font-family:'DM Sans',sans-serif;}
+#login-box input:focus{outline:none;border-color:var(--idl-magenta);}
+#login-box button{width:100%;background:linear-gradient(135deg,var(--idl-purple-dark),var(--idl-magenta));color:#FBF9FF;border:0;padding:14px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;letter-spacing:.04em;transition:all .3s;}
+#login-box button:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(255,0,96,.35);}
+#login-box button:disabled{opacity:.6;cursor:default;transform:none;box-shadow:none;}
+.erro{color:var(--idl-magenta);font-size:12px;min-height:16px;margin-top:10px;font-weight:600;}
+
+/* ── resultado ── */
+#resultado.hidden, #login-box.hidden{display:none;}
+.topo{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.topo h1{font-family:'Cormorant Garamond',serif;color:var(--idl-purple-dark);font-size:26px;font-weight:700;margin:0;}
+.sair{color:var(--idl-text-muted);font-size:12px;cursor:pointer;text-decoration:underline;}
+.card{background:var(--idl-white);border:1px solid var(--idl-border);border-radius:12px;padding:20px 24px;margin-bottom:16px;}
+.card h2{font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--idl-purple);margin:0 0 4px;font-weight:700;}
+.card .resumo{font-size:12px;color:var(--idl-text-muted);margin-bottom:14px;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{text-align:left;color:var(--idl-text-muted);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--idl-border);font-size:11px;text-transform:uppercase;letter-spacing:.03em;}
+td{padding:7px 8px;border-bottom:1px solid var(--idl-border);font-family:'JetBrains Mono',monospace;font-size:11.5px;}
+.badge{display:inline-block;padding:2px 8px;border-radius:100px;font-size:10px;font-weight:700;letter-spacing:.03em;}
+.badge.disponivel{background:rgba(0,208,201,.12);color:#00A39D;}
+.badge.usado{background:rgba(57,22,148,.08);color:var(--idl-text-muted);}
+.vazio{text-align:center;color:var(--idl-text-muted);font-size:13px;padding:24px;}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="wrap">
+
+  <div id="login-box">
+    <h1>Portal da Empresa</h1>
+    <p>Acesse com o login fornecido pelo Instituto da Liderança pra acompanhar suas licenças.</p>
+    <input type="text" id="in-cliente" placeholder="Nome da empresa" autocomplete="username">
+    <input type="password" id="in-senha" placeholder="Senha" autocomplete="current-password">
+    <button id="btn-entrar" type="button">Entrar</button>
+    <div class="erro" id="msg-login"></div>
+  </div>
+
+  <div id="resultado" class="hidden">
+    <div class="topo">
+      <h1 id="nome-empresa"></h1>
+      <span class="sair" id="btn-sair">sair</span>
+    </div>
+    <div id="cards"></div>
+  </div>
+
+</div>
+
+<script>
+// Cada instrumento tem seu próprio backend/planilha independente — o mesmo
+// login (cliente+senha) só funciona num instrumento se você tiver definido
+// essa MESMA senha lá também (painel admin de cada um → "Senha de acesso da
+// empresa"). Adicionar um instrumento novo aqui é só adicionar uma linha.
+var INSTRUMENTOS = [
+  { nome: 'Assessment de Liderança', url: 'https://script.google.com/macros/s/AKfycbwqtC_mSQrzmSrByBFnqPgwNMCiVIQNOsgClqR1cEumw6d1mr3Sa_eA75u9wBZnnC7H1A/exec' }
+  // { nome: 'DNA Geracional', url: '...' },              // adicionar quando o backend tiver o mesmo login
+  // { nome: 'Diagnóstico de Carreira em RH', url: '...' } // idem
+];
+
+function el(id){ return document.getElementById(id); }
+
+function tentarInstrumento(inst, cliente, senha){
+  return fetch(inst.url + '?action=loginEmpresa&cliente=' + encodeURIComponent(cliente) + '&senha=' + encodeURIComponent(senha) + '&t=' + Date.now())
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (!d || !d.valido) return null;
+      return fetch(inst.url + '?action=tokensEmpresa&cliente=' + encodeURIComponent(cliente) + '&senha=' + encodeURIComponent(senha) + '&t=' + Date.now())
+        .then(function(r2){ return r2.json(); })
+        .then(function(d2){
+          if (!d2 || d2.status !== 'ok') return null;
+          return { nome: inst.nome, tokens: d2.data || [] };
+        });
+    })
+    .catch(function(){ return null; }); // instrumento fora do ar / sem esse login — ignora silenciosamente
+}
+
+function renderCard(resultado){
+  var usados = resultado.tokens.filter(function(t){ return t.status === 'usado'; }).length;
+  var total = resultado.tokens.length;
+  var linhas = resultado.tokens.map(function(t){
+    var cls = t.status === 'usado' ? 'usado' : 'disponivel';
+    var label = t.status === 'usado' ? 'Usado' : 'Disponível';
+    return '<tr><td>' + t.codigo + '</td><td><span class="badge ' + cls + '">' + label + '</span></td>' +
+           '<td>' + (t.respondente_email || '—') + '</td><td>' + (t.usado_em ? t.usado_em.slice(0,10) : '—') + '</td></tr>';
+  }).join('');
+  var tabela = total
+    ? '<table><thead><tr><th>Código</th><th>Status</th><th>Respondente</th><th>Usado em</th></tr></thead><tbody>' + linhas + '</tbody></table>'
+    : '<div class="vazio">Nenhum token gerado ainda pra este instrumento.</div>';
+  return '<div class="card"><h2>' + resultado.nome + '</h2>' +
+         '<div class="resumo">' + usados + ' de ' + total + ' licenças usadas</div>' + tabela + '</div>';
+}
+
+function entrar(){
+  var cliente = (el('in-cliente').value || '').trim();
+  var senha = (el('in-senha').value || '').trim();
+  var msg = el('msg-login'); var btn = el('btn-entrar');
+  msg.textContent = '';
+  if (!cliente || !senha) { msg.textContent = 'Preencha empresa e senha.'; return; }
+  btn.disabled = true; msg.textContent = 'Entrando…';
+
+  Promise.all(INSTRUMENTOS.map(function(inst){ return tentarInstrumento(inst, cliente, senha); }))
+    .then(function(resultados){
+      btn.disabled = false;
+      var validos = resultados.filter(function(r){ return r !== null; });
+      if (!validos.length) {
+        msg.textContent = 'Empresa ou senha incorretos, ou ainda sem acesso liberado.';
+        return;
+      }
+      el('nome-empresa').textContent = cliente;
+      el('cards').innerHTML = validos.map(renderCard).join('');
+      el('login-box').classList.add('hidden');
+      el('resultado').classList.remove('hidden');
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  el('btn-entrar').addEventListener('click', entrar);
+  el('in-senha').addEventListener('keydown', function(e){ if (e.key === 'Enter') entrar(); });
+  el('btn-sair').addEventListener('click', function(){
+    el('resultado').classList.add('hidden');
+    el('login-box').classList.remove('hidden');
+    el('in-senha').value = '';
+  });
+});
+</script>
+</body>
+</html>
