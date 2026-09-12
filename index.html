@@ -295,13 +295,16 @@ h1.hero span{display:block;background:linear-gradient(135deg,var(--idl-purple-da
       });
   }
 
-  // Substitui o exportPDF() original — que usa o wrapper html2pdf() e sai em
-  // branco (provavelmente porque html2pdf clona o elemento antes de
-  // capturar, e a cópia não herda as variáveis CSS --gold/--mid/etc. que
-  // esse relatório usa bastante). Captura o elemento AO VIVO com
-  // html2canvas, mesmo padrão que já funciona no admin.html — sem clonar,
-  // sem perder variável CSS. onclick="exportPDF()" no HTML original resolve
-  // pelo nome global na hora do clique, então essa substituição pega.
+  // Substitui o exportPDF() original — que usava o wrapper html2pdf() e saía
+  // em branco. Agora usa exatamente o mesmo método (mesmas opções de
+  // html2canvas) já comprovado nos botões de Relatório 360/Individual do
+  // admin.html — largura fixa (windowWidth:780) força o clone a renderizar
+  // em layout "desktop" consistente em vez de herdar a largura estreita da
+  // tela do respondente, que é o provável motivo do branco no mobile.
+  // Só troca o MÉTODO de captura — as seções/dados do relatório em si
+  // (#report-body, gerado por generateReport()) não são alteradas.
+  // onclick="exportPDF()" no HTML original resolve pelo nome global na hora
+  // do clique, então essa substituição pega.
   window.exportPDF = function() {
     var el = document.getElementById('report-body');
     if (!el) { alert('Relatório ainda não foi gerado.'); return; }
@@ -309,8 +312,8 @@ h1.hero span{display:block;background:linear-gradient(135deg,var(--idl-purple-da
     html2canvas(el, {
       scale: 2, useCORS: true, allowTaint: true,
       backgroundColor: '#ffffff', logging: false,
-      scrollX: 0, scrollY: -window.scrollY,
-      windowWidth: el.scrollWidth, windowHeight: el.scrollHeight
+      scrollX: 0, scrollY: 0,
+      width: el.scrollWidth || 740, windowWidth: 780
     }).then(function(canvas) {
       var pdf = new jsPDFCtor({ unit: 'pt', format: 'a4' });
       var pdfW = pdf.internal.pageSize.getWidth();
