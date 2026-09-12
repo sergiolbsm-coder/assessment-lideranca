@@ -7,6 +7,16 @@ var ABA_RESPOSTAS  = 'Respostas';
 var ABA_PONTUACAO  = 'Pontuacao';
 var ABA_RANKING    = 'Ranking';
 var ABA_TURMAS     = 'Turmas';   // ← nova aba: fonte única de verdade
+var ABA_TOKENS     = 'Tokens';   // ← licenças de acesso: 1 token = 1 resposta
+var CAB_TOKENS     = ['codigo','cliente','status','gerado_em','usado_em','respondente_email'];
+
+// Segredo pra proteger geração/listagem de tokens (ações administrativas e
+// financeiramente sensíveis — não podem ficar abertas como o resto do doGet
+// ainda está). Configure em: Editor do Apps Script → ⚙️ Configurações do
+// projeto → Propriedades do script → adicione ADMIN_SECRET com um valor
+// forte. Sem essa propriedade definida, as duas ações ficam bloqueadas por
+// padrão (fail-closed), não abertas.
+var ADMIN_SECRET = PropertiesService.getScriptProperties().getProperty('ADMIN_SECRET') || '';
 
 var CAB_RESPOSTAS = [
   'timestamp','nome','email','empresa','turma','fase',
@@ -42,6 +52,8 @@ function doGet(e) {
     if (action === 'getPontuacoes') return out.setContent(JSON.stringify(sheetToJson(ABA_PONTUACAO)));
     if (action === 'getRanking')    return out.setContent(JSON.stringify(sheetToJson(ABA_RANKING)));
     if (action === 'getTurmas')     return out.setContent(JSON.stringify(doGetTurmas()));
+    if (action === 'checkToken')    return out.setContent(JSON.stringify(doCheckToken(e.parameter.token)));
+    if (action === 'getTokens')     return out.setContent(JSON.stringify(doListTokens(e.parameter.secret)));
     return out.setContent(JSON.stringify(sheetToJson(ABA_RESPOSTAS)));
   } catch(err) {
     return out.setContent(JSON.stringify({status:'error', message:err.toString()}));
@@ -73,6 +85,7 @@ function doPost(e) {
     if (data.action === 'savePontuacao') return out.setContent(JSON.stringify(doSavePontuacao(data)));
     if (data.action === 'saveRanking')   return out.setContent(JSON.stringify(doSaveRanking(data.rows)));
     if (data.action === 'saveTurmas')    return out.setContent(JSON.stringify(doSaveTurmas(data.turmas)));
+    if (data.action === 'gerarTokens')   return out.setContent(JSON.stringify(doGerarTokens(data.cliente, data.quantidade, data.secret)));
     return out.setContent(JSON.stringify(doSaveResposta(data)));
   } catch(err) {
     Logger.log('Erro doPost: ' + err.toString());
@@ -116,8 +129,126 @@ function doSaveTurmas(turmas) {
   return {status:'ok', saved: rows.length};
 }
 
+// ── Tokens de licença ──────────────────────────────────────────────────────
+function configurarAbaTokens() {
+  var ss    = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName(ABA_TOKENS);
+  if (!sheet) {
+    sheet = ss.insertSheet(ABA_TOKENS);
+    var h = sheet.getRange(1, 1, 1, CAB_TOKENS.length);
+    h.setValues([CAB_TOKENS]);
+    h.setFontWeight('bold'); h.setBackground('#0A0806'); h.setFontColor('#C9A84C');
+    sheet.setFrozenRows(1);
+    sheet.getRange(1, 1, 1000, 1).setNumberFormat('@'); // código sempre como texto
+  }
+  return sheet;
+}
+
+// Código sem caracteres ambíguos (0/O, 1/I/L) — mais fácil de digitar certo.
+function gerarCodigoToken() {
+  var chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  var s = '';
+  for (var i = 0; i < 8; i++) s += chars.charAt(Math.floor(Math.random() * chars.length));
+  return s.slice(0, 4) + '-' + s.slice(4);
+}
+
+// Gera um lote de tokens pra um cliente. Ação administrativa — exige
+// ADMIN_SECRET (ver comentário da constante lá em cima).
+function doGerarTokens(cliente, quantidade, secret) {
+  if (!ADMIN_SECRET || secret !== ADMIN_SECRET) {
+    return {status: 'error', message: 'Não autorizado'};
+  }
+  quantidade = Number(quantidade);
+  if (!cliente || !quantidade || quantidade < 1 || quantidade > 500) {
+    return {status: 'error', message: 'Informe cliente e uma quantidade entre 1 e 500'};
+  }
+  var sheet = configurarAbaTokens();
+  var existentes = {};
+  if (sheet.getLastRow() > 1) {
+    sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues().forEach(function(r) { existentes[r[0]] = true; });
+  }
+  var agora = new Date().toISOString();
+  var codigos = [];
+  var rows = [];
+  for (var i = 0; i < quantidade; i++) {
+    var codigo;
+    do { codigo = gerarCodigoToken(); } while (existentes[codigo]);
+    existentes[codigo] = true;
+    codigos.push(codigo);
+    rows.push([codigo, cliente, 'disponivel', agora, '', '']);
+  }
+  var startRow = sheet.getLastRow() + 1;
+  sheet.getRange(startRow, 1, rows.length, CAB_TOKENS.length).setValues(rows);
+  sheet.getRange(startRow, 1, rows.length, 1).setNumberFormat('@');
+  return {status: 'ok', cliente: cliente, gerados: codigos.length, codigos: codigos};
+}
+
+// Lista todos os tokens (pro painel admin acompanhar uso). Também exige
+// ADMIN_SECRET — diferente do resto do doGet, essa lista não pode ficar
+// aberta: vazar código não-usado equivale a dar licença de graça.
+function doListTokens(secret) {
+  if (!ADMIN_SECRET || secret !== ADMIN_SECRET) {
+    return {status: 'error', message: 'Não autorizado'};
+  }
+  return sheetToJson(ABA_TOKENS);
+}
+
+// Checagem pública (sem segredo) — o respondente precisa poder validar o
+// próprio código antes de começar. Não expõe nada além de válido/inválido.
+function doCheckToken(codigo) {
+  if (!codigo) return {status: 'ok', valido: false, message: 'Informe um token'};
+  var achou = encontrarLinhaToken(codigo);
+  if (!achou) return {status: 'ok', valido: false, message: 'Token não encontrado'};
+  if (achou.status !== 'disponivel') return {status: 'ok', valido: false, message: 'Token já utilizado'};
+  return {status: 'ok', valido: true};
+}
+
+// Busca a linha (1-indexed) de um código. Comparação normalizada
+// (maiúsculas, sem espaço) pra tolerar digitação do respondente.
+function encontrarLinhaToken(codigo) {
+  if (!codigo) return null;
+  var norm = String(codigo).trim().toUpperCase();
+  var sheet = configurarAbaTokens();
+  if (sheet.getLastRow() <= 1) return null;
+  var vals = sheet.getRange(2, 1, sheet.getLastRow() - 1, CAB_TOKENS.length).getValues();
+  for (var i = 0; i < vals.length; i++) {
+    if (String(vals[i][0]).trim().toUpperCase() === norm) {
+      return {row: i + 2, codigo: vals[i][0], cliente: vals[i][1], status: vals[i][2]};
+    }
+  }
+  return null;
+}
+
+// Marca o token como usado. Chamado de dentro do LockService em
+// doSaveResposta — não chamar isso sozinho fora de um lock.
+function consumirToken(codigo, email) {
+  var achou = encontrarLinhaToken(codigo);
+  if (!achou) return {ok: false, message: 'Token inválido'};
+  if (achou.status !== 'disponivel') return {ok: false, message: 'Token já utilizado'};
+  var sheet = configurarAbaTokens();
+  sheet.getRange(achou.row, 3).setValue('usado');
+  sheet.getRange(achou.row, 5).setValue(new Date().toISOString());
+  sheet.getRange(achou.row, 6).setValue(email || '');
+  return {ok: true};
+}
+
 // ── Salvar resposta do assessment ────────────────────────────────────────────
+// Exige token de licença válido e ainda não usado. Consumo do token é
+// protegido por LockService pra duas respostas não conseguirem gastar o
+// mesmo código em paralelo (condição de corrida).
 function doSaveResposta(d) {
+  var lock = LockService.getScriptLock();
+  var consumo;
+  try {
+    lock.waitLock(10000);
+    consumo = consumirToken(d.token, d.email);
+    if (!consumo.ok) {
+      return {status: 'error', message: consumo.message};
+    }
+  } finally {
+    lock.releaseLock();
+  }
+
   var ss    = SpreadsheetApp.openById(SHEET_ID);
   var sheet = ss.getSheetByName(ABA_RESPOSTAS);
   if (!sheet) { configurarAbas(); sheet = ss.getSheetByName(ABA_RESPOSTAS); }
@@ -232,8 +363,20 @@ function configurarAbas() {
 }
 
 // ── Testes (executar no editor) ───────────────────────────────────────────────
+// Cria um token disponível direto na planilha (sem passar pelo segredo —
+// só pra uso interno do editor do Apps Script, nunca é exposto via web).
+function _criarTokenDeTeste() {
+  var sheet = configurarAbaTokens();
+  var codigo = gerarCodigoToken();
+  sheet.appendRow([codigo, 'TESTE', 'disponivel', new Date().toISOString(), '', '']);
+  sheet.getRange(sheet.getLastRow(), 1).setNumberFormat('@');
+  return codigo;
+}
+
 function testarInsercao() {
+  var token = _criarTokenDeTeste();
   var r = doSaveResposta({
+    token: token,
     timestamp:new Date().toISOString(), nome:'TESTE — Apagar', email:'teste@il.com',
     empresa:'Instituto da Liderança', turma:'Geral', fase:'Pré-Treinamento',
     disc_D:6,disc_I:-12,disc_S:-4,disc_C:8, disc_primario:'D',disc_secundario:'C',
@@ -275,7 +418,7 @@ function testarGetPontuacoes() {
 
 function limparTeste() {
   var ss = SpreadsheetApp.openById(SHEET_ID);
-  [ABA_RESPOSTAS,ABA_PONTUACAO,ABA_RANKING].forEach(function(n){
+  [ABA_RESPOSTAS,ABA_PONTUACAO,ABA_RANKING,ABA_TOKENS].forEach(function(n){
     var sh = ss.getSheetByName(n); if(!sh) return;
     var rows = sh.getDataRange().getValues();
     for(var i=rows.length-1;i>=1;i--){
@@ -291,4 +434,21 @@ function verEstatisticas() {
   Logger.log('Pontuacoes: ' + sheetToJson(ABA_PONTUACAO).total);
   Logger.log('Ranking: '    + sheetToJson(ABA_RANKING).total);
   Logger.log('Turmas: '     + JSON.stringify(doGetTurmas()));
+  Logger.log('Tokens: '     + sheetToJson(ABA_TOKENS).total);
+}
+
+// Roda no editor do Apps Script pra testar o ciclo completo de token:
+// gera, checa disponível, usa numa resposta, checa que ficou indisponível.
+function testarTokens() {
+  if (!ADMIN_SECRET) {
+    Logger.log('Defina ADMIN_SECRET em Configurações do projeto → Propriedades do script antes de testar doGerarTokens/doListTokens.');
+  } else {
+    var lote = doGerarTokens('TESTE', 2, ADMIN_SECRET);
+    Logger.log('Gerados: ' + JSON.stringify(lote));
+    if (lote.codigos && lote.codigos[0]) {
+      Logger.log('Check antes de usar: ' + JSON.stringify(doCheckToken(lote.codigos[0])));
+      Logger.log('Consumo: ' + JSON.stringify(consumirToken(lote.codigos[0], 'teste@il.com')));
+      Logger.log('Check depois de usar (deve ser inválido): ' + JSON.stringify(doCheckToken(lote.codigos[0])));
+    }
+  }
 }

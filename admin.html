@@ -165,6 +165,187 @@ tr:hover td{background:rgba(255,255,255,.02)}
 <script>var jspdf_lib = window.jspdf || (typeof jspdf !== "undefined" ? jspdf : {jsPDF: window.jsPDF});</script>
 </head>
 <body>
+
+<!-- ░ PAINEL DE LICENÇAS — bloco novo e independente do resto (que é -->
+<!-- ofuscado de propósito). Fala direto com as ações gerarTokens/getTokens -->
+<!-- do Apps Script, sem tocar em nenhum código existente. -->
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+#lic-toggle{position:fixed;bottom:20px;right:20px;z-index:99998;background:linear-gradient(135deg,#261062,#FF0060);color:#FBF9FF;border:0;border-radius:999px;padding:13px 20px;font-weight:700;font-size:13px;cursor:pointer;letter-spacing:.04em;box-shadow:0 8px 28px rgba(255,0,96,.3);font-family:'DM Sans',sans-serif;transition:all .3s;}
+#lic-toggle:hover{transform:translateY(-2px);}
+#lic-panel{position:fixed;bottom:74px;right:20px;z-index:99998;width:340px;max-height:70vh;overflow-y:auto;background:#FFFFFF;border:1px solid rgba(57,22,148,.13);border-radius:14px;padding:22px;font-family:'DM Sans',sans-serif;box-shadow:0 24px 64px rgba(57,22,148,.2);}
+#lic-panel.hidden{display:none;}
+#lic-panel h2{color:#261062;font-size:13px;letter-spacing:.04em;text-transform:uppercase;margin:0 0 16px;font-weight:700;}
+#lic-panel label{display:block;color:#6F667E;font-size:11px;margin:12px 0 5px;}
+#lic-panel input{width:100%;box-sizing:border-box;background:#FFFFFF;border:1px solid rgba(57,22,148,.13);color:#24153E;padding:11px 13px;border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;}
+#lic-panel input:focus{outline:none;border-color:#FF0060;}
+#lic-panel button.gerar{width:100%;margin-top:16px;background:linear-gradient(135deg,#261062,#FF0060);color:#FBF9FF;border:0;padding:12px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;letter-spacing:.04em;transition:all .3s;}
+#lic-panel button.gerar:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(255,0,96,.35);}
+#lic-panel button.gerar:disabled{opacity:.6;cursor:default;transform:none;box-shadow:none;}
+#lic-panel .msg{font-size:12px;margin-top:10px;min-height:14px;font-weight:600;}
+#lic-panel .msg.erro{color:#FF0060;}
+#lic-panel .msg.ok{color:#00A39D;}
+#lic-panel .codigos{margin-top:10px;background:#F4F0FB;border-radius:8px;padding:12px;font-size:12px;color:#24153E;max-height:160px;overflow-y:auto;font-family:'JetBrains Mono',monospace;white-space:pre-wrap;}
+#lic-panel .stats{margin-top:16px;border-top:1px solid rgba(57,22,148,.13);padding-top:14px;font-size:12px;color:#6F667E;}
+#lic-panel .stats a{color:#FF0060;cursor:pointer;text-decoration:underline;font-weight:600;}
+#lic-panel .sair{float:right;font-size:11px;cursor:pointer;color:#6F667E;text-transform:none;letter-spacing:0;font-weight:400;}
+#lic-login.hidden, #lic-main.hidden{display:none;}
+</style>
+<button id="lic-toggle" type="button">🔑 Licenças</button>
+<div id="lic-panel" class="hidden">
+
+  <div id="lic-login">
+    <h2>Login administrador</h2>
+    <label>Senha de administrador</label>
+    <input type="password" id="lic-login-input" placeholder="••••••••">
+    <button class="gerar" id="lic-login-btn" type="button">Entrar</button>
+    <div class="msg" id="lic-login-msg"></div>
+  </div>
+
+  <div id="lic-main" class="hidden">
+    <h2>Gerar licenças <span class="sair" id="lic-logout">sair</span></h2>
+    <label>Cliente / Empresa</label>
+    <input type="text" id="lic-cliente" placeholder="Ex: Empresa XYZ">
+    <label>Quantidade</label>
+    <input type="number" id="lic-qtd" value="10" min="1" max="500">
+    <button class="gerar" id="lic-gerar-btn" type="button">Gerar tokens</button>
+    <div class="msg" id="lic-msg"></div>
+    <div class="codigos hidden" id="lic-codigos"></div>
+    <div class="stats">
+      <a id="lic-ver-stats">ver uso de tokens ↻</a>
+      <div id="lic-stats-out"></div>
+    </div>
+  </div>
+
+</div>
+<script>
+(function(){
+  var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwqtC_mSQrzmSrByBFnqPgwNMCiVIQNOsgClqR1cEumw6d1mr3Sa_eA75u9wBZnnC7H1A/exec';
+  var SECRET_KEY = 'il_admin_license_secret';
+
+  function el(id){ return document.getElementById(id); }
+  function getSecret(){ try { return localStorage.getItem(SECRET_KEY) || ''; } catch(e){ return ''; } }
+  function setSecret(v){ try { localStorage.setItem(SECRET_KEY, v); } catch(e){} }
+  function clearSecret(){ try { localStorage.removeItem(SECRET_KEY); } catch(e){} }
+
+  // A "senha" É o ADMIN_SECRET do Apps Script — não existe usuário/senha
+  // separado guardado em outro lugar. Validar = tentar getTokens e ver se o
+  // backend aceita; não há como confirmar localmente sem bater no servidor.
+  function validarSenha(senha, onOk, onErro){
+    fetch(SHEETS_URL + '?action=getTokens&secret=' + encodeURIComponent(senha) + '&t=' + Date.now())
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (d && d.status === 'ok') onOk(); else onErro((d && d.message) || 'Senha incorreta.');
+      })
+      .catch(function(){ onErro('Erro de conexão.'); });
+  }
+
+  function mostrarLogin(){
+    el('lic-login').classList.remove('hidden');
+    el('lic-main').classList.add('hidden');
+    el('lic-login-input').value = '';
+    el('lic-login-msg').textContent = '';
+  }
+  function mostrarMain(){
+    el('lic-login').classList.add('hidden');
+    el('lic-main').classList.remove('hidden');
+  }
+
+  function tentarLogin(){
+    var senha = (el('lic-login-input').value || '').trim();
+    var msg = el('lic-login-msg'); var btn = el('lic-login-btn');
+    if (!senha) { msg.className = 'msg erro'; msg.textContent = 'Digite a senha.'; return; }
+    btn.disabled = true; msg.className = 'msg'; msg.textContent = '';
+    validarSenha(senha, function(){
+      btn.disabled = false;
+      setSecret(senha);
+      mostrarMain();
+    }, function(erro){
+      btn.disabled = false;
+      msg.className = 'msg erro'; msg.textContent = erro;
+    });
+  }
+
+  function logout(){
+    clearSecret();
+    mostrarLogin();
+  }
+
+  function gerar(){
+    var secret = getSecret();
+    var cliente = (el('lic-cliente').value || '').trim();
+    var qtd = Number(el('lic-qtd').value);
+    var msg = el('lic-msg'); var out = el('lic-codigos'); var btn = el('lic-gerar-btn');
+    msg.className = 'msg'; msg.textContent = ''; out.classList.add('hidden'); out.textContent = '';
+    if (!cliente) { msg.className = 'msg erro'; msg.textContent = 'Informe o cliente.'; return; }
+    if (!qtd || qtd < 1) { msg.className = 'msg erro'; msg.textContent = 'Quantidade inválida.'; return; }
+    btn.disabled = true;
+    fetch(SHEETS_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({action: 'gerarTokens', cliente: cliente, quantidade: qtd, secret: secret})
+    }).then(function(r){ return r.json(); }).then(function(d){
+      btn.disabled = false;
+      if (d && d.status === 'ok') {
+        msg.className = 'msg ok'; msg.textContent = d.gerados + ' token(s) gerado(s) pra "' + d.cliente + '".';
+        out.classList.remove('hidden'); out.textContent = (d.codigos || []).join('\n');
+      } else if (d && d.message === 'Não autorizado') {
+        // senha guardada não é mais válida (trocaram o ADMIN_SECRET) — pede login de novo
+        logout();
+      } else {
+        msg.className = 'msg erro'; msg.textContent = (d && d.message) || 'Erro ao gerar.';
+      }
+    }).catch(function(){
+      btn.disabled = false;
+      msg.className = 'msg erro'; msg.textContent = 'Erro de conexão.';
+    });
+  }
+
+  function verStats(){
+    var secret = getSecret();
+    var target = el('lic-stats-out');
+    target.textContent = 'carregando…';
+    fetch(SHEETS_URL + '?action=getTokens&secret=' + encodeURIComponent(secret) + '&t=' + Date.now())
+      .then(function(r){ return r.json(); }).then(function(d){
+        if (!d || d.status !== 'ok') { target.textContent = (d && d.message) || 'Erro.'; return; }
+        var porCliente = {};
+        (d.data || []).forEach(function(t){
+          var c = t.cliente || '(sem cliente)';
+          porCliente[c] = porCliente[c] || {total: 0, usados: 0};
+          porCliente[c].total++;
+          if (t.status === 'usado') porCliente[c].usados++;
+        });
+        var linhas = Object.keys(porCliente).map(function(c){
+          var s = porCliente[c];
+          return c + ': ' + s.usados + '/' + s.total + ' usados';
+        });
+        target.textContent = linhas.length ? linhas.join('\n') : '(nenhum token gerado ainda)';
+        target.style.whiteSpace = 'pre-wrap';
+      }).catch(function(){ target.textContent = 'Erro de conexão.'; });
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    el('lic-toggle').addEventListener('click', function(){
+      el('lic-panel').classList.toggle('hidden');
+      if (!el('lic-panel').classList.contains('hidden')) {
+        var salva = getSecret();
+        if (salva) {
+          // já logado antes — confirma que a senha salva ainda é válida
+          validarSenha(salva, mostrarMain, function(){ clearSecret(); mostrarLogin(); });
+        } else {
+          mostrarLogin();
+        }
+      }
+    });
+    el('lic-login-btn').addEventListener('click', tentarLogin);
+    el('lic-login-input').addEventListener('keydown', function(e){ if (e.key === 'Enter') tentarLogin(); });
+    el('lic-logout').addEventListener('click', logout);
+    el('lic-gerar-btn').addEventListener('click', gerar);
+    el('lic-ver-stats').addEventListener('click', verStats);
+  });
+})();
+</script>
+
 <div class="bg"></div>
 
 <div class="layout">
@@ -336,7 +517,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
         </div>
         <div class="config-row">
           <div class="config-label">URL do Apps Script (Web App)</div>
-          <input class="config-input" id="cfg-script-url" placeholder="https://script.google.com/macros/s/XXXX/exec" value="https://script.google.com/macros/s/AKfycbyUFi-n1PaKBH119A0XiWZ_wMgN7jRbN176F1VLEUD0JyODhVVGooVRcQQ1D0MFZkS4ng/exec">
+          <input class="config-input" id="cfg-script-url" placeholder="https://script.google.com/macros/s/XXXX/exec" value="https://script.google.com/macros/s/AKfycbwqtC_mSQrzmSrByBFnqPgwNMCiVIQNOsgClqR1cEumw6d1mr3Sa_eA75u9wBZnnC7H1A/exec">
           <div class="config-hint">Gerada ao implantar o Apps Script como Web App com acesso público.</div>
         </div>
         <button class="btn btn-gold" onclick="saveConfig()" style="margin-top:6px">💾 Salvar Configuração</button>
