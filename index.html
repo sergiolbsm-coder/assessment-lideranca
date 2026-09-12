@@ -10,6 +10,11 @@
      relatório, mas a biblioteca nunca estava sendo carregada em lugar
      nenhum da página (por isso o PDF saía em branco/quebrado). -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<!-- jsPDF + html2canvas separados (mesmas versões do admin.html) — usados
+     pelo override do exportPDF logo abaixo, que substitui o html2pdf()
+     wrapper (que sai em branco com as variáveis CSS deste relatório). -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root{
   /* ── IDL Design System ──────────────────────────── */
@@ -289,6 +294,46 @@ h1.hero span{display:block;background:linear-gradient(135deg,var(--idl-purple-da
         erro.textContent = 'Erro de conexão — tenta de novo.';
       });
   }
+
+  // Substitui o exportPDF() original — que usa o wrapper html2pdf() e sai em
+  // branco (provavelmente porque html2pdf clona o elemento antes de
+  // capturar, e a cópia não herda as variáveis CSS --gold/--mid/etc. que
+  // esse relatório usa bastante). Captura o elemento AO VIVO com
+  // html2canvas, mesmo padrão que já funciona no admin.html — sem clonar,
+  // sem perder variável CSS. onclick="exportPDF()" no HTML original resolve
+  // pelo nome global na hora do clique, então essa substituição pega.
+  window.exportPDF = function() {
+    var el = document.getElementById('report-body');
+    if (!el) { alert('Relatório ainda não foi gerado.'); return; }
+    var jsPDFCtor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+    html2canvas(el, {
+      scale: 2, useCORS: true, allowTaint: true,
+      backgroundColor: '#ffffff', logging: false,
+      scrollX: 0, scrollY: -window.scrollY,
+      windowWidth: el.scrollWidth, windowHeight: el.scrollHeight
+    }).then(function(canvas) {
+      var pdf = new jsPDFCtor({ unit: 'pt', format: 'a4' });
+      var pdfW = pdf.internal.pageSize.getWidth();
+      var pageH = pdf.internal.pageSize.getHeight();
+      var imgH = canvas.height * (pdfW / canvas.width);
+      var imgData = canvas.toDataURL('image/jpeg', 0.95);
+      var heightLeft = imgH;
+      var position = 0;
+      pdf.addImage(imgData, 'JPEG', 0, position, pdfW, imgH);
+      heightLeft -= pageH;
+      while (heightLeft > 0) {
+        position = heightLeft - imgH;
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, position, pdfW, imgH);
+        heightLeft -= pageH;
+      }
+      var nomeEl = document.querySelector('.report-name');
+      var nome = nomeEl ? nomeEl.textContent.trim().replace(/\s+/g, '-') : 'Relatorio';
+      pdf.save('Relatorio-Lideranca-' + nome + '.pdf');
+    }).catch(function(e) {
+      alert('Erro ao gerar o PDF: ' + e.message);
+    });
+  };
 
   document.addEventListener('DOMContentLoaded', function(){
     document.getElementById('license-gate-btn').addEventListener('click', validar);
