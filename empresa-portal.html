@@ -45,6 +45,16 @@ td{padding:7px 8px;border-bottom:1px solid var(--idl-border);font-family:'JetBra
 .badge.disponivel{background:rgba(0,208,201,.12);color:#00A39D;}
 .badge.usado{background:rgba(57,22,148,.08);color:var(--idl-text-muted);}
 .vazio{text-align:center;color:var(--idl-text-muted);font-size:13px;padding:24px;}
+.dash{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;}
+.chip{background:rgba(57,22,148,.06);border:1px solid var(--idl-border);color:var(--idl-purple);font-size:11px;font-weight:600;padding:4px 12px;border-radius:100px;font-family:'JetBrains Mono',monospace;letter-spacing:.02em;}
+.chip-total{background:linear-gradient(135deg,var(--idl-purple-dark),var(--idl-magenta));color:#FBF9FF;border:none;}
+.subtitulo{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--idl-text-muted);margin:0 0 10px;font-weight:700;}
+.acao{color:var(--idl-magenta);font-weight:600;cursor:pointer;text-decoration:underline;}
+tr.detalhe.hidden{display:none;}
+tr.detalhe td{background:#F4F0FB;padding:14px 16px;}
+.detgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;}
+.detlabel{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:var(--idl-text-muted);margin-bottom:2px;}
+.detval{display:block;font-size:12px;color:var(--idl-text);font-family:'DM Sans',sans-serif;}
 </style>
 </head>
 <body>
@@ -88,30 +98,78 @@ function tentarInstrumento(inst, cliente, senha){
     .then(function(r){ return r.json(); })
     .then(function(d){
       if (!d || !d.valido) return null;
-      return fetch(inst.url + '?action=tokensEmpresa&cliente=' + encodeURIComponent(cliente) + '&senha=' + encodeURIComponent(senha) + '&t=' + Date.now())
-        .then(function(r2){ return r2.json(); })
-        .then(function(d2){
-          if (!d2 || d2.status !== 'ok') return null;
-          return { nome: inst.nome, tokens: d2.data || [] };
-        });
+      return Promise.all([
+        fetch(inst.url + '?action=tokensEmpresa&cliente=' + encodeURIComponent(cliente) + '&senha=' + encodeURIComponent(senha) + '&t=' + Date.now()).then(function(r){ return r.json(); }),
+        fetch(inst.url + '?action=respostasEmpresa&cliente=' + encodeURIComponent(cliente) + '&senha=' + encodeURIComponent(senha) + '&t=' + Date.now()).then(function(r){ return r.json(); })
+      ]).then(function(res){
+        var dTokens = res[0], dRespostas = res[1];
+        return {
+          id: inst.nome.replace(/[^a-z0-9]/gi,''),
+          nome: inst.nome,
+          tokens: (dTokens && dTokens.status === 'ok') ? dTokens.data : [],
+          respostas: (dRespostas && dRespostas.status === 'ok') ? dRespostas.data : []
+        };
+      });
     })
     .catch(function(){ return null; }); // instrumento fora do ar / sem esse login — ignora silenciosamente
 }
 
+function fmtData(iso){ return iso ? String(iso).slice(0,10).split('-').reverse().join('/') : '—'; }
+
+function renderDashboard(respostas){
+  var total = respostas.length;
+  var porDisc = {};
+  respostas.forEach(function(r){
+    var d = r.disc_primario || '—';
+    porDisc[d] = (porDisc[d] || 0) + 1;
+  });
+  var chips = Object.keys(porDisc).sort().map(function(d){
+    return '<span class="chip">' + d + ': ' + porDisc[d] + '</span>';
+  }).join('');
+  return '<div class="dash"><span class="chip chip-total">' + total + ' respondente(s)</span>' + chips + '</div>';
+}
+
+function renderWorklist(id, respostas){
+  if (!respostas.length) return '<div class="vazio">Ninguém da empresa respondeu este assessment ainda.</div>';
+  var linhas = respostas.map(function(r, i){
+    var disc = [r.disc_primario, r.disc_secundario].filter(Boolean).join('/') || '—';
+    var ennea = r.ennea_tipo ? (r.ennea_tipo + (r.ennea_nome ? ' · ' + r.ennea_nome : '')) : '—';
+    var rowId = id + '-' + i;
+    return '<tr>' +
+      '<td>' + (r.nome || '—') + '</td>' +
+      '<td>' + (r.empresa || '—') + '</td>' +
+      '<td>' + disc + '</td>' +
+      '<td>' + ennea + '</td>' +
+      '<td>' + fmtData(r.timestamp) + '</td>' +
+      '<td><a class="acao" data-row="' + rowId + '">Ver detalhes</a></td>' +
+      '</tr>' +
+      '<tr id="det-' + rowId + '" class="detalhe hidden"><td colspan="6">' + renderDetalhe(r) + '</td></tr>';
+  }).join('');
+  return '<table><thead><tr><th>Nome</th><th>Empresa</th><th>DISC</th><th>Eneagrama</th><th>Data</th><th>Ações</th></tr></thead><tbody>' + linhas + '</tbody></table>';
+}
+
+function renderDetalhe(r){
+  var campos = [
+    ['Turma', r.turma], ['Fase', r.fase],
+    ['DISC natural', [r.disc_nat_D,r.disc_nat_I,r.disc_nat_S,r.disc_nat_C].join(' / ')],
+    ['Arquétipo', r.arquetipos], ['Estilo Kolb', r.kolb_estilo],
+    ['Holland', r.holland_codigo], ['Necessidades', [r.need_1a, r.need_2a].filter(Boolean).join(', ')]
+  ];
+  return '<div class="detgrid">' + campos.map(function(c){
+    return '<div><span class="detlabel">' + c[0] + '</span><span class="detval">' + (c[1] || '—') + '</span></div>';
+  }).join('') + '</div>';
+}
+
 function renderCard(resultado){
   var usados = resultado.tokens.filter(function(t){ return t.status === 'usado'; }).length;
-  var total = resultado.tokens.length;
-  var linhas = resultado.tokens.map(function(t){
-    var cls = t.status === 'usado' ? 'usado' : 'disponivel';
-    var label = t.status === 'usado' ? 'Usado' : 'Disponível';
-    return '<tr><td>' + t.codigo + '</td><td><span class="badge ' + cls + '">' + label + '</span></td>' +
-           '<td>' + (t.respondente_email || '—') + '</td><td>' + (t.usado_em ? t.usado_em.slice(0,10) : '—') + '</td></tr>';
-  }).join('');
-  var tabela = total
-    ? '<table><thead><tr><th>Código</th><th>Status</th><th>Respondente</th><th>Usado em</th></tr></thead><tbody>' + linhas + '</tbody></table>'
-    : '<div class="vazio">Nenhum token gerado ainda pra este instrumento.</div>';
-  return '<div class="card"><h2>' + resultado.nome + '</h2>' +
-         '<div class="resumo">' + usados + ' de ' + total + ' licenças usadas</div>' + tabela + '</div>';
+  var totalTok = resultado.tokens.length;
+  return '<div class="card">' +
+    '<h2>' + resultado.nome + '</h2>' +
+    '<div class="resumo">' + usados + ' de ' + totalTok + ' licenças usadas</div>' +
+    renderDashboard(resultado.respostas) +
+    '<h3 class="subtitulo">Respondentes</h3>' +
+    renderWorklist(resultado.id, resultado.respostas) +
+    '</div>';
 }
 
 function entrar(){
@@ -144,6 +202,13 @@ document.addEventListener('DOMContentLoaded', function(){
     el('resultado').classList.add('hidden');
     el('login-box').classList.remove('hidden');
     el('in-senha').value = '';
+  });
+  // Delegação — as linhas "Ver detalhes" são criadas depois do login, então
+  // o listener fica no container pai (que já existe desde o início).
+  el('cards').addEventListener('click', function(e){
+    if (!e.target.classList.contains('acao')) return;
+    var row = el('det-' + e.target.getAttribute('data-row'));
+    if (row) row.classList.toggle('hidden');
   });
 });
 </script>

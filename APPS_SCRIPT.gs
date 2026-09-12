@@ -58,6 +58,7 @@ function doGet(e) {
     if (action === 'getTokens')     return out.setContent(JSON.stringify(doListTokens(e.parameter.secret)));
     if (action === 'loginEmpresa')  return out.setContent(JSON.stringify(doLoginEmpresa(e.parameter.cliente, e.parameter.senha)));
     if (action === 'tokensEmpresa') return out.setContent(JSON.stringify(doTokensEmpresa(e.parameter.cliente, e.parameter.senha)));
+    if (action === 'respostasEmpresa') return out.setContent(JSON.stringify(doRespostasEmpresa(e.parameter.cliente, e.parameter.senha)));
     return out.setContent(JSON.stringify(sheetToJson(ABA_RESPOSTAS)));
   } catch(err) {
     return out.setContent(JSON.stringify({status:'error', message:err.toString()}));
@@ -314,6 +315,19 @@ function doTokensEmpresa(cliente, senha) {
     return String(t.cliente).trim().toLowerCase() === norm;
   });
   // Não devolve o hash de ninguém, nem dados de outras empresas.
+  return {status: 'ok', cliente: cliente, data: meus, total: meus.length};
+}
+
+// Respostas (resultados do assessment) de UMA empresa — mesma regra:
+// revalida login a cada chamada, só devolve linhas com esse "empresa".
+function doRespostasEmpresa(cliente, senha) {
+  var login = doLoginEmpresa(cliente, senha);
+  if (!login.valido) return {status: 'error', message: login.message || 'Não autorizado'};
+  var todos = sheetToJson(ABA_RESPOSTAS);
+  var norm = String(cliente).trim().toLowerCase();
+  var meus = (todos.data || []).filter(function(r) {
+    return String(r.empresa).trim().toLowerCase() === norm;
+  });
   return {status: 'ok', cliente: cliente, data: meus, total: meus.length};
 }
 
