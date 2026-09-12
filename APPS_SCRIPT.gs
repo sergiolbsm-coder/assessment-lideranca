@@ -538,6 +538,26 @@ function verEstatisticas() {
 
 // Roda no editor do Apps Script pra testar o ciclo completo de token:
 // gera, checa disponível, usa numa resposta, checa que ficou indisponível.
+// Corrige o cabeçalho (linha 1) da aba Respostas — ele está desatualizado,
+// faltando as 8 colunas disc_nat_*/disc_mask_* que o código já escreve há
+// um tempo. Isso desalinha TODO o resto da linha (elemento, eneagrama,
+// arquétipo, kolb, necessidades, holland) em 8 colunas pra direita do
+// rótulo certo, em TODAS as respostas — não só nas novas.
+// Rode isso UMA VEZ no editor do Apps Script. Não mexe em nenhum dado, só
+// reescreve a linha 1 com os 48 nomes de coluna na ordem certa — os dados
+// já estavam nas colunas certas o tempo todo, só o rótulo é que mentia.
+function corrigirCabecalhoRespostas() {
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName(ABA_RESPOSTAS);
+  if (!sheet) { Logger.log('Aba Respostas não encontrada.'); return; }
+  var antes = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  sheet.getRange(1, 1, 1, CAB_RESPOSTAS.length).setValues([CAB_RESPOSTAS]);
+  var hr = sheet.getRange(1, 1, 1, CAB_RESPOSTAS.length);
+  hr.setFontWeight('bold'); hr.setBackground('#261062'); hr.setFontColor('#FFFFFF');
+  Logger.log('Cabeçalho ANTES (' + antes.length + ' colunas): ' + JSON.stringify(antes));
+  Logger.log('Cabeçalho CORRIGIDO (' + CAB_RESPOSTAS.length + ' colunas): ' + JSON.stringify(CAB_RESPOSTAS));
+}
+
 function testarTokens() {
   if (!ADMIN_SECRET) {
     Logger.log('Defina ADMIN_SECRET em Configurações do projeto → Propriedades do script antes de testar doGerarTokens/doListTokens.');
