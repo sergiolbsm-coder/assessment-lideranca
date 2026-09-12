@@ -140,12 +140,13 @@ function renderWorklist(id, respostas){
       '<td>' + (r.empresa || '—') + '</td>' +
       '<td>' + disc + '</td>' +
       '<td>' + ennea + '</td>' +
+      '<td>' + (r.token || '—') + '</td>' +
       '<td>' + fmtData(r.timestamp) + '</td>' +
       '<td><a class="acao" data-row="' + rowId + '">Ver detalhes</a></td>' +
       '</tr>' +
-      '<tr id="det-' + rowId + '" class="detalhe hidden"><td colspan="6">' + renderDetalhe(r) + '</td></tr>';
+      '<tr id="det-' + rowId + '" class="detalhe hidden"><td colspan="7">' + renderDetalhe(r) + '</td></tr>';
   }).join('');
-  return '<table><thead><tr><th>Nome</th><th>Empresa</th><th>DISC</th><th>Eneagrama</th><th>Data</th><th>Ações</th></tr></thead><tbody>' + linhas + '</tbody></table>';
+  return '<table><thead><tr><th>Nome</th><th>Empresa</th><th>DISC</th><th>Eneagrama</th><th>Token</th><th>Data</th><th>Ações</th></tr></thead><tbody>' + linhas + '</tbody></table>';
 }
 
 function renderDetalhe(r){

@@ -38,9 +38,12 @@ var CAB_RESPOSTAS = [
   'holland_codigo','holland_tipo1','holland_tipo2','holland_tipo3',
   'holland_R','holland_I','holland_A','holland_S','holland_E','holland_C',
   'disc_nat_D','disc_nat_I','disc_nat_S','disc_nat_C',
-  'disc_mask_D','disc_mask_I','disc_mask_S','disc_mask_C'
+  'disc_mask_D','disc_mask_I','disc_mask_S','disc_mask_C',
+  // Também no FINAL, mesmo motivo — token usado por essa resposta, pra dar
+  // pra rastrear qual licença gerou qual resposta (pedido do usuário).
+  'token'
 ];
-var TEXT_COLS_R = [1,2,3,4,5,6,11,12,17,18,19,20,21,22,23,24,31,32,33,34];
+var TEXT_COLS_R = [1,2,3,4,5,6,11,12,17,18,19,20,21,22,23,24,31,32,33,34,49];
 
 var CAB_PONTUACAO = [
   'respondente_key','nome','email','turma','empresa',
@@ -375,7 +378,8 @@ function doSaveResposta(d) {
     Number(d.holland_S)||0, Number(d.holland_E)||0, Number(d.holland_C)||0,
     // Adicionadas no final de propósito — ver comentário de CAB_RESPOSTAS.
     Number(d.disc_nat_D)||0, Number(d.disc_nat_I)||0, Number(d.disc_nat_S)||0, Number(d.disc_nat_C)||0,
-    Number(d.disc_mask_D)||0, Number(d.disc_mask_I)||0, Number(d.disc_mask_S)||0, Number(d.disc_mask_C)||0
+    Number(d.disc_mask_D)||0, Number(d.disc_mask_I)||0, Number(d.disc_mask_S)||0, Number(d.disc_mask_C)||0,
+    d.token || ''
   ];
 
   sheet.appendRow(linha);
