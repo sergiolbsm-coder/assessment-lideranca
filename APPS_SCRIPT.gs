@@ -558,6 +558,63 @@ function corrigirCabecalhoRespostas() {
   Logger.log('Cabeçalho CORRIGIDO (' + CAB_RESPOSTAS.length + ' colunas): ' + JSON.stringify(CAB_RESPOSTAS));
 }
 
+// Migração ÚNICA das respostas gravadas ANTES de 24/06/2026 (commit
+// 73f87f3), quando disc_nat_*/disc_mask_* ainda não existiam — a planilha
+// tinha 40 colunas, não 48. O cabeçalho novo (48 col.) desalinha a leitura
+// dessas linhas antigas a partir da coluna 13: o que era elem_FOGO passa a
+// ler como disc_nat_D, e assim por diante, em cascata até sobrar 8 colunas
+// vazias no final (holland_tipo2...holland_C nunca existiam nessas linhas).
+//
+// Detecta automaticamente as linhas afetadas (as 8 colunas disc_nat/mask
+// zeradas E as últimas 8 colunas — holland_tipo2 em diante — vazias) e
+// desloca os 28 valores de volta pra posição certa. disc_nat_*/disc_mask_*
+// ficam zerados nessas linhas porque esse dado nunca foi capturado — não
+// tem como recuperar, só parar de ler errado.
+//
+// Rode primeiro com dryRun=true (padrão) — só mostra no Log o que mudaria,
+// sem gravar nada. Confirme que faz sentido, depois rode
+// migrarLinhasAntigas(false) pra gravar de verdade.
+function migrarLinhasAntigas(dryRun) {
+  if (dryRun === undefined) dryRun = true;
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName(ABA_RESPOSTAS);
+  var lastRow = sheet.getLastRow();
+  if (lastRow <= 1) { Logger.log('Nada pra migrar.'); return; }
+
+  var range = sheet.getRange(2, 1, lastRow - 1, CAB_RESPOSTAS.length);
+  var valores = range.getValues();
+  var afetadas = [];
+
+  for (var i = 0; i < valores.length; i++) {
+    var row = valores[i];
+    var col13a20Zeradas = row.slice(12, 20).every(function(v) { return v === 0 || v === '0' || v === ''; });
+    var col41a48Vazias  = row.slice(40, 48).every(function(v) { return v === '' || v === 0; });
+    if (!col13a20Zeradas || !col41a48Vazias) continue; // já está no formato novo — pula
+
+    var prefixo = row.slice(0, 12);   // timestamp...disc_secundario — inalterado
+    var meio    = row.slice(12, 40);  // 28 valores que hoje estão nas colunas erradas
+    var novaLinha = prefixo.concat([0, 0, 0, 0, 0, 0, 0, 0]).concat(meio);
+    while (novaLinha.length < CAB_RESPOSTAS.length) novaLinha.push('');
+
+    afetadas.push({linha: i + 2, nome: row[1], antes: row, depois: novaLinha});
+  }
+
+  Logger.log((dryRun ? 'SIMULAÇÃO — ' : 'GRAVANDO — ') + afetadas.length + ' linha(s) afetada(s).');
+  afetadas.forEach(function(a) {
+    Logger.log('Linha ' + a.linha + ' (' + a.nome + '): elem_primario/disc_mask_D antes="' +
+      a.antes[16] + '" depois de corrigir vai pra elem_primario="' + a.depois[24] + '"');
+  });
+
+  if (!dryRun) {
+    afetadas.forEach(function(a) {
+      sheet.getRange(a.linha, 1, 1, CAB_RESPOSTAS.length).setValues([a.depois]);
+    });
+    Logger.log('Gravado. ' + afetadas.length + ' linha(s) corrigida(s).');
+  } else {
+    Logger.log('Nada foi gravado (dryRun=true). Rode migrarLinhasAntigas(false) pra aplicar de verdade.');
+  }
+}
+
 function testarTokens() {
   if (!ADMIN_SECRET) {
     Logger.log('Defina ADMIN_SECRET em Configurações do projeto → Propriedades do script antes de testar doGerarTokens/doListTokens.');
