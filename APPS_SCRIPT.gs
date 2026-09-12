@@ -20,11 +20,15 @@ var CAB_EMPRESAS   = ['cliente','senha_hash','definido_em'];
 // padrão (fail-closed), não abertas.
 var ADMIN_SECRET = PropertiesService.getScriptProperties().getProperty('ADMIN_SECRET') || '';
 
+// disc_nat_*/disc_mask_* ficam no FINAL de propósito (não inseridas no
+// meio) — assim as 70 respostas antigas (gravadas com o schema de 40
+// colunas, antes desses 8 campos existirem) continuam lendo certo sem
+// precisar de migração nenhuma: colunas 1-40 mantêm a ordem original
+// exata, e as 8 novas só ficam vazias nas linhas antigas (dado que nunca
+// foi capturado nelas) e preenchidas nas respostas novas em diante.
 var CAB_RESPOSTAS = [
   'timestamp','nome','email','empresa','turma','fase',
   'disc_D','disc_I','disc_S','disc_C','disc_primario','disc_secundario',
-  'disc_nat_D','disc_nat_I','disc_nat_S','disc_nat_C',
-  'disc_mask_D','disc_mask_I','disc_mask_S','disc_mask_C',
   'elem_FOGO','elem_AR','elem_TERRA','elem_AGUA','elem_primario',
   'ennea_tipo','ennea_nome','ennea_score',
   'arquetipos','kolb_estilo',
@@ -32,9 +36,11 @@ var CAB_RESPOSTAS = [
   'need_certeza','need_variedade','need_significancia',
   'need_conexao','need_crescimento','need_contribuicao',
   'holland_codigo','holland_tipo1','holland_tipo2','holland_tipo3',
-  'holland_R','holland_I','holland_A','holland_S','holland_E','holland_C'
+  'holland_R','holland_I','holland_A','holland_S','holland_E','holland_C',
+  'disc_nat_D','disc_nat_I','disc_nat_S','disc_nat_C',
+  'disc_mask_D','disc_mask_I','disc_mask_S','disc_mask_C'
 ];
-var TEXT_COLS_R = [1,2,3,4,5,6,11,12,19,20,21,22,25,26,27,28,29,30,31,32,39,40,41,42];
+var TEXT_COLS_R = [1,2,3,4,5,6,11,12,17,18,19,20,21,22,23,24,31,32,33,34];
 
 var CAB_PONTUACAO = [
   'respondente_key','nome','email','turma','empresa',
@@ -357,8 +363,6 @@ function doSaveResposta(d) {
     d.nome || '', d.email || '', d.empresa || '', d.turma || '', d.fase || '',
     Number(d.disc_D)||0, Number(d.disc_I)||0, Number(d.disc_S)||0, Number(d.disc_C)||0,
     d.disc_primario||'', d.disc_secundario||'',
-    Number(d.disc_nat_D)||0, Number(d.disc_nat_I)||0, Number(d.disc_nat_S)||0, Number(d.disc_nat_C)||0,
-    Number(d.disc_mask_D)||0, Number(d.disc_mask_I)||0, Number(d.disc_mask_S)||0, Number(d.disc_mask_C)||0,
     Number(d.elem_FOGO)||0, Number(d.elem_AR)||0, Number(d.elem_TERRA)||0, Number(d.elem_AGUA)||0,
     d.elem_primario||'',
     d.ennea_tipo||'', d.ennea_nome||'', d.ennea_score||'',
@@ -368,7 +372,10 @@ function doSaveResposta(d) {
     d.need_conexao||'', d.need_crescimento||'', d.need_contribuicao||'',
     d.holland_codigo||'', d.holland_tipo1||'', d.holland_tipo2||'', d.holland_tipo3||'',
     Number(d.holland_R)||0, Number(d.holland_I)||0, Number(d.holland_A)||0,
-    Number(d.holland_S)||0, Number(d.holland_E)||0, Number(d.holland_C)||0
+    Number(d.holland_S)||0, Number(d.holland_E)||0, Number(d.holland_C)||0,
+    // Adicionadas no final de propósito — ver comentário de CAB_RESPOSTAS.
+    Number(d.disc_nat_D)||0, Number(d.disc_nat_I)||0, Number(d.disc_nat_S)||0, Number(d.disc_nat_C)||0,
+    Number(d.disc_mask_D)||0, Number(d.disc_mask_I)||0, Number(d.disc_mask_S)||0, Number(d.disc_mask_C)||0
   ];
 
   sheet.appendRow(linha);
@@ -556,63 +563,6 @@ function corrigirCabecalhoRespostas() {
   hr.setFontWeight('bold'); hr.setBackground('#261062'); hr.setFontColor('#FFFFFF');
   Logger.log('Cabeçalho ANTES (' + antes.length + ' colunas): ' + JSON.stringify(antes));
   Logger.log('Cabeçalho CORRIGIDO (' + CAB_RESPOSTAS.length + ' colunas): ' + JSON.stringify(CAB_RESPOSTAS));
-}
-
-// Migração ÚNICA das respostas gravadas ANTES de 24/06/2026 (commit
-// 73f87f3), quando disc_nat_*/disc_mask_* ainda não existiam — a planilha
-// tinha 40 colunas, não 48. O cabeçalho novo (48 col.) desalinha a leitura
-// dessas linhas antigas a partir da coluna 13: o que era elem_FOGO passa a
-// ler como disc_nat_D, e assim por diante, em cascata até sobrar 8 colunas
-// vazias no final (holland_tipo2...holland_C nunca existiam nessas linhas).
-//
-// Detecta automaticamente as linhas afetadas (as 8 colunas disc_nat/mask
-// zeradas E as últimas 8 colunas — holland_tipo2 em diante — vazias) e
-// desloca os 28 valores de volta pra posição certa. disc_nat_*/disc_mask_*
-// ficam zerados nessas linhas porque esse dado nunca foi capturado — não
-// tem como recuperar, só parar de ler errado.
-//
-// Rode primeiro com dryRun=true (padrão) — só mostra no Log o que mudaria,
-// sem gravar nada. Confirme que faz sentido, depois rode
-// migrarLinhasAntigas(false) pra gravar de verdade.
-function migrarLinhasAntigas(dryRun) {
-  if (dryRun === undefined) dryRun = true;
-  var ss = SpreadsheetApp.openById(SHEET_ID);
-  var sheet = ss.getSheetByName(ABA_RESPOSTAS);
-  var lastRow = sheet.getLastRow();
-  if (lastRow <= 1) { Logger.log('Nada pra migrar.'); return; }
-
-  var range = sheet.getRange(2, 1, lastRow - 1, CAB_RESPOSTAS.length);
-  var valores = range.getValues();
-  var afetadas = [];
-
-  for (var i = 0; i < valores.length; i++) {
-    var row = valores[i];
-    var col13a20Zeradas = row.slice(12, 20).every(function(v) { return v === 0 || v === '0' || v === ''; });
-    var col41a48Vazias  = row.slice(40, 48).every(function(v) { return v === '' || v === 0; });
-    if (!col13a20Zeradas || !col41a48Vazias) continue; // já está no formato novo — pula
-
-    var prefixo = row.slice(0, 12);   // timestamp...disc_secundario — inalterado
-    var meio    = row.slice(12, 40);  // 28 valores que hoje estão nas colunas erradas
-    var novaLinha = prefixo.concat([0, 0, 0, 0, 0, 0, 0, 0]).concat(meio);
-    while (novaLinha.length < CAB_RESPOSTAS.length) novaLinha.push('');
-
-    afetadas.push({linha: i + 2, nome: row[1], antes: row, depois: novaLinha});
-  }
-
-  Logger.log((dryRun ? 'SIMULAÇÃO — ' : 'GRAVANDO — ') + afetadas.length + ' linha(s) afetada(s).');
-  afetadas.forEach(function(a) {
-    Logger.log('Linha ' + a.linha + ' (' + a.nome + '): elem_primario/disc_mask_D antes="' +
-      a.antes[16] + '" depois de corrigir vai pra elem_primario="' + a.depois[24] + '"');
-  });
-
-  if (!dryRun) {
-    afetadas.forEach(function(a) {
-      sheet.getRange(a.linha, 1, 1, CAB_RESPOSTAS.length).setValues([a.depois]);
-    });
-    Logger.log('Gravado. ' + afetadas.length + ' linha(s) corrigida(s).');
-  } else {
-    Logger.log('Nada foi gravado (dryRun=true). Rode migrarLinhasAntigas(false) pra aplicar de verdade.');
-  }
 }
 
 function testarTokens() {
