@@ -189,6 +189,11 @@ tr:hover td{background:rgba(255,255,255,.02)}
 #lic-panel .stats{margin-top:16px;border-top:1px solid rgba(57,22,148,.13);padding-top:14px;font-size:12px;color:#6F667E;}
 #lic-panel .stats a{color:#FF0060;cursor:pointer;text-decoration:underline;font-weight:600;}
 #lic-panel .sair{float:right;font-size:11px;cursor:pointer;color:#6F667E;text-transform:none;letter-spacing:0;font-weight:400;}
+/* Esconde o card "Google Sheets — Fonte de Dados" da aba Configuração — a
+   URL agora sincroniza sozinha (ver script abaixo), esse card manual não é
+   mais necessário. Escondido via CSS, não removido do DOM, pra não quebrar
+   nada que o código original espera encontrar ali. */
+.config-block:has(#cfg-script-url){display:none !important;}
 #lic-gate{position:fixed;inset:0;z-index:999999;background:rgba(38,16,98,.85);display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;}
 #lic-gate.hidden{display:none;}
 #lic-gate .box{background:#FFFFFF;border-radius:16px;padding:40px 36px;width:100%;max-width:360px;text-align:center;box-shadow:0 24px 64px rgba(57,22,148,.2);}
@@ -242,6 +247,11 @@ tr:hover td{background:rgba(255,255,255,.02)}
 (function(){
   var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwGEFrIr-m66wr1SSk9ziLNPNqd9L8fl5wO3SmwLd0ZLaXJ6JirMnjjcxcuwZNi_ssagQ/exec';
   var SECRET_KEY = 'il_admin_license_secret';
+
+  // Mantém a URL do Apps Script sempre sincronizada sozinha — sem isso, a
+  // aba Configuração exigia clicar em "Salvar Configuração" manualmente
+  // toda vez que a URL mudasse (o que já causou confusão mais de uma vez).
+  try { localStorage.setItem('il_admin_script_url', SHEETS_URL); } catch(e) {}
 
   function el(id){ return document.getElementById(id); }
   function getSecret(){ try { return localStorage.getItem(SECRET_KEY) || ''; } catch(e){ return ''; } }
