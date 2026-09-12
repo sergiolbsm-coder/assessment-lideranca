@@ -295,55 +295,78 @@ h1.hero span{display:block;background:linear-gradient(135deg,var(--idl-purple-da
       });
   }
 
-  // Substitui o exportPDF() original — que usava o wrapper html2pdf() e saía
-  // em branco. Agora usa exatamente o mesmo método (mesmas opções de
-  // html2canvas) já comprovado nos botões de Relatório 360/Individual do
-  // admin.html — largura fixa (windowWidth:780) força o clone a renderizar
-  // em layout "desktop" consistente em vez de herdar a largura estreita da
-  // tela do respondente, que é o provável motivo do branco no mobile.
+  // ATENÇÃO — achado real do bug do PDF em branco: o exportPDF() ofuscado
+  // (código original, mais abaixo no arquivo) é uma FUNCTION DECLARATION no
+  // topo do script dele, que roda em ordem de parsing — ou seja, DEPOIS
+  // deste bloco aqui (que vem antes no HTML) e SOBRESCREVE window.exportPDF
+  // de volta pro original (o que usa o wrapper html2pdf() e sai em branco).
+  // Toda tentativa anterior de reatribuir window.exportPDF aqui em cima,
+  // fora de um callback, era irrelevante — o original sempre vencia por
+  // rodar por último. Por isso a substituição precisa ficar dentro do
+  // DOMContentLoaded: nesse momento TODOS os <script> síncronos (inclusive
+  // o ofuscado) já rodaram, então atribuir aqui é o que garante vencer por
+  // último de verdade.
+  // Método: mesmas opções de html2canvas já comprovadas nos botões de
+  // Relatório 360/Individual do admin.html (windowWidth fixo em 780 força
+  // o clone a renderizar em layout "desktop" consistente, em vez de herdar
+  // a largura estreita da tela de quem responde, majoritariamente mobile).
   // Só troca o MÉTODO de captura — as seções/dados do relatório em si
   // (#report-body, gerado por generateReport()) não são alteradas.
-  // onclick="exportPDF()" no HTML original resolve pelo nome global na hora
-  // do clique, então essa substituição pega.
-  window.exportPDF = function() {
-    var el = document.getElementById('report-body');
-    if (!el) { alert('Relatório ainda não foi gerado.'); return; }
-    var jsPDFCtor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
-    html2canvas(el, {
-      scale: 2, useCORS: true, allowTaint: true,
-      backgroundColor: '#ffffff', logging: false,
-      scrollX: 0, scrollY: 0,
-      width: el.scrollWidth || 740, windowWidth: 780
-    }).then(function(canvas) {
-      var pdf = new jsPDFCtor({ unit: 'pt', format: 'a4' });
-      var pdfW = pdf.internal.pageSize.getWidth();
-      var pageH = pdf.internal.pageSize.getHeight();
-      var imgH = canvas.height * (pdfW / canvas.width);
-      var imgData = canvas.toDataURL('image/jpeg', 0.95);
-      var heightLeft = imgH;
-      var position = 0;
-      pdf.addImage(imgData, 'JPEG', 0, position, pdfW, imgH);
-      heightLeft -= pageH;
-      while (heightLeft > 0) {
-        position = heightLeft - imgH;
-        pdf.addPage();
+  function instalarExportPDF() {
+    window.exportPDF = function() {
+      var el = document.getElementById('report-body');
+      if (!el) { alert('Relatório ainda não foi gerado.'); return; }
+      var jsPDFCtor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+      // windowWidth precisa ser IGUAL à largura real capturada (não um valor
+      // fixo tipo 780) — senão o clone interno do html2canvas renderiza mais
+      // largo que a fatia capturada e corta o lado direito do relatório
+      // (confirmado num PDF real de teste: bloqueava texto/barras na borda).
+      html2canvas(el, {
+        scale: 2, useCORS: true, allowTaint: true,
+        backgroundColor: '#ffffff', logging: false,
+        scrollX: 0, scrollY: 0,
+        windowWidth: el.scrollWidth
+      }).then(function(canvas) {
+        var pdf = new jsPDFCtor({ unit: 'pt', format: 'a4' });
+        var pdfW = pdf.internal.pageSize.getWidth();
+        var pageH = pdf.internal.pageSize.getHeight();
+        var imgH = canvas.height * (pdfW / canvas.width);
+        var imgData = canvas.toDataURL('image/jpeg', 0.95);
+        var heightLeft = imgH;
+        var position = 0;
         pdf.addImage(imgData, 'JPEG', 0, position, pdfW, imgH);
         heightLeft -= pageH;
-      }
-      var nomeEl = document.querySelector('.report-name');
-      var nome = nomeEl ? nomeEl.textContent.trim().replace(/\s+/g, '-') : 'Relatorio';
-      pdf.save('Relatorio-Lideranca-' + nome + '.pdf');
-    }).catch(function(e) {
-      alert('Erro ao gerar o PDF: ' + e.message);
-    });
-  };
+        while (heightLeft > 0) {
+          position = heightLeft - imgH;
+          pdf.addPage();
+          pdf.addImage(imgData, 'JPEG', 0, position, pdfW, imgH);
+          heightLeft -= pageH;
+        }
+        var nomeEl = document.querySelector('.report-name');
+        var nome = nomeEl ? nomeEl.textContent.trim().replace(/\s+/g, '-') : 'Relatorio';
+        pdf.save('Relatorio-Lideranca-' + nome + '.pdf');
+      }).catch(function(e) {
+        alert('Erro ao gerar o PDF: ' + e.message);
+      });
+    };
+  }
 
   document.addEventListener('DOMContentLoaded', function(){
     document.getElementById('license-gate-btn').addEventListener('click', validar);
     document.getElementById('license-gate-input').addEventListener('keydown', function(e){
       if (e.key === 'Enter') validar();
     });
+    // Reatribui DEPOIS de tudo já ter rodado — ver comentário acima.
+    instalarExportPDF();
   });
+  // Rede de segurança: se o botão for clicado antes do DOMContentLoaded
+  // (ex.: script ofuscado atrasado por algum motivo), reinstala de novo
+  // logo antes de cada clique.
+  document.addEventListener('click', function(e){
+    if (e.target && e.target.getAttribute && e.target.getAttribute('onclick') === 'exportPDF()') {
+      instalarExportPDF();
+    }
+  }, true);
 })();
 </script>
 
