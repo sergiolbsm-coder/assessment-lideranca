@@ -678,7 +678,10 @@ function mostrarGate(){
     <div id="tab-dashboard" class="tab-panel">
       <div class="page-header">
         <div><div class="page-title">Dashboard</div><div class="page-sub">Visão consolidada dos perfis da turma</div></div>
-        <select class="filter-sel" id="dash-turma" onchange="renderDashboard()"><option value="">Todas as turmas</option></select>
+        <div style="display:flex;gap:10px">
+          <select class="filter-sel" id="dash-turma" onchange="renderDashboard()"><option value="">Todas as turmas</option></select>
+          <select class="filter-sel" id="dash-empresa" onchange="renderDashboard()"><option value="">Todas as empresas</option></select>
+        </div>
       </div>
       <div class="stats-row" id="dash-stats"></div>
       <div class="charts-grid" id="dash-charts"></div>
@@ -1348,11 +1351,14 @@ function populateFilters() {
     _0x4e4e9c.innerHTML = "<option value=\"\">Todas as turmas</option>" + _0x46395f.map(_0x5aa343 => "<option" + (_0x5aa343 === _0x4095f2 ? " selected" : "") + ">" + _0x5aa343 + "</option>").join("");
   });
   const _0x2b91e5 = [...new Set(allData.map(_0xa0e8b1 => _0xa0e8b1.empresa).filter(Boolean))].sort();
-  const _0x1f7a3c = document.getElementById("f-empresa");
-  if (_0x1f7a3c) {
+  ["f-empresa", "dash-empresa"].forEach(_0x25aba6 => {
+    const _0x1f7a3c = document.getElementById(_0x25aba6);
+    if (!_0x1f7a3c) {
+      return;
+    }
     const _0x8d4e21 = _0x1f7a3c.value;
     _0x1f7a3c.innerHTML = "<option value=\"\">Todas as empresas</option>" + _0x2b91e5.map(_0x5aa343 => "<option" + (_0x5aa343 === _0x8d4e21 ? " selected" : "") + ">" + _0x5aa343 + "</option>").join("");
-  }
+  });
 }
 function filterTable() {
   const _0x7c24c3 = document.getElementById("search").value.toLowerCase();
@@ -2863,7 +2869,8 @@ function printModal() {
 }
 function renderDashboard() {
   const _0x52b16d = document.getElementById("dash-turma")?.value || "";
-  const _0x4423d6 = _0x52b16d ? allData.filter(_0x4f1e40 => _0x4f1e40.turma === _0x52b16d) : allData;
+  const _0xDashEmpresa = document.getElementById("dash-empresa")?.value || "";
+  const _0x4423d6 = allData.filter(_0x4f1e40 => (!_0x52b16d || _0x4f1e40.turma === _0x52b16d) && (!_0xDashEmpresa || _0x4f1e40.empresa === _0xDashEmpresa));
   const _0x8ab439 = document.getElementById("empty-dash");
   if (!_0x4423d6.length) {
     document.getElementById("dash-stats").innerHTML = "";
