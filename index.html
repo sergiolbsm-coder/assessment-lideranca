@@ -1097,6 +1097,21 @@ function lockScreen(_0xc351cd) {
     _0x5ecb8d.style.opacity = ".3";
   }
 }
+// Inverso de lockScreen — só pra permitir tentar de novo quando a chamada ao
+// Worker falha (rede instável, etc). Sem isso o respondente ficava preso na
+// tela sem conseguir gerar o relatório depois de uma falha passageira.
+function unlockScreen(_0xScreen) {
+  state.locked[_0xScreen] = false;
+  document.querySelectorAll("#" + (_0xScreen === "ennea" ? "ennea-container" : _0xScreen === "arch" ? "arch-container" : _0xScreen === "kolb" ? "kolb-container" : _0xScreen === "needs" ? "needs-container" : "holland-container") + " button").forEach(_0xBtn => {
+    _0xBtn.disabled = false;
+    _0xBtn.style.cursor = "";
+  });
+  const _0xNav = document.querySelector("#s-" + _0xScreen + " .nav-buttons .btn-secondary");
+  if (_0xNav) {
+    _0xNav.disabled = false;
+    _0xNav.style.opacity = "";
+  }
+}
 function renderDisc() {
   const _0x5dd96c = document.getElementById("disc-container");
   _0x5dd96c.innerHTML = DISC_GROUPS.map((_0x4806c9, _0x3139f4) => "\n    <div class=\"disc-group\" id=\"dg-" + _0x3139f4 + "\">\n      <div class=\"disc-group-header\">\n        <span class=\"disc-group-num\">GRUPO " + (_0x3139f4 + 1) + " / 24</span>\n        <span style=\"font-size:11px;color:var(--mid)\"><strong style=\"color:#48C864\">+</strong> MAIS me define &nbsp;|&nbsp; <strong style=\"color:#DC503C\">−</strong> MENOS me define</span>\n        <div class=\"disc-group-status\" id=\"dgs-" + _0x3139f4 + "\"></div>\n      </div>\n      " + _0x4806c9.map((_0x55692f, _0x33ce07) => "\n        <div class=\"disc-word-row\">\n          <span class=\"disc-word-label\">" + _0x55692f[0] + "</span>\n          <div class=\"disc-btns\">\n            <button class=\"disc-btn\" id=\"dp-" + _0x3139f4 + "-" + _0x33ce07 + "\" onclick=\"discMark(" + _0x3139f4 + "," + _0x33ce07 + ",'+')\">+</button>\n            <button class=\"disc-btn\" id=\"dm-" + _0x3139f4 + "-" + _0x33ce07 + "\" onclick=\"discMark(" + _0x3139f4 + "," + _0x33ce07 + ",'-')\">−</button>\n          </div>\n        </div>").join("") + "\n    </div>").join("");
@@ -1285,15 +1300,18 @@ function nextEnnea() {
   lockScreen("ennea");
   goTo("s-arch");
 }
+// Fase 1b: só o texto (o que a pessoa lê) fica aqui — a etiqueta de qual
+// arquétipo cada opção representa não é mais impressa no onclick, fica só
+// no Worker (ARCH_TAGS). O clique manda o índice bruto da opção.
 function renderArch() {
   const _0x1885c3 = document.getElementById("arch-container");
-  _0x1885c3.innerHTML = ARCH_QS.map((_0x3078ff, _0x3c6e13) => "\n    <div class=\"q-block\">\n      <div class=\"q-text\"><span>" + (_0x3c6e13 + 1) + ".</span>" + _0x3078ff.q + "</div>\n      <div class=\"q-opts\">" + _0x3078ff.opts.map((_0x45de25, _0x3fa494) => "<button class=\"q-opt\" id=\"ar-" + _0x3c6e13 + "-" + _0x3fa494 + "\" onclick=\"archMark(" + _0x3c6e13 + "," + _0x3fa494 + ",'" + _0x45de25[1] + "')\">" + _0x45de25[0] + "</button>").join("") + "</div>\n    </div>").join("");
+  _0x1885c3.innerHTML = ARCH_QS.map((_0x3078ff, _0x3c6e13) => "\n    <div class=\"q-block\">\n      <div class=\"q-text\"><span>" + (_0x3c6e13 + 1) + ".</span>" + _0x3078ff.q + "</div>\n      <div class=\"q-opts\">" + _0x3078ff.opts.map((_0x45de25, _0x3fa494) => "<button class=\"q-opt\" id=\"ar-" + _0x3c6e13 + "-" + _0x3fa494 + "\" onclick=\"archMark(" + _0x3c6e13 + "," + _0x3fa494 + ")\">" + _0x45de25[0] + "</button>").join("") + "</div>\n    </div>").join("");
 }
-function archMark(_0xa343c4, _0x3a853f, _0x5e2400) {
+function archMark(_0xa343c4, _0x3a853f) {
   if (state.locked.arch) {
     return;
   }
-  state.arch[_0xa343c4] = _0x5e2400;
+  state.arch[_0xa343c4] = _0x3a853f;
   document.querySelectorAll("[id^=\"ar-" + _0xa343c4 + "-\"]").forEach(_0x43e220 => _0x43e220.classList.remove("selected"));
   document.getElementById("ar-" + _0xa343c4 + "-" + _0x3a853f).classList.add("selected");
 }
@@ -1306,15 +1324,16 @@ function nextArch() {
   lockScreen("arch");
   goTo("s-kolb");
 }
+// Fase 1b — mesmo tratamento do renderArch/archMark acima.
 function renderKolb() {
   const _0x26dc98 = document.getElementById("kolb-container");
-  _0x26dc98.innerHTML = KOLB_QS.map((_0x1b86a6, _0x33c892) => "\n    <div class=\"q-block\">\n      <div class=\"q-text\"><span>" + (_0x33c892 + 1) + ".</span>" + _0x1b86a6.q + "</div>\n      <div class=\"q-opts\">" + _0x1b86a6.opts.map((_0x133a71, _0x23bd81) => "<button class=\"q-opt\" id=\"kb-" + _0x33c892 + "-" + _0x23bd81 + "\" onclick=\"kolbMark(" + _0x33c892 + "," + _0x23bd81 + ",'" + _0x133a71[1] + "')\">" + _0x133a71[0] + "</button>").join("") + "</div>\n    </div>").join("");
+  _0x26dc98.innerHTML = KOLB_QS.map((_0x1b86a6, _0x33c892) => "\n    <div class=\"q-block\">\n      <div class=\"q-text\"><span>" + (_0x33c892 + 1) + ".</span>" + _0x1b86a6.q + "</div>\n      <div class=\"q-opts\">" + _0x1b86a6.opts.map((_0x133a71, _0x23bd81) => "<button class=\"q-opt\" id=\"kb-" + _0x33c892 + "-" + _0x23bd81 + "\" onclick=\"kolbMark(" + _0x33c892 + "," + _0x23bd81 + ")\">" + _0x133a71[0] + "</button>").join("") + "</div>\n    </div>").join("");
 }
-function kolbMark(_0x528f70, _0x1ca7e5, _0x235153) {
+function kolbMark(_0x528f70, _0x1ca7e5) {
   if (state.locked.kolb) {
     return;
   }
-  state.kolb[_0x528f70] = _0x235153;
+  state.kolb[_0x528f70] = _0x1ca7e5;
   document.querySelectorAll("[id^=\"kb-" + _0x528f70 + "-\"]").forEach(_0xa958fb => _0xa958fb.classList.remove("selected"));
   document.getElementById("kb-" + _0x528f70 + "-" + _0x1ca7e5).classList.add("selected");
 }
@@ -1391,166 +1410,11 @@ function hollandMark(_0x2d7527, _0x4d85e3) {
     _0xc26b98.style.borderColor = _0x4d85e3 >= 7 ? HOLLAND_TYPES[_0x2d7527].color : "var(--border)";
   }
 }
-function calcDisc() {
-  const _0x119375 = {
-    D: 0,
-    I: 0,
-    S: 0,
-    C: 0
-  };
-  state.disc.forEach((_0x162c18, _0x583cbe) => {
-    if (_0x162c18.plus !== null) {
-      _0x119375[DISC_GROUPS[_0x583cbe][_0x162c18.plus][1]] += 2;
-    }
-    if (_0x162c18.minus !== null) {
-      _0x119375[DISC_GROUPS[_0x583cbe][_0x162c18.minus][1]] -= 1;
-    }
-  });
-  const _0x46e91d = Object.entries(_0x119375).sort((_0x5a502a, _0x2f3492) => _0x2f3492[1] - _0x5a502a[1]);
-  const _0x1f51a0 = {
-    scores: _0x119375,
-    primary: _0x46e91d[0][0],
-    secondary: _0x46e91d[1][0],
-    sorted: _0x46e91d
-  };
-  return _0x1f51a0;
-}
-function calcElem() {
-  const _0x5ac3ff = {
-    FOGO: 0,
-    TERRA: 0,
-    ÁGUA: 0,
-    AR: 0
-  };
-  state.elem.forEach(_0x2da4a7 => {
-    if (_0x2da4a7) {
-      _0x5ac3ff[_0x2da4a7] = (_0x5ac3ff[_0x2da4a7] || 0) + 1;
-    }
-  });
-  const _0x1faab7 = Object.entries(_0x5ac3ff).sort((_0x4fef8c, _0x486fc4) => _0x486fc4[1] - _0x4fef8c[1]);
-  const _0x279063 = {
-    scores: _0x5ac3ff,
-    primary: _0x1faab7[0][0],
-    secondary: _0x1faab7[1][0],
-    sorted: _0x1faab7
-  };
-  return _0x279063;
-}
-function calcEnnea() {
-  const _0x1167c8 = ENNEA_TYPES.map(_0x18361c => {
-    const _0x1c293b = state.ennea[_0x18361c.num] || {};
-    const _0xbd84af = Object.values(_0x1c293b).reduce((_0x28e4a, _0x3cce56) => _0x28e4a + _0x3cce56, 0);
-    const _0x1ec710 = Object.keys(_0x1c293b).length;
-    const _0x2f5f8c = {
-      num: _0x18361c.num,
-      avg: _0x1ec710 ? _0xbd84af / _0x1ec710 : 0
-    };
-    return _0x2f5f8c;
-  }).sort((_0x1e07d9, _0x1cfed9) => _0x1cfed9.avg - _0x1e07d9.avg);
-  const _0x28ffce = {
-    top: _0x1167c8[0],
-    second: _0x1167c8[1],
-    all: _0x1167c8
-  };
-  return _0x28ffce;
-}
-function calcArch() {
-  const _0x18bcd3 = {};
-  Object.values(state.arch).forEach(_0x45bcf0 => {
-    _0x18bcd3[_0x45bcf0] = (_0x18bcd3[_0x45bcf0] || 0) + 1;
-  });
-  const _0x701b99 = Object.entries(_0x18bcd3).sort((_0x575620, _0xd1eba2) => _0xd1eba2[1] - _0x575620[1]);
-  const _0x4da6db = {
-    primary: _0x701b99[0] ? _0x701b99[0][0] : "Herói",
-    scores: _0x18bcd3,
-    sorted: _0x701b99
-  };
-  return _0x4da6db;
-}
-function calcKolb() {
-  const _0x378ebe = {
-    CON: 0,
-    DIV: 0,
-    ASS: 0,
-    ACO: 0
-  };
-  Object.values(state.kolb).forEach(_0x49ba25 => _0x378ebe[_0x49ba25] = (_0x378ebe[_0x49ba25] || 0) + 1);
-  const _0x55de16 = Object.entries(_0x378ebe).sort((_0x18ca3e, _0x29508f) => _0x29508f[1] - _0x18ca3e[1]);
-  const _0x1269bc = {
-    CON: {
-      name: "Convergente",
-      desc: "Aprende resolvendo problemas práticos. Forte em tomada de decisão técnica e implementação."
-    },
-    DIV: {
-      name: "Divergente",
-      desc: "Aprende pela experiência e reflexão. Forte em empatia, geração de ideias e perspectiva humana."
-    },
-    ASS: {
-      name: "Assimilador",
-      desc: "Aprende pela observação e modelos teóricos. Forte em raciocínio lógico e planejamento estratégico."
-    },
-    ACO: {
-      name: "Acomodador",
-      desc: "Aprende na ação e adaptação. Forte em execução, intuição e flexibilidade prática."
-    }
-  };
-  const _0x4fc238 = {
-    primary: _0x55de16[0][0],
-    name: _0x1269bc[_0x55de16[0][0]].name,
-    desc: _0x1269bc[_0x55de16[0][0]].desc,
-    scores: _0x378ebe,
-    sorted: _0x55de16,
-    map: _0x1269bc
-  };
-  return _0x4fc238;
-}
-function calcNeeds() {
-  const _0x19f77f = NEEDS_DATA.map((_0x4afd95, _0x1a7b78) => {
-    const _0x4a52f8 = state.needs[_0x1a7b78] || {};
-    const _0x318d55 = Object.values(_0x4a52f8).reduce((_0x294339, _0x5e2821) => _0x294339 + _0x5e2821, 0);
-    const _0x3e0370 = Object.keys(_0x4a52f8).length;
-    const _0x34f6f8 = {
-      name: _0x4afd95.name,
-      icon: _0x4afd95.icon,
-      avg: _0x3e0370 ? _0x318d55 / _0x3e0370 : 0
-    };
-    return _0x34f6f8;
-  }).sort((_0x16240c, _0x49e360) => _0x49e360.avg - _0x16240c.avg);
-  const _0xbe0955 = {
-    primary: _0x19f77f[0],
-    secondary: _0x19f77f[1],
-    all: _0x19f77f
-  };
-  return _0xbe0955;
-}
-function calcHolland() {
-  const _0x50f016 = HOLLAND_TYPES.map((_0x20859, _0x12e56c) => ({
-    code: _0x20859.code,
-    name: _0x20859.name,
-    alias: _0x20859.alias,
-    icon: _0x20859.icon,
-    color: _0x20859.color,
-    score: state.holland[_0x12e56c] || 0,
-    type: _0x20859
-  })).sort((_0x2f6160, _0x259dfe) => _0x259dfe.score - _0x2f6160.score);
-  const _0x453a06 = _0x50f016.slice(0, 3);
-  const _0x50d67c = _0x453a06.map(_0x2e97de => _0x2e97de.code).join("");
-  const _0x3c48f2 = HOLLAND_HEX[_0x453a06[0].code]?.adj || [];
-  const _0x35c0d1 = _0x3c48f2.includes(_0x453a06[1].code);
-  const _0x18c7b2 = HOLLAND_HEX[_0x453a06[0].code]?.opp;
-  const _0x3d2569 = _0x453a06[1].code === _0x18c7b2 || _0x453a06[2].code === _0x18c7b2;
-  const _0x2408ac = _0x453a06[0].score - _0x50f016[_0x50f016.length - 1].score >= 4;
-  const _0x30baea = {
-    scores: _0x50f016,
-    top3: _0x453a06,
-    code: _0x50d67c,
-    consistent: _0x35c0d1,
-    incongruent: _0x3d2569,
-    differentiated: _0x2408ac
-  };
-  return _0x30baea;
-}
-function generateReport() {
+// calcDisc/calcElem/calcEnnea/calcArch/calcKolb/calcNeeds/calcHolland foram
+// removidos daqui — vivem agora em idl-worker/src/scoring/assessment-
+// lideranca.js (ver memorando "Metodologia Blindada"). generateReport()
+// busca o perfil pronto do Worker em vez de calcular localmente.
+async function generateReport() {
   const _0x2693f7 = Object.values(state.holland).filter(_0x4e39d6 => _0x4e39d6 > 0).length;
   if (_0x2693f7 < 4) {
     document.getElementById("holland-warning").classList.add("show");
@@ -1558,13 +1422,26 @@ function generateReport() {
   }
   document.getElementById("holland-warning").classList.remove("show");
   lockScreen("holland");
-  const _0x479dba = calcDisc();
-  const _0x295c3a = calcElem();
-  const _0x183e9b = calcEnnea();
-  const _0x4e1500 = calcArch();
-  const _0x53ecf6 = calcKolb();
-  const _0x3d28cb = calcNeeds();
-  const _0x49cae8 = calcHolland();
+  // Fase 1 da migração pro Worker: a pontuação (pesos, critérios de
+  // desempate, tabelas DISC_GROUPS/HOLLAND_HEX) não é mais calculada aqui —
+  // o navegador manda as respostas brutas e recebe o perfil pronto.
+  let _0x479dba, _0x295c3a, _0x183e9b, _0x4e1500, _0x53ecf6, _0x3d28cb, _0x49cae8;
+  try {
+    const _0xWkRes = await fetch(WORKER_URL + "/score/assessment-lideranca", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: window.__licenseToken, state: state })
+    });
+    const _0xWkData = await _0xWkRes.json();
+    if (_0xWkData.status !== "ok") throw new Error(_0xWkData.message || "Falha ao calcular o perfil");
+    ({ disc: _0x479dba, elem: _0x295c3a, ennea: _0x183e9b, arch: _0x4e1500, kolb: _0x53ecf6, needs: _0x3d28cb, holland: _0x49cae8 } = _0xWkData.profile);
+  } catch (_0xWkErr) {
+    unlockScreen("holland");
+    const _0xWarn = document.getElementById("holland-warning");
+    _0xWarn.textContent = "Não foi possível calcular seu perfil agora. Verifique sua conexão e tente novamente.";
+    _0xWarn.classList.add("show");
+    return;
+  }
   const _0x31ef47 = ENNEA_NAMES[_0x183e9b.top.num];
   const _0x41288d = ELEM_DATA[_0x295c3a.primary];
   const _0x4c9392 = DISC_PROFILE[_0x479dba.primary];
@@ -1724,6 +1601,10 @@ function generateReport() {
   goTo("s-report");
 }
 const SHEETS_URL = "https://script.google.com/macros/s/AKfycbwA7C98Aa18JBS3Y2KcbOKcl9bZVhGXRfh2yamL6cgpoqKyMB5w4iI5m4YZc2CF0HhlKQ/exec";
+// idl-worker — motor de pontuação/metodologia (ver memorando "Metodologia
+// Blindada"). Troca aqui só se o Worker for redeployado num domínio novo;
+// não gera URL órfã como o Apps Script (wrangler deploy reusa o mesmo nome).
+const WORKER_URL = "https://idl-worker.idl-worker.workers.dev";
 function saveToSheets(_0x411aae, _0x2b60dc, _0x135401, _0xb443a1, _0x478fc0, _0x3510c5, _0x13ff5a) {
   const _0x320dcc = ENNEA_NAMES[_0x135401.top.num];
   const _0x38cbc1 = {
