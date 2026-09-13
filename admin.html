@@ -819,18 +819,6 @@ function mostrarGate(){
         </div>
         <button class="btn btn-gold" onclick="savePassword()">💾 Salvar Senha</button>
       </div>
-
-      <div class="config-block">
-        <div class="config-block-title">📋 Guia Rápido Apps Script</div>
-        <div style="font-size:13px;color:var(--mid);line-height:1.8">
-          <strong style="color:var(--parch)">1.</strong> Abra a planilha → Extensões → Apps Script<br>
-          <strong style="color:var(--parch)">2.</strong> Cole o conteúdo do arquivo <code style="background:rgba(255,255,255,.07);padding:2px 6px;border-radius:4px">APPS_SCRIPT.gs</code><br>
-          <strong style="color:var(--parch)">3.</strong> Execute <code style="background:rgba(255,255,255,.07);padding:2px 6px;border-radius:4px">configurarCabecalhos()</code> uma vez<br>
-          <strong style="color:var(--parch)">4.</strong> Implantar → Nova implantação → Aplicativo da Web → Qualquer pessoa<br>
-          <strong style="color:var(--parch)">5.</strong> Cole a URL gerada no campo acima e no arquivo <code style="background:rgba(255,255,255,.07);padding:2px 6px;border-radius:4px">index.html</code><br>
-          <strong style="color:var(--parch)">6.</strong> Torne a planilha pública (somente leitura) e cole a URL de exportação CSV acima
-        </div>
-      </div>
     </div>
 
 
@@ -1062,24 +1050,38 @@ const ELEM_COLORS = {
 };
 async function loadData() {
   const _0x512849 = document.getElementById("empty-resp");
-  const _0x51a41f = getCfg("script_url", "https://script.google.com/macros/s/AKfycbyUFi-n1PaKBH119A0XiWZ_wMgN7jRbN176F1VLEUD0JyODhVVGooVRcQQ1D0MFZkS4ng/exec");
+  // Default aqui era uma URL de implantação antiga/órfã (ficava esquecida
+  // toda vez que reimplantávamos com "Nova implantação") — se por algum
+  // motivo o localStorage ainda não tivesse a URL atual sincronizada
+  // (SHEETS_URL vive no primeiro <script>, IIFE separada — não dá pra
+  // referenciar direto aqui), caía nela e sempre falhava, mostrando
+  // "Dados de exemplo". Agora usa a mesma URL atual como default (mesma
+  // string hardcoded no value= do campo cfg-script-url na Configuração).
+  const _0x51a41f = getCfg("script_url", "https://script.google.com/macros/s/AKfycbwA7C98Aa18JBS3Y2KcbOKcl9bZVhGXRfh2yamL6cgpoqKyMB5w4iI5m4YZc2CF0HhlKQ/exec");
   const _0x1f2c2d = getCfg("csv_url", DEFAULT_CSV);
   let _0x57048d = false;
   if (_0x51a41f) {
-    try {
-      const _0x360a35 = await fetch(_0x51a41f + (_0x51a41f.includes("?") ? "&" : "?") + "t=" + Date.now());
-      if (_0x360a35.ok) {
-        const _0x15f3f2 = await _0x360a35.json();
-        if (_0x15f3f2.status === "ok" && Array.isArray(_0x15f3f2.data) && _0x15f3f2.data.length > 0) {
-          allData = _0x15f3f2.data.map((_0x17c5c1, _0x174a09) => ({
-            ..._0x17c5c1,
-            _id: _0x17c5c1._id !== undefined ? Number(_0x17c5c1._id) : _0x174a09
-          }));
-          _0x57048d = true;
+    // O endpoint do Apps Script às vezes fica instável por alguns segundos
+    // logo após uma reimplantação (ou por flutuação da infraestrutura do
+    // Google) e devolve "Página não encontrada" em vez do JSON — tenta até
+    // 3 vezes antes de desistir e cair pro CSV/dados de exemplo.
+    for (let _0xTentativa = 0; _0xTentativa < 3 && !_0x57048d; _0xTentativa++) {
+      try {
+        if (_0xTentativa > 0) await new Promise(_0xr => setTimeout(_0xr, 700));
+        const _0x360a35 = await fetch(_0x51a41f + (_0x51a41f.includes("?") ? "&" : "?") + "t=" + Date.now());
+        if (_0x360a35.ok) {
+          const _0x15f3f2 = await _0x360a35.json();
+          if (_0x15f3f2.status === "ok" && Array.isArray(_0x15f3f2.data) && _0x15f3f2.data.length > 0) {
+            allData = _0x15f3f2.data.map((_0x17c5c1, _0x174a09) => ({
+              ..._0x17c5c1,
+              _id: _0x17c5c1._id !== undefined ? Number(_0x17c5c1._id) : _0x174a09
+            }));
+            _0x57048d = true;
+          }
         }
+      } catch (_0x42bb36) {
+        console.warn("Script GET failed (tentativa " + (_0xTentativa + 1) + "):", _0x42bb36.message);
       }
-    } catch (_0x42bb36) {
-      console.warn("Script GET failed:", _0x42bb36.message);
     }
   }
   if (!_0x57048d && _0x1f2c2d) {
@@ -1331,7 +1333,12 @@ function splitCSV(_0x372681) {
   return _0x2331a1;
 }
 function populateFilters() {
-  const _0x46395f = [...new Set(allData.map(_0xa0e8b1 => _0xa0e8b1.turma).filter(Boolean))];
+  // Une as turmas cadastradas (getTurmas() — inclui turmas configuradas
+  // que ainda não têm nenhuma resposta) com as que aparecem de fato nos
+  // dados (cobre nome de turma antigo/renomeado que não está mais na
+  // lista cadastrada). Antes usava só allData — turma nova sem resposta
+  // ainda não aparecia no filtro do Dashboard.
+  const _0x46395f = [...new Set([...getTurmas(), ...allData.map(_0xa0e8b1 => _0xa0e8b1.turma).filter(Boolean)])];
   ["f-turma", "dash-turma"].forEach(_0x25aba5 => {
     const _0x4e4e9c = document.getElementById(_0x25aba5);
     if (!_0x4e4e9c) {
