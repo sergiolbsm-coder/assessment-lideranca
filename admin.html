@@ -358,6 +358,102 @@ function mostrarGate(){
       }).catch(function(){ target.textContent = 'Erro de conexão.'; });
   }
 
+  // Tela cheia (aba "Licenças" na sidebar) — todos os tokens já gerados,
+  // por empresa, com status/data/e-mail de quem usou. O popover "🔑
+  // Licenças" (verStats acima) só dava um resumo em texto; isso aqui é a
+  // listagem completa que dá pra filtrar/buscar.
+  var allTokensLic = [];
+  var filteredTokensLic = [];
+
+  function loadLicencas(){
+    var secret = getSecret();
+    var tbody = el('lic-table-body');
+    var empty = el('empty-lic');
+    fetch(SHEETS_URL + '?action=getTokens&secret=' + encodeURIComponent(secret) + '&t=' + Date.now())
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (!d || d.status !== 'ok') {
+          if (d && d.message === 'Não autorizado') { logout(); return; }
+          if (tbody) tbody.innerHTML = '';
+          if (empty) { empty.style.display = 'block'; empty.querySelector('.empty-title').textContent = (d && d.message) || 'Erro ao carregar.'; }
+          return;
+        }
+        allTokensLic = d.data || [];
+        filteredTokensLic = allTokensLic.slice();
+        populateLicFilters();
+        renderLicencas();
+      })
+      .catch(function(){
+        if (tbody) tbody.innerHTML = '';
+        if (empty) { empty.style.display = 'block'; empty.querySelector('.empty-title').textContent = 'Erro de conexão.'; }
+      });
+  }
+
+  function populateLicFilters(){
+    var sel = el('f-lic-cliente');
+    if (!sel) return;
+    var atual = sel.value;
+    var clientes = Array.from(new Set(allTokensLic.map(function(t){ return t.cliente || ''; }).filter(Boolean))).sort();
+    sel.innerHTML = '<option value="">Todas as empresas</option>' + clientes.map(function(c){
+      return '<option' + (c === atual ? ' selected' : '') + '>' + c + '</option>';
+    }).join('');
+  }
+
+  function filterLicencas(){
+    var busca = (el('search-lic').value || '').toLowerCase();
+    var cliente = el('f-lic-cliente').value;
+    var status = el('f-lic-status').value;
+    filteredTokensLic = allTokensLic.filter(function(t){
+      if (busca && !String(t.codigo || '').toLowerCase().includes(busca)) return false;
+      if (cliente && t.cliente !== cliente) return false;
+      if (status && t.status !== status) return false;
+      return true;
+    });
+    renderLicencas();
+  }
+
+  function fmtDataLic(iso){
+    if (!iso) return '—';
+    var d = new Date(iso);
+    return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+  }
+
+  function renderLicencas(){
+    var tbody = el('lic-table-body');
+    var empty = el('empty-lic');
+    var cards = el('lic-stats-cards');
+    if (cards) {
+      var total = allTokensLic.length;
+      var usados = allTokensLic.filter(function(t){ return t.status === 'usado'; }).length;
+      var disponiveis = total - usados;
+      var empresas = new Set(allTokensLic.map(function(t){ return t.cliente; }).filter(Boolean)).size;
+      cards.innerHTML =
+        '<div class="stat-card"><div class="stat-num">' + total + '</div><div class="stat-label">Total</div></div>' +
+        '<div class="stat-card"><div class="stat-num">' + disponiveis + '</div><div class="stat-label">Disponíveis</div></div>' +
+        '<div class="stat-card"><div class="stat-num">' + usados + '</div><div class="stat-label">Usados</div></div>' +
+        '<div class="stat-card"><div class="stat-num">' + empresas + '</div><div class="stat-label">Empresas</div></div>';
+    }
+    if (!tbody) return;
+    if (!filteredTokensLic.length) {
+      tbody.innerHTML = '';
+      if (empty) { empty.style.display = 'block'; empty.querySelector('.empty-title').textContent = 'Nenhuma licença encontrada'; }
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+    tbody.innerHTML = filteredTokensLic.map(function(t){
+      var disponivel = t.status === 'disponivel';
+      var corBadge = disponivel ? '#22C55E' : 'var(--mid)';
+      return '<tr>' +
+        '<td style="font-family:\'JetBrains Mono\',monospace">' + (t.codigo || '—') + '</td>' +
+        '<td>' + (t.cliente || '—') + '</td>' +
+        '<td><span class="badge" style="color:' + corBadge + ';background:rgba(255,255,255,.04)">' + (disponivel ? 'Disponível' : 'Usado') + '</span></td>' +
+        '<td style="color:var(--mid)">' + fmtDataLic(t.gerado_em) + '</td>' +
+        '<td style="color:var(--mid)">' + fmtDataLic(t.usado_em) + '</td>' +
+        '<td style="color:var(--mid)">' + (t.respondente_email || '—') + '</td>' +
+        '</tr>';
+    }).join('');
+  }
+
   // Mesma lista do portal-empresa.html — mantenha as duas em sincronia ao
   // adicionar um instrumento novo (quando o backend dele tiver
   // loginEmpresa/tokensEmpresa/definirSenhaEmpresa implementados).
@@ -434,6 +530,11 @@ function mostrarGate(){
     el('lic-ver-stats').addEventListener('click', verStats);
     el('lic-emp-btn').addEventListener('click', definirSenhaEmpresa);
     montarCheckboxesInstrumentos();
+    el('nav-licencas').addEventListener('click', loadLicencas);
+    el('lic-tab-atualizar').addEventListener('click', loadLicencas);
+    el('search-lic').addEventListener('input', filterLicencas);
+    el('f-lic-cliente').addEventListener('change', filterLicencas);
+    el('f-lic-status').addEventListener('change', filterLicencas);
   });
 })();
 </script>
@@ -450,6 +551,7 @@ function mostrarGate(){
     <div class="nav-section">Dados</div>
     <div class="nav-item active" data-tab="respondentes" onclick="showTab('respondentes')"><span class="ni">👥</span> Respondentes</div>
     <div class="nav-item" data-tab="dashboard" onclick="showTab('dashboard')"><span class="ni">📊</span> Dashboard</div>
+    <div class="nav-item" id="nav-licencas" data-tab="licencas" onclick="showTab('licencas')"><span class="ni">🔑</span> Licenças</div>
     <div class="nav-section">Gamificação</div>
     <div class="nav-item" data-tab="pontuacao" onclick="showTab('pontuacao')"><span class="ni">🏆</span> Lançar Pontos</div>
     <div class="nav-item" data-tab="ranking" onclick="showTab('ranking')"><span class="ni">🥇</span> Ranking</div>
@@ -531,6 +633,43 @@ function mostrarGate(){
         <div class="empty-icon">📊</div>
         <div class="empty-title">Sem dados para exibir</div>
         <div>Configure a planilha e aguarde respondentes.</div>
+      </div>
+    </div>
+
+    <!-- ░ LICENÇAS ░ -->
+    <div id="tab-licencas" class="tab-panel">
+      <div class="page-header">
+        <div><div class="page-title">Licenças</div><div class="page-sub">Tokens gerados, por empresa</div></div>
+        <button class="btn btn-outline btn-sm" id="lic-tab-atualizar">↻ Atualizar</button>
+      </div>
+
+      <div class="stats-row" id="lic-stats-cards"></div>
+
+      <div class="controls-row">
+        <input class="search-input" id="search-lic" placeholder="🔍 Buscar por código...">
+        <select class="filter-sel" id="f-lic-cliente"><option value="">Todas as empresas</option></select>
+        <select class="filter-sel" id="f-lic-status">
+          <option value="">Todos os status</option>
+          <option value="disponivel">Disponível</option>
+          <option value="usado">Usado</option>
+        </select>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Código</th><th>Empresa</th><th>Status</th>
+              <th>Gerado em</th><th>Usado em</th><th>E-mail do respondente</th>
+            </tr>
+          </thead>
+          <tbody id="lic-table-body"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="empty-lic" style="display:none">
+        <div class="empty-icon">🔑</div>
+        <div class="empty-title">Nenhuma licença encontrada</div>
+        <div>Gere tokens no painel "🔑 Licenças" (canto inferior direito) e clique em Atualizar aqui.</div>
       </div>
     </div>
 
