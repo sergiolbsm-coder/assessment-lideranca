@@ -2059,7 +2059,6 @@ function exportPremiumReportPDF(nomeRespondente) {
     });
   }
 
-  var elRect = el.getBoundingClientRect();
   // Bordas de corte permitidas: além dos módulos/cards/linhas de sempre,
   // inclui o cabeçalho de cada módulo (.rmod-header) e cada filho direto
   // do corpo do módulo (.rmod-body > *) — sem isso, blocos grandes e sem
@@ -2067,19 +2066,49 @@ function exportPremiumReportPDF(nomeRespondente) {
   // enorme sem nenhuma borda reconhecida no meio, e o corte cai no pixel
   // bruto, partindo texto ao meio (já aconteceu — ver relato do usuário).
   var boundarySelector = ':scope > *, .rmod-header, .rmod-body > *, .rmod-cell, .rbar-row, .rmod-insight, .needs-suggestion, tr';
-  var boundariesPx = Array.from(el.querySelectorAll(boundarySelector))
-    .filter(function(b) { return b.offsetHeight > 3; })
-    .map(function(b) { return b.getBoundingClientRect().top - elRect.top; })
-    .filter(function(t) { return t > 1; })
-    .sort(function(a, b) { return a - b; });
 
+  // IMPORTANTE: as posições das bordas são medidas dentro do PRÓPRIO clone
+  // que o html2canvas usa pra desenhar (via onclone), não na página viva.
+  // Antes media na página viva e reaproveitava a mesma coordenada no
+  // canvas — só que o html2canvas clona o DOM num iframe à parte pra
+  // renderizar, e pequenas diferenças de layout entre o clone e a página
+  // viva (fonte, arredondamento, timing) vão se acumulando ao longo de um
+  // relatório comprido. Isso desalinhava as bordas nas páginas finais e
+  // cortava texto ao meio mesmo com todas as bordas certas na lista (já
+  // aconteceu — ver relato do usuário com PDF real de 7 páginas).
+  var boundariesPx = [];
+  // A LARGURA do clone que o html2canvas realmente desenha às vezes fica
+  // diferente da largura medida na página viva (ex.: 805px vs 820px —
+  // provavelmente por causa da barra de rolagem, que existe numa mas não
+  // na outra). Se a conversão px→pt usar a largura da página viva enquanto
+  // as bordas foram medidas na largura do clone, o fator de escala fica
+  // errado e o erro cresce ao longo do relatório — era isso que desalinhava
+  // as bordas nas páginas finais e cortava texto ao meio (já aconteceu).
+  // Por isso capturamos a largura do PRÓPRIO clone aqui também, e usamos
+  // ela (não a da página viva) na conversão lá embaixo.
+  var clonedWidthPx = el.scrollWidth;
   html2canvas(el, {
     scale: 2, useCORS: true, allowTaint: true,
     backgroundColor: '#ffffff', logging: false,
     scrollX: 0, scrollY: 0,
     windowWidth: el.scrollWidth,
-    windowHeight: el.scrollHeight,
-    height: el.scrollHeight
+    // Sem height/windowHeight fixo de propósito: passar um valor medido na
+    // página viva (el.scrollHeight) e o clone que o html2canvas desenha de
+    // verdade acabar um pouco mais alto (mesma causa acima) cortava o
+    // rodapé do relatório fora do PDF (já aconteceu). Sem essas opções, o
+    // html2canvas mede a altura sozinho a partir do próprio clone —
+    // sempre consistente com o que ele de fato desenha.
+    onclone: function(clonedDoc) {
+      var clonedEl = clonedDoc.getElementById('premium-report-capture');
+      if (!clonedEl) return;
+      clonedWidthPx = clonedEl.scrollWidth;
+      var clonedRect = clonedEl.getBoundingClientRect();
+      boundariesPx = Array.from(clonedEl.querySelectorAll(boundarySelector))
+        .filter(function(b) { return b.offsetHeight > 3; })
+        .map(function(b) { return b.getBoundingClientRect().top - clonedRect.top; })
+        .filter(function(t) { return t > 1; })
+        .sort(function(a, b) { return a - b; });
+    }
   }).then(function(canvas) {
     if (toolbar) toolbar.style.display = toolbarPrevDisplay || '';
     restoreOverflowAndTables();
@@ -2089,7 +2118,7 @@ function exportPremiumReportPDF(nomeRespondente) {
     var pdfW = pdf.internal.pageSize.getWidth();
     var pageH = pdf.internal.pageSize.getHeight();
     var imgH = canvas.height * (pdfW / canvas.width);
-    var pxToPt = pdfW / el.scrollWidth;
+    var pxToPt = pdfW / clonedWidthPx;
     var boundariesPt = boundariesPx.map(function(px) { return px * pxToPt; }).sort(function(a, b) { return a - b; });
     var canvasPxPerPt = canvas.width / pdfW;
     var minConteudoPorPagina = 60;

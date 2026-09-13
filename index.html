@@ -2058,6 +2058,7 @@ function exportPDF() {
     _0x17f0c2.style.height = "auto";
     _0x17f0c2.style.inset = "auto";
     const _0xCapEl = _0x17f0c2.firstElementChild || _0x17f0c2;
+    _0xCapEl.id = "__pdf_capture__";
 
     // Tabelas (Matriz de Sombras, Potencial Latente) ficam dentro de um
     // wrapper overflow-x:auto — pro html2canvas isso corta o texto da borda
@@ -2066,7 +2067,6 @@ function exportPDF() {
     const _0xOverflowPrev = _0xOverflowEls.map(_0xo => _0xo.style.overflowX);
     _0xOverflowEls.forEach(_0xo => { _0xo.style.overflowX = "visible"; });
 
-    const _0xElRect = _0xCapEl.getBoundingClientRect();
     // Além dos módulos/cards/linhas de sempre, inclui o cabeçalho de cada
     // módulo (.rmod-header) e cada filho direto do corpo do módulo
     // (.rmod-body > *) — sem isso, blocos grandes e sem classe própria
@@ -2074,19 +2074,48 @@ function exportPDF() {
     // nenhuma borda reconhecida no meio, e o corte cai no pixel bruto,
     // partindo texto ao meio (já aconteceu, ver relato do usuário).
     const _0xBoundarySel = ':scope > *, .rmod, .rmod-header, .rmod-body > *, .rmod-cell, .rbar-row, .rmod-insight, .needs-suggestion, tr';
-    const _0xBoundariesPx = Array.from(_0xCapEl.querySelectorAll(_0xBoundarySel))
-      .filter(_0xb => _0xb.offsetHeight > 3)
-      .map(_0xb => _0xb.getBoundingClientRect().top - _0xElRect.top)
-      .filter(_0xt => _0xt > 1)
-      .sort((_0xa, _0xb) => _0xa - _0xb);
 
+    // IMPORTANTE: as bordas são medidas dentro do PRÓPRIO clone que o
+    // html2canvas usa pra desenhar (via onclone), não na página viva —
+    // o html2canvas clona o DOM num iframe à parte pra renderizar, e
+    // pequenas diferenças de layout entre o clone e a página viva (fonte,
+    // arredondamento, timing) se acumulam ao longo de um relatório
+    // comprido, desalinhando as bordas nas páginas finais mesmo com a
+    // lista de bordas certa (já aconteceu — ver relato do usuário).
+    //
+    // A LARGURA do clone às vezes também fica diferente da largura medida
+    // na página viva (ex.: 805px vs 820px — provavelmente pela barra de
+    // rolagem, presente numa mas não na outra). Se a conversão px→pt usar
+    // a largura errada enquanto as bordas foram medidas na largura do
+    // clone, o fator de escala fica errado e o erro cresce ao longo do
+    // relatório — era isso que desalinhava as bordas nas páginas finais e
+    // cortava texto ao meio mesmo com a lista de bordas certa. Por isso
+    // capturamos a largura do clone aqui também e usamos ela (não a da
+    // página viva) na conversão lá embaixo.
+    let _0xBoundariesPx = [];
+    let _0xClonedWidthPx = _0xCapEl.scrollWidth;
     html2canvas(_0xCapEl, {
       scale: 2, useCORS: true, allowTaint: true,
       backgroundColor: "#FAF6EE", logging: false,
       scrollX: 0, scrollY: 0,
       windowWidth: _0xCapEl.scrollWidth,
-      windowHeight: _0xCapEl.scrollHeight,
-      height: _0xCapEl.scrollHeight
+      // Sem height/windowHeight fixo de propósito: passar um valor medido
+      // na página viva e o clone que o html2canvas desenha de verdade
+      // acabar um pouco mais alto (mesma causa acima) cortava o rodapé do
+      // relatório fora do PDF. Sem essas opções, o html2canvas mede a
+      // altura sozinho a partir do próprio clone — sempre consistente com
+      // o que desenha.
+      onclone: _0xClonedDoc => {
+        const _0xClonedEl = _0xClonedDoc.getElementById("__pdf_capture__");
+        if (!_0xClonedEl) return;
+        _0xClonedWidthPx = _0xClonedEl.scrollWidth;
+        const _0xClonedRect = _0xClonedEl.getBoundingClientRect();
+        _0xBoundariesPx = Array.from(_0xClonedEl.querySelectorAll(_0xBoundarySel))
+          .filter(_0xb => _0xb.offsetHeight > 3)
+          .map(_0xb => _0xb.getBoundingClientRect().top - _0xClonedRect.top)
+          .filter(_0xt => _0xt > 1)
+          .sort((_0xa, _0xb) => _0xa - _0xb);
+      }
     }).then(_0xCanvas => {
       _0xOverflowEls.forEach((_0xo, _0xi) => { _0xo.style.overflowX = _0xOverflowPrev[_0xi]; });
       const _0xJsPDFCtor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
@@ -2094,7 +2123,7 @@ function exportPDF() {
       const _0xPdfW = _0xPdf.internal.pageSize.getWidth();
       const _0xPageH = _0xPdf.internal.pageSize.getHeight();
       const _0xImgH = _0xCanvas.height * (_0xPdfW / _0xCanvas.width);
-      const _0xPxToPt = _0xPdfW / _0xCapEl.scrollWidth;
+      const _0xPxToPt = _0xPdfW / _0xClonedWidthPx;
       const _0xBoundariesPt = _0xBoundariesPx.map(_0xpx => _0xpx * _0xPxToPt).sort((_0xa, _0xb) => _0xa - _0xb);
       const _0xCanvasPxPerPt = _0xCanvas.width / _0xPdfW;
       const _0xMinConteudo = 60;
