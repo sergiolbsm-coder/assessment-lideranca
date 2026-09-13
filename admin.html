@@ -138,7 +138,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .add-turma-row input:focus{border-color:var(--gold)}
 
 /* TOAST */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(38,16,98,.96);border:1px solid var(--gold);color:var(--parch);padding:11px 22px;border-radius:100px;font-size:13px;font-family:'DM Sans',sans-serif;z-index:9999;display:none}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(38,16,98,.96);border:1px solid var(--gold);color:var(--ink);padding:11px 22px;border-radius:100px;font-size:13px;font-family:'DM Sans',sans-serif;z-index:9999;display:none}
 
 /* CONFIG */
 .config-block{background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px}
@@ -504,10 +504,10 @@ function mostrarGate(){
             <tr>
               <th class="check-col"><input type="checkbox" id="chk-all" onchange="toggleAll(this)"></th>
               <th>#</th><th>Nome</th><th>Turma</th><th>Fase</th>
-              <th>DISC</th><th>Temp.</th><th>Token</th><th>Data</th><th>Ações</th>
-              <!-- Eneagrama/Arquétipo/Kolb/Need. 1ª/Holland removidas a
-                   pedido (tabela mais enxuta); Token adicionada pra
-                   rastreabilidade — ver renderTable() e o objeto que cada
+              <th>Token</th><th>Data</th><th>Ações</th>
+              <!-- Eneagrama/Arquétipo/Kolb/Need. 1ª/Holland/DISC/Temp.
+                   removidas a pedido (tabela mais enxuta); Token adicionada
+                   pra rastreabilidade — ver renderTable() e o objeto que cada
                    linha usa (campo "token", incluído a partir do schema
                    novo de CAB_RESPOSTAS). -->
             </tr>
@@ -1187,12 +1187,9 @@ function renderTable() {
   }
   _0x4e41f2.style.display = "none";
   _0x29cec0.innerHTML = filteredData.map((_0x5ae7f1, _0x4adcdb) => {
-    const _0x3fc113 = DISC_COLORS[_0x5ae7f1.disc_primario] || "var(--gold)";
-    const _0x55a862 = DISC_NAMES[_0x5ae7f1.disc_primario] || _0x5ae7f1.disc_primario || "—";
-    const _0x84040b = ELEM_COLORS[_0x5ae7f1.elem_primario] || "var(--gold)";
     const _0x22caba = _0x5ae7f1.timestamp ? new Date(_0x5ae7f1.timestamp).toLocaleDateString("pt-BR") : "—";
     const _0x11802b = selectedIds.has(_0x5ae7f1._id);
-    return "<tr>\n      <td class=\"check-col\"><input type=\"checkbox\" class=\"row-check\" " + (_0x11802b ? "checked" : "") + " onchange=\"toggleRow(" + _0x5ae7f1._id + ",this)\"></td>\n      <td style=\"color:var(--mid);font-family:'JetBrains Mono',monospace\">" + (_0x4adcdb + 1) + "</td>\n      <td class=\"td-name\">" + (_0x5ae7f1.nome || _0x5ae7f1.name || "—") + "</td>\n      <td style=\"color:var(--mid);max-width:160px;overflow:hidden;text-overflow:ellipsis\" title=\"" + (_0x5ae7f1.turma || "") + "\">" + (_0x5ae7f1.turma || "—") + "</td>\n      <td><span style=\"font-size:10px;color:var(--mid)\">" + (_0x5ae7f1.fase || "—") + "</span></td>\n      <td><span class=\"badge\" style=\"color:" + _0x3fc113 + ";background:rgba(255,255,255,.04)\">" + _0x55a862 + "</span></td>\n      <td style=\"color:" + _0x84040b + "\">" + (_0x5ae7f1.elem_primario || "—") + "</td>\n      <td style=\"color:var(--mid);font-family:'JetBrains Mono',monospace;font-size:10px\">" + (_0x5ae7f1.token || "") + "</td>\n      <td class=\"td-date\">" + _0x22caba + "</td>\n      <td><button class=\"btn btn-outline btn-sm\" onclick=\"openProfile(" + _0x5ae7f1._id + ")\">👁 Ver</button></td>\n    </tr>";
+    return "<tr>\n      <td class=\"check-col\"><input type=\"checkbox\" class=\"row-check\" " + (_0x11802b ? "checked" : "") + " onchange=\"toggleRow(" + _0x5ae7f1._id + ",this)\"></td>\n      <td style=\"color:var(--mid);font-family:'JetBrains Mono',monospace\">" + (_0x4adcdb + 1) + "</td>\n      <td class=\"td-name\">" + (_0x5ae7f1.nome || _0x5ae7f1.name || "—") + "</td>\n      <td style=\"color:var(--mid);max-width:160px;overflow:hidden;text-overflow:ellipsis\" title=\"" + (_0x5ae7f1.turma || "") + "\">" + (_0x5ae7f1.turma || "—") + "</td>\n      <td><span style=\"font-size:10px;color:var(--mid)\">" + (_0x5ae7f1.fase || "—") + "</span></td>\n      <td style=\"color:var(--mid);font-family:'JetBrains Mono',monospace;font-size:10px\">" + (_0x5ae7f1.token || "") + "</td>\n      <td class=\"td-date\">" + _0x22caba + "</td>\n      <td><button class=\"btn btn-outline btn-sm\" onclick=\"openProfile(" + _0x5ae7f1._id + ")\">👁 Ver</button></td>\n    </tr>";
   }).join("");
 }
 function toggleRow(_0x2f706f, _0x49c9a3) {
