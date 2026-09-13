@@ -6,8 +6,12 @@
 <title>Assessment de Liderança · Instituto da Liderança</title>
 
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
-<!-- html2pdf.js — usado por exportPDF() pra gerar o PDF do relatório final. -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<!-- html2canvas + jsPDF — usados por exportPDF() pra gerar o PDF do relatório -->
+<!-- final via captura direta em canvas (html2pdf().from(overlay).save() já -->
+<!-- deu PDF em branco antes — perde variável CSS na clonagem interna dele; -->
+<!-- não trocar de volta pra esse wrapper, ver histórico do git). -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root{
   /* ── IDL Design System ──────────────────────────── */
@@ -2036,32 +2040,80 @@ function exportPDF() {
       _0x599444.style.background = "#EDE8DC";
       _0x599444.style.overflow = "hidden";
     });
-    const _0x339c35 = {
-      margin: [8, 8, 8, 8],
-      filename: "Relatorio-Lideranca-" + _0xf30446.replace(/\s+/g, "-") + ".pdf",
-      image: {
-        type: "jpeg",
-        quality: 0.97
-      },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: "#FFFFFF",
-        logging: false,
-        removeContainer: true,
-        windowWidth: 900
-      },
-      jsPDF: {
-        unit: "mm",
-        format: "a4",
-        orientation: "portrait"
-      },
-      pagebreak: {
-        mode: ["avoid-all", "css", "legacy"]
+    // Captura direta em canvas + paginação que só corta nas bordas dos
+    // cards/linhas (nunca no meio) — mesma técnica já validada no botão
+    // "Relatório Premium" do admin.html. NÃO trocar de volta pro wrapper
+    // html2pdf().from(overlay).save(): ele perde variável CSS na clonagem
+    // interna e sai em branco (já aconteceu antes, ver histórico do git).
+    //
+    // Importante: _0x17f0c2 (o overlay) é position:fixed;inset:0 com
+    // overflow-y:auto — se ele for o alvo do html2canvas, a captura sai
+    // cortada na altura da viewport (só a parte visível na tela), porque
+    // o próprio elemento fica com altura travada no tamanho da tela. Por
+    // isso capturamos o filho interno (bloco normal, sem fixed/overflow,
+    // altura = conteúdo real inteiro) e ainda neutralizamos o overlay por
+    // garantia.
+    _0x17f0c2.style.position = "static";
+    _0x17f0c2.style.overflow = "visible";
+    _0x17f0c2.style.height = "auto";
+    _0x17f0c2.style.inset = "auto";
+    const _0xCapEl = _0x17f0c2.firstElementChild || _0x17f0c2;
+    const _0xElRect = _0xCapEl.getBoundingClientRect();
+    const _0xBoundarySel = ':scope > *, .rmod, .rmod-cell, .rbar-row, .rmod-insight, .needs-suggestion';
+    const _0xBoundariesPx = Array.from(_0xCapEl.querySelectorAll(_0xBoundarySel))
+      .filter(_0xb => _0xb.offsetHeight > 3)
+      .map(_0xb => _0xb.getBoundingClientRect().top - _0xElRect.top)
+      .filter(_0xt => _0xt > 1);
+
+    html2canvas(_0xCapEl, {
+      scale: 2, useCORS: true, allowTaint: true,
+      backgroundColor: "#FAF6EE", logging: false,
+      scrollX: 0, scrollY: 0,
+      windowWidth: _0xCapEl.scrollWidth,
+      windowHeight: _0xCapEl.scrollHeight,
+      height: _0xCapEl.scrollHeight
+    }).then(_0xCanvas => {
+      const _0xJsPDFCtor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+      const _0xPdf = new _0xJsPDFCtor({ unit: "pt", format: "a4" });
+      const _0xPdfW = _0xPdf.internal.pageSize.getWidth();
+      const _0xPageH = _0xPdf.internal.pageSize.getHeight();
+      const _0xImgH = _0xCanvas.height * (_0xPdfW / _0xCanvas.width);
+      const _0xPxToPt = _0xPdfW / _0xCapEl.scrollWidth;
+      const _0xBoundariesPt = _0xBoundariesPx.map(_0xpx => _0xpx * _0xPxToPt).sort((_0xa, _0xb) => _0xa - _0xb);
+      const _0xCanvasPxPerPt = _0xCanvas.width / _0xPdfW;
+      const _0xMinConteudo = 60;
+
+      let _0xY = 0;
+      let _0xFirstPage = true;
+      while (_0xY < _0xImgH - 0.5) {
+        if (!_0xFirstPage) _0xPdf.addPage();
+        _0xFirstPage = false;
+        const _0xNaiveCut = Math.min(_0xY + _0xPageH, _0xImgH);
+        let _0xCut = _0xNaiveCut;
+        if (_0xNaiveCut < _0xImgH) {
+          let _0xMelhor = -1;
+          for (const _0xb of _0xBoundariesPt) {
+            if (_0xb > _0xY + _0xMinConteudo && _0xb <= _0xNaiveCut) _0xMelhor = _0xb;
+          }
+          if (_0xMelhor < 0) {
+            for (const _0xb2 of _0xBoundariesPt) {
+              if (_0xb2 > _0xY && _0xb2 <= _0xNaiveCut) _0xMelhor = _0xb2;
+            }
+          }
+          if (_0xMelhor > 0) _0xCut = _0xMelhor;
+        }
+        const _0xSliceHPt = _0xCut - _0xY;
+        const _0xSrcYPx = Math.round(_0xY * _0xCanvasPxPerPt);
+        const _0xSrcHPx = Math.max(1, Math.round(_0xSliceHPt * _0xCanvasPxPerPt));
+        const _0xTmp = document.createElement("canvas");
+        _0xTmp.width = _0xCanvas.width;
+        _0xTmp.height = _0xSrcHPx;
+        _0xTmp.getContext("2d").drawImage(_0xCanvas, 0, _0xSrcYPx, _0xCanvas.width, _0xSrcHPx, 0, 0, _0xCanvas.width, _0xSrcHPx);
+        const _0xSliceData = _0xTmp.toDataURL("image/jpeg", 0.95);
+        _0xPdf.addImage(_0xSliceData, "JPEG", 0, 0, _0xPdfW, _0xSliceHPt);
+        _0xY = _0xCut;
       }
-    };
-    html2pdf().set(_0x339c35).from(_0x17f0c2).save().then(() => {
+      _0xPdf.save("Relatorio-Lideranca-" + _0xf30446.replace(/\s+/g, "-") + ".pdf");
       document.body.removeChild(_0x17f0c2);
       if (_0x2d59d9) {
         _0x2d59d9.textContent = "📄 Exportar PDF";
@@ -2078,10 +2130,22 @@ function exportPDF() {
       showToast("⚠️ Erro ao gerar PDF — tente Imprimir.");
     });
   }
-  if (typeof html2pdf === "undefined") {
+  if (typeof html2canvas === "undefined" || !(window.jspdf || window.jsPDF)) {
     const _0x20ce32 = document.createElement("script");
-    _0x20ce32.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
-    _0x20ce32.onload = _0x59a4a3;
+    _0x20ce32.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+    _0x20ce32.onload = () => {
+      const _0x20ce33 = document.createElement("script");
+      _0x20ce33.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+      _0x20ce33.onload = _0x59a4a3;
+      _0x20ce33.onerror = () => {
+        if (_0x2d59d9) {
+          _0x2d59d9.textContent = "📄 Exportar PDF";
+          _0x2d59d9.disabled = false;
+        }
+        showToast("⚠️ Sem conexão — use o botão Imprimir.");
+      };
+      document.head.appendChild(_0x20ce33);
+    };
     _0x20ce32.onerror = () => {
       if (_0x2d59d9) {
         _0x2d59d9.textContent = "📄 Exportar PDF";
