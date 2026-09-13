@@ -145,6 +145,22 @@ tr:hover td{background:rgba(255,255,255,.02)}
    respondente vê em index.html (#report-body), pra ficar visualmente
    idêntico. Namespace por classe (não por id), então isolado do resto do
    admin — nada aqui colide com o que já existia. */
+/* Sobrescreve a regra global `td{white-space:nowrap}` (linha ~98, pensada
+   pra tabela de Respondentes) — sem isso, as tabelas Matriz de Sombras/
+   Potencial Latente do Relatório Premium se recusam a quebrar linha e
+   ficam larguíssimas, cortando o texto da direita no PDF (já aconteceu,
+   ver relato do usuário). table-layout:fixed é necessário além do
+   white-space:normal — em table-layout automático (padrão), o navegador
+   ainda pode deixar a tabela maior que 100% se a largura mínima de
+   alguma célula não quebrada for grande; fixed força respeitar 100%. */
+/* min-width:0 é o pulo do gato: a regra global `table{min-width:900px}`
+   (linha ~95, pra tabela de Respondentes não ficar espremida) sempre
+   ganha de qualquer width que a gente tente forçar (min-width tem
+   prioridade sobre width por especificação do CSS) — era isso que
+   deixava a tabela sempre com 900px de largura reais não importa o que
+   a gente setasse via JS ou via width:100%. */
+#premium-report-capture table{table-layout:fixed;width:100%;min-width:0}
+#premium-report-capture td,#premium-report-capture th{white-space:normal;overflow-wrap:anywhere;word-break:break-word}
 .report-hero{text-align:center;padding:36px 28px 32px;border:2px solid #FF0060;margin-bottom:28px;background:#FFFFFF;border-radius:16px}
 .report-avatar{width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,#391694,#FF0060);display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 14px;color:#fff}
 .report-name{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;margin-bottom:6px;color:#261062}
@@ -1961,8 +1977,8 @@ function generatePremiumReport(id) {
   var empresaLine = row.empresa ? '🏢 ' + row.empresa : '';
   var emailLine = row.email ? '✉️ ' + row.email : '';
   overlay.innerHTML =
-    '<div style="max-width:820px;margin:0 auto;padding:24px 20px 60px">' +
-    '<div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:16px;position:sticky;top:12px;z-index:2">' +
+    '<div id="premium-report-capture" style="max-width:820px;margin:0 auto;padding:24px 20px 60px">' +
+    '<div id="premium-toolbar" style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:16px;position:sticky;top:12px;z-index:2">' +
     '<button class="btn btn-gold btn-sm" id="premium-export-btn">📄 Exportar PDF</button>' +
     '<button class="btn btn-outline btn-sm" id="premium-close-btn">✕ Fechar</button>' +
     '</div>' +
@@ -1987,23 +2003,74 @@ function generatePremiumReport(id) {
 // recortando o canvas de verdade por página (não desloca a imagem inteira,
 // que duplicava conteúdo quando o corte não caía numa altura fixa).
 function exportPremiumReportPDF(nomeRespondente) {
-  var el = document.getElementById('premium-report-body');
+  // Captura o wrapper INTEIRO (#premium-report-capture), não só
+  // #premium-report-body — senão o .report-hero (logo/nome/data), que é
+  // irmão do body e não filho, nunca aparece no PDF.
+  var el = document.getElementById('premium-report-capture');
   if (!el) return;
   var btn = document.getElementById('premium-export-btn');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Gerando...'; }
+
+  var toolbar = document.getElementById('premium-toolbar');
+  var toolbarPrevDisplay = toolbar ? toolbar.style.display : null;
+  if (toolbar) toolbar.style.display = 'none';
+
+  // Tabelas (Matriz de Sombras, Potencial Latente) ficam dentro de um
+  // wrapper overflow-x:auto — pro html2canvas isso corta o texto da borda
+  // direita (só captura a parte "visível"), igual acontecia com o overlay
+  // fixed;overflow-y:auto do relatório do respondente. Neutraliza antes.
+  //
+  // width:100% na tabela não é suficiente pra evitar isso: dentro de um
+  // container overflow-x:auto, o Chrome às vezes resolve o "100%" contra
+  // a LARGURA DE SCROLL (o conteúdo não quebrado) em vez da largura
+  // visível do wrapper — a tabela fica larga mesmo com table-layout:fixed
+  // e width:100%!important. Por isso medimos a largura real do wrapper
+  // ANTES de neutralizar o overflow e travamos a tabela nesse valor em
+  // pixels (sem depender de porcentagem).
+  var overflowEls = Array.from(el.querySelectorAll('[style*="overflow-x"]'));
+  var overflowPrev = overflowEls.map(function(o) { return o.style.overflowX; });
+  var overflowWidths = overflowEls.map(function(o) { return o.clientWidth; });
+  var overflowTables = overflowEls.map(function(o) { return o.querySelector('table'); });
+  var tablePrevWidth = overflowTables.map(function(t) { return t ? t.style.width : null; });
+  var tablePrevLayout = overflowTables.map(function(t) { return t ? t.style.tableLayout : null; });
+  overflowEls.forEach(function(o, i) {
+    o.style.overflowX = 'visible';
+    var table = overflowTables[i];
+    if (table && overflowWidths[i] > 0) { table.style.width = overflowWidths[i] + 'px'; table.style.tableLayout = 'fixed'; }
+  });
+  function restoreOverflowAndTables() {
+    overflowEls.forEach(function(o, i) {
+      o.style.overflowX = overflowPrev[i];
+      var table = overflowTables[i];
+      if (table) { table.style.width = tablePrevWidth[i] || ''; table.style.tableLayout = tablePrevLayout[i] || ''; }
+    });
+  }
+
   var elRect = el.getBoundingClientRect();
-  var boundarySelector = ':scope > *, .rmod-cell, .rbar-row, .rmod-insight, .needs-suggestion';
+  // Bordas de corte permitidas: além dos módulos/cards/linhas de sempre,
+  // inclui o cabeçalho de cada módulo (.rmod-header) e cada filho direto
+  // do corpo do módulo (.rmod-body > *) — sem isso, blocos grandes e sem
+  // classe própria (como os cards da Bateria de Energia) formam um trecho
+  // enorme sem nenhuma borda reconhecida no meio, e o corte cai no pixel
+  // bruto, partindo texto ao meio (já aconteceu — ver relato do usuário).
+  var boundarySelector = ':scope > *, .rmod-header, .rmod-body > *, .rmod-cell, .rbar-row, .rmod-insight, .needs-suggestion, tr';
   var boundariesPx = Array.from(el.querySelectorAll(boundarySelector))
     .filter(function(b) { return b.offsetHeight > 3; })
     .map(function(b) { return b.getBoundingClientRect().top - elRect.top; })
-    .filter(function(t) { return t > 1; });
+    .filter(function(t) { return t > 1; })
+    .sort(function(a, b) { return a - b; });
 
   html2canvas(el, {
     scale: 2, useCORS: true, allowTaint: true,
     backgroundColor: '#ffffff', logging: false,
     scrollX: 0, scrollY: 0,
-    windowWidth: el.scrollWidth
+    windowWidth: el.scrollWidth,
+    windowHeight: el.scrollHeight,
+    height: el.scrollHeight
   }).then(function(canvas) {
+    if (toolbar) toolbar.style.display = toolbarPrevDisplay || '';
+    restoreOverflowAndTables();
+
     var jsPDFCtor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
     var pdf = new jsPDFCtor({ unit: 'pt', format: 'a4' });
     var pdfW = pdf.internal.pageSize.getWidth();
@@ -2033,6 +2100,16 @@ function exportPremiumReportPDF(nomeRespondente) {
             if (b2 > y && b2 <= naiveCut) melhor = b2;
           }
         }
+        // Nenhuma borda cabe dentro de uma página inteira (bloco maior que
+        // uma página, ex.: tabela grande) — em vez de cortar no pixel bruto
+        // (que parte texto ao meio), usa a PRÓXIMA borda disponível mesmo
+        // que ultrapasse a altura normal da página. A página fica menor que
+        // o normal, mas nunca corta um elemento ao meio.
+        if (melhor < 0) {
+          for (var k = 0; k < boundariesPt.length; k++) {
+            if (boundariesPt[k] > y) { melhor = boundariesPt[k]; break; }
+          }
+        }
         if (melhor > 0) cut = melhor;
       }
       var sliceHPt = cut - y;
@@ -2050,6 +2127,8 @@ function exportPremiumReportPDF(nomeRespondente) {
     pdf.save('Relatorio-Premium-' + nomeArquivo + '.pdf');
     if (btn) { btn.disabled = false; btn.textContent = '📄 Exportar PDF'; }
   }).catch(function(e) {
+    if (toolbar) toolbar.style.display = toolbarPrevDisplay || '';
+    restoreOverflowAndTables();
     if (btn) { btn.disabled = false; btn.textContent = '📄 Exportar PDF'; }
     toast('Erro ao gerar PDF: ' + e.message, 'error');
   });
