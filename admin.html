@@ -1941,17 +1941,7 @@ function premiumReportBody(row) {
   }).join('');
 
   var html = '';
-  html += '\n\n<div class="section-sep">Resumo do Perfil</div>\n<div class="rmod" style="background:linear-gradient(135deg,rgba(201,168,76,.07),rgba(201,168,76,.02))">\n  <div class="rmod-body">\n    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">\n      ';
-  html += [
-    ['DISC', '<span style="color:'+PREMIUM_DISC_COLORS[disc.primary]+';font-size:16px;font-weight:800">'+PREMIUM_DISC_NAMES[disc.primary]+'</span><div style="font-size:11px;color:var(--mid);margin-top:2px">2º: '+PREMIUM_DISC_NAMES[disc.secondary]+'</div>'],
-    ['Temperamento', '<span style="color:'+elemInfo.color+'">'+elemInfo.icon+' '+elem.primary+'</span>'],
-    ['Eneagrama', '<span style="color:var(--mist)">Tipo '+ennea.top.num+' · '+enneaInfo.alias+'</span>'],
-    ['Arquétipo', '<span style="color:var(--gold)">'+arch.primary+'</span>'],
-    ['Kolb', '<span style="color:var(--sky)">'+kolb.name+'</span>'],
-    ['Necessidade 1ª', '<span style="color:#F0A050">'+needs.primary.icon+' '+needs.primary.name+'</span>'],
-    ['Holland RIASEC', '<span style="color:#E8A840;font-size:17px;font-weight:800">'+holland.code+'</span>']
-  ].map(function(pair){ return '<div class="rmod-cell"><div class="rmod-cell-label">'+pair[0]+'</div><div style="font-size:15px;font-weight:700">'+pair[1]+'</div></div>'; }).join('');
-  html += '\n    </div>\n  </div>\n</div>\n\n<div class="section-sep">Perfis Detalhados</div>\n\n';
+  html += '\n\n<div class="section-sep">Perfis Detalhados</div>\n\n';
 
   html += '<!-- DISC EXPANDIDO -->\n<div class="rmod">\n  <div class="rmod-header">\n    <div class="rmod-icon">🎯</div>\n    <div><div class="rmod-theory">Instrumento 1 · Comportamento</div><div class="rmod-title">Perfil DISC — '+PREMIUM_DISC_NAMES[disc.primary]+'</div></div>\n    <span class="rmod-badge" style="background:rgba(255,255,255,.06);color:'+PREMIUM_DISC_COLORS[disc.primary]+'">'+PREMIUM_DISC_NAMES[disc.primary]+'</span>\n  </div>\n  <div class="rmod-body">\n    <p class="rmod-desc">'+PREMIUM_DISC_DESC[disc.primary]+'</p>\n    <div style="margin-bottom:18px">'+discBars+'</div>\n    <div class="disc-detail-grid">\n      <div class="rmod-cell"><div class="rmod-cell-label">✅ Pontos Fortes</div><div class="rmod-cell-value">'+discInfo.fortes+'</div></div>\n      <div class="rmod-cell"><div class="rmod-cell-label">⚠️ Pontos de Atenção</div><div class="rmod-cell-value">'+discInfo.atencao+'</div></div>\n      <div class="rmod-cell"><div class="rmod-cell-label">📤 Forma de Delegação</div><div class="rmod-cell-value">'+discInfo.delegacao+'</div></div>\n      <div class="rmod-cell"><div class="rmod-cell-label">🗣️ Forma de Comunicação</div><div class="rmod-cell-value">'+discInfo.comunicacao+'</div></div>\n      <div class="rmod-cell"><div class="rmod-cell-label">⚡ O que Motiva</div><div class="rmod-cell-value">'+discInfo.motivacao+'</div></div>\n      <div class="rmod-cell"><div class="rmod-cell-label">🚫 O que Desmotiva</div><div class="rmod-cell-value">'+discInfo.desmotivacao+'</div></div>\n    </div>\n    <div class="rmod-insight" style="margin-top:14px"><strong>Gestão de Pessoas:</strong> '+discInfo.gestao+'</div>\n    <div class="rmod-insight"><strong>Palavra de Ordem:</strong> '+PREMIUM_PALAVRA_ORDEM[disc.primary]+'</div>\n  </div>\n</div>\n\n';
 
