@@ -486,10 +486,7 @@ function mostrarGate(){
           <option>Durante o Treinamento</option>
           <option>Pós-Treinamento</option>
         </select>
-        <select class="filter-sel" id="f-disc" onchange="filterTable()">
-          <option value="">Todo DISC</option>
-          <option>Dominante</option><option>Influente</option><option>Estável</option><option>Conformidade</option>
-        </select>
+        <select class="filter-sel" id="f-empresa" onchange="filterTable()"><option value="">Todas as empresas</option></select>
         <span id="sel-count" style="font-size:12px;color:var(--mid);font-family:'JetBrains Mono',monospace"></span>
       </div>
 
@@ -1151,15 +1148,20 @@ function populateFilters() {
     const _0x4095f2 = _0x4e4e9c.value;
     _0x4e4e9c.innerHTML = "<option value=\"\">Todas as turmas</option>" + _0x46395f.map(_0x5aa343 => "<option" + (_0x5aa343 === _0x4095f2 ? " selected" : "") + ">" + _0x5aa343 + "</option>").join("");
   });
+  const _0x2b91e5 = [...new Set(allData.map(_0xa0e8b1 => _0xa0e8b1.empresa).filter(Boolean))].sort();
+  const _0x1f7a3c = document.getElementById("f-empresa");
+  if (_0x1f7a3c) {
+    const _0x8d4e21 = _0x1f7a3c.value;
+    _0x1f7a3c.innerHTML = "<option value=\"\">Todas as empresas</option>" + _0x2b91e5.map(_0x5aa343 => "<option" + (_0x5aa343 === _0x8d4e21 ? " selected" : "") + ">" + _0x5aa343 + "</option>").join("");
+  }
 }
 function filterTable() {
   const _0x7c24c3 = document.getElementById("search").value.toLowerCase();
   const _0x332b3d = document.getElementById("f-turma").value;
   const _0x1ae6bf = document.getElementById("f-fase").value;
-  const _0x58e412 = document.getElementById("f-disc").value;
+  const _0x58e412 = document.getElementById("f-empresa").value;
   filteredData = allData.filter(_0x4d14a3 => {
     const _0x139ac5 = (_0x4d14a3.nome || _0x4d14a3.name || "").toLowerCase();
-    const _0x20c54f = DISC_NAMES[_0x4d14a3.disc_primario] || _0x4d14a3.disc_primario || "";
     if (_0x7c24c3 && !_0x139ac5.includes(_0x7c24c3)) {
       return false;
     }
@@ -1169,7 +1171,7 @@ function filterTable() {
     if (_0x1ae6bf && !(_0x4d14a3.fase || "").includes(_0x1ae6bf.split(" ")[0])) {
       return false;
     }
-    if (_0x58e412 && _0x20c54f !== _0x58e412) {
+    if (_0x58e412 && _0x4d14a3.empresa !== _0x58e412) {
       return false;
     }
     return true;
