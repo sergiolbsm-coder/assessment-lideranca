@@ -342,6 +342,10 @@ function mostrarGate(){
       btn.disabled = false;
       setSecret(senha);
       esconderGate();
+      // A ação padrão do doGet (respondentes) agora exige o ADMIN_SECRET —
+      // recarrega os dados reais assim que loga, em vez de esperar o
+      // próximo ciclo de 90s ou o usuário clicar em "Atualizar".
+      if (typeof loadData === 'function') loadData();
     }, function(erro){
       btn.disabled = false;
       msg.textContent = erro;
@@ -352,6 +356,10 @@ function mostrarGate(){
     clearSecret();
     el('lic-panel').classList.add('hidden');
     mostrarGate();
+    // Limpa os dados reais da memória/tela ao sair — sem isso, o perfil
+    // psicológico e o e-mail dos respondentes ficavam visíveis pra quem
+    // usasse o computador em seguida, mesmo com o gate de volta na frente.
+    if (typeof loadData === 'function') loadData();
   }
 
   function gerar(){
@@ -1062,8 +1070,16 @@ async function loadData() {
   // string hardcoded no value= do campo cfg-script-url na Configuração).
   const _0x51a41f = getCfg("script_url", "https://script.google.com/macros/s/AKfycbwA7C98Aa18JBS3Y2KcbOKcl9bZVhGXRfh2yamL6cgpoqKyMB5w4iI5m4YZc2CF0HhlKQ/exec");
   const _0x1f2c2d = getCfg("csv_url", DEFAULT_CSV);
+  // A ação padrão (respondentes) agora exige o ADMIN_SECRET no servidor —
+  // ver auditoria de segurança: antes qualquer pessoa com a URL do Apps
+  // Script (visível no código-fonte público) baixava a base inteira sem
+  // senha nenhuma. A senha é a mesma usada no gate de login do painel,
+  // guardada pelo primeiro <script> (IIFE separada, por isso lê direto do
+  // localStorage aqui em vez de chamar a função de lá).
+  let _0xAdminSecret = "";
+  try { _0xAdminSecret = localStorage.getItem("il_admin_license_secret") || ""; } catch (_0xe) {}
   let _0x57048d = false;
-  if (_0x51a41f) {
+  if (_0x51a41f && _0xAdminSecret) {
     // O endpoint do Apps Script às vezes fica instável por alguns segundos
     // logo após uma reimplantação (ou por flutuação da infraestrutura do
     // Google) e devolve "Página não encontrada" em vez do JSON — tenta até
@@ -1071,7 +1087,7 @@ async function loadData() {
     for (let _0xTentativa = 0; _0xTentativa < 3 && !_0x57048d; _0xTentativa++) {
       try {
         if (_0xTentativa > 0) await new Promise(_0xr => setTimeout(_0xr, 700));
-        const _0x360a35 = await fetch(_0x51a41f + (_0x51a41f.includes("?") ? "&" : "?") + "t=" + Date.now());
+        const _0x360a35 = await fetch(_0x51a41f + (_0x51a41f.includes("?") ? "&" : "?") + "action=getRespostas&secret=" + encodeURIComponent(_0xAdminSecret) + "&t=" + Date.now());
         if (_0x360a35.ok) {
           const _0x15f3f2 = await _0x360a35.json();
           if (_0x15f3f2.status === "ok" && Array.isArray(_0x15f3f2.data) && _0x15f3f2.data.length > 0) {
@@ -1087,7 +1103,13 @@ async function loadData() {
       }
     }
   }
-  if (!_0x57048d && _0x1f2c2d) {
+  // O fallback de CSV só funciona se a planilha estiver com compartilhamento
+  // público ("qualquer pessoa com o link") — o export de CSV do Google
+  // Sheets não aceita senha nenhuma. Por isso só tenta esse caminho depois
+  // de já estar logado (senha certa digitada); não impede alguém de abrir
+  // a URL da planilha direto no navegador se ela estiver mesmo pública —
+  // a proteção real é NUNCA deixar a planilha compartilhada como pública.
+  if (!_0x57048d && _0x1f2c2d && _0xAdminSecret) {
     try {
       let _0x3cd13a = await fetch(_0x1f2c2d + "&t=" + Date.now()).catch(() => null);
       if (!_0x3cd13a || !_0x3cd13a.ok) {
@@ -1111,7 +1133,9 @@ async function loadData() {
     loadDemoData();
     if (_0x512849 && !_0x57048d) {
       _0x512849.style.display = "block";
-      _0x512849.innerHTML = "<div class=\"empty-icon\">⚙️</div>\n        <div class=\"empty-title\">Dados de exemplo</div>\n        <div style=\"font-size:13px;line-height:1.8;max-width:480px;margin:0 auto\">\n          Para ver dados reais, configure o Apps Script na aba <strong>Configuração</strong>\n          e reimplante com o novo código que inclui <code>doGet()</code>.<br><br>\n          <button class=\"btn btn-gold btn-sm\" onclick=\"showTab('config')\">⚙️ Configuração</button>\n        </div>";
+      _0x512849.innerHTML = !_0xAdminSecret
+        ? "<div class=\"empty-icon\">🔒</div>\n        <div class=\"empty-title\">Dados de exemplo</div>\n        <div style=\"font-size:13px;line-height:1.8;max-width:480px;margin:0 auto\">\n          Os dados reais agora exigem login (senha de administrador) — é a mesma senha do gate de licenças.\n        </div>"
+        : "<div class=\"empty-icon\">⚙️</div>\n        <div class=\"empty-title\">Dados de exemplo</div>\n        <div style=\"font-size:13px;line-height:1.8;max-width:480px;margin:0 auto\">\n          Para ver dados reais, configure o Apps Script na aba <strong>Configuração</strong>\n          e reimplante com o novo código que inclui <code>doGet()</code>.<br><br>\n          <button class=\"btn btn-gold btn-sm\" onclick=\"showTab('config')\">⚙️ Configuração</button>\n        </div>";
     } else if (_0x512849) {
       _0x512849.style.display = "none";
     }
@@ -3415,54 +3439,22 @@ function toast(_0x2cebd9, _0x3142d1 = "info") {
     _0x2566d4.style.display = "none";
   }, 3500);
 }
+// (havia uma segunda cópia idêntica desta função logo abaixo — código
+// morto de uma duplicação antiga; removida.)
 async function loadPontuacoesFromSheet() {
-  const _0x186eb2 = getCfg("script_url", "https://script.google.com/macros/s/AKfycbyUFi-n1PaKBH119A0XiWZ_wMgN7jRbN176F1VLEUD0JyODhVVGooVRcQQ1D0MFZkS4ng/exec");
-  if (!_0x186eb2) {
-    return;
-  }
-  try {
-    const _0x5a17ce = await fetch(_0x186eb2 + "?action=getPontuacoes&t=" + Date.now());
-    if (!_0x5a17ce.ok) {
-      return;
-    }
-    const _0x272413 = await _0x5a17ce.json();
-    if (_0x272413.status !== "ok" || !Array.isArray(_0x272413.data) || !_0x272413.data.length) {
-      return;
-    }
-    const _0x202850 = {};
-    _0x272413.data.forEach(_0x42fa87 => {
-      const _0x58db7a = _0x42fa87.respondente_key || "";
-      const _0x6c0ea = _0x42fa87.rodada || "";
-      const _0xe3c0f7 = _0x42fa87.atv_id || "";
-      const _0x51bf7f = _0x42fa87.marcado === "SIM";
-      if (!_0x58db7a || !_0x6c0ea || !_0xe3c0f7) {
-        return;
-      }
-      if (!_0x202850[_0x58db7a]) {
-        _0x202850[_0x58db7a] = {};
-      }
-      if (!_0x202850[_0x58db7a][_0x6c0ea]) {
-        _0x202850[_0x58db7a][_0x6c0ea] = {};
-      }
-      _0x202850[_0x58db7a][_0x6c0ea][_0xe3c0f7] = _0x51bf7f;
-    });
-    setPontuacoes(_0x202850);
-    console.log("✅ Pontuações carregadas da planilha: " + _0x272413.data.length + " registros");
-    const _0x32f017 = document.getElementById("tab-ranking")?.classList.contains("active");
-    if (_0x32f017) {
-      renderRanking();
-    }
-  } catch (_0x211093) {
-    console.warn("loadPontuacoesFromSheet failed:", _0x211093.message);
-  }
-}
-async function loadPontuacoesFromSheet() {
-  const _0x474a98 = getCfg("script_url", "https://script.google.com/macros/s/AKfycbyUFi-n1PaKBH119A0XiWZ_wMgN7jRbN176F1VLEUD0JyODhVVGooVRcQQ1D0MFZkS4ng/exec");
+  const _0x474a98 = getCfg("script_url", "https://script.google.com/macros/s/AKfycbwA7C98Aa18JBS3Y2KcbOKcl9bZVhGXRfh2yamL6cgpoqKyMB5w4iI5m4YZc2CF0HhlKQ/exec");
   if (!_0x474a98) {
     return;
   }
+  // getPontuacoes agora exige ADMIN_SECRET no servidor (nome/email de
+  // respondente também aparecem aqui) — sem senha logada, nem tenta.
+  let _0xSecretPont = "";
+  try { _0xSecretPont = localStorage.getItem("il_admin_license_secret") || ""; } catch (_0xe) {}
+  if (!_0xSecretPont) {
+    return;
+  }
   try {
-    const _0x1d3bfb = await fetch(_0x474a98 + "?action=getPontuacoes&t=" + Date.now());
+    const _0x1d3bfb = await fetch(_0x474a98 + "?action=getPontuacoes&secret=" + encodeURIComponent(_0xSecretPont) + "&t=" + Date.now());
     if (!_0x1d3bfb.ok) {
       return;
     }

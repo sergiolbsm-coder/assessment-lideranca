@@ -12,13 +12,17 @@ var CAB_TOKENS     = ['codigo','cliente','status','gerado_em','usado_em','respon
 var ABA_EMPRESAS   = 'Empresas'; // ← login da empresa (view-only dos próprios tokens)
 var CAB_EMPRESAS   = ['cliente','senha_hash','definido_em'];
 
-// Segredo pra proteger geração/listagem de tokens (ações administrativas e
-// financeiramente sensíveis — não podem ficar abertas como o resto do doGet
-// ainda está). Configure em: Editor do Apps Script → ⚙️ Configurações do
-// projeto → Propriedades do script → adicione ADMIN_SECRET com um valor
-// forte. Sem essa propriedade definida, as duas ações ficam bloqueadas por
-// padrão (fail-closed), não abertas.
+// Segredo pra proteger ações administrativas e dados sensíveis de
+// respondente (nome, email, perfil psicológico completo). Configure em:
+// Editor do Apps Script → ⚙️ Configurações do projeto → Propriedades do
+// script → adicione ADMIN_SECRET com um valor forte. Sem essa propriedade
+// definida, TODAS as ações que exigem secret ficam bloqueadas por padrão
+// (fail-closed), nunca abertas.
 var ADMIN_SECRET = PropertiesService.getScriptProperties().getProperty('ADMIN_SECRET') || '';
+
+function checkAdminSecret(secret) {
+  return !!ADMIN_SECRET && secret === ADMIN_SECRET;
+}
 
 // disc_nat_*/disc_mask_* ficam no FINAL de propósito (não inseridas no
 // meio) — assim as 70 respostas antigas (gravadas com o schema de 40
@@ -60,15 +64,32 @@ function doGet(e) {
   var out = ContentService.createTextOutput().setMimeType(ContentService.MimeType.JSON);
   try {
     var action = (e && e.parameter && e.parameter.action) ? e.parameter.action : 'getRespostas';
-    if (action === 'getPontuacoes') return out.setContent(JSON.stringify(sheetToJson(ABA_PONTUACAO)));
-    if (action === 'getRanking')    return out.setContent(JSON.stringify(sheetToJson(ABA_RANKING)));
+    // getRespostas (default), getPontuacoes e getRanking devolvem nome+email
+    // reais de respondentes (e getRespostas devolve o perfil psicológico
+    // inteiro) — até essa correção, essas 3 ações não pediam ADMIN_SECRET
+    // nenhum, então QUALQUER PESSOA com a URL do Apps Script (visível no
+    // código-fonte público do admin.html) conseguia baixar a base inteira
+    // sem senha. Corrigido: agora exigem o mesmo ADMIN_SECRET que já
+    // protegia getTokens. Ver auditoria de segurança — nunca reverter isso.
+    if (action === 'getRespostas' || (!e || !e.parameter || !e.parameter.action)) {
+      if (!checkAdminSecret(e && e.parameter && e.parameter.secret)) return out.setContent(JSON.stringify({status:'error', message:'Não autorizado'}));
+      return out.setContent(JSON.stringify(sheetToJson(ABA_RESPOSTAS)));
+    }
+    if (action === 'getPontuacoes') {
+      if (!checkAdminSecret(e.parameter.secret)) return out.setContent(JSON.stringify({status:'error', message:'Não autorizado'}));
+      return out.setContent(JSON.stringify(sheetToJson(ABA_PONTUACAO)));
+    }
+    if (action === 'getRanking') {
+      if (!checkAdminSecret(e.parameter.secret)) return out.setContent(JSON.stringify({status:'error', message:'Não autorizado'}));
+      return out.setContent(JSON.stringify(sheetToJson(ABA_RANKING)));
+    }
     if (action === 'getTurmas')     return out.setContent(JSON.stringify(doGetTurmas()));
     if (action === 'checkToken')    return out.setContent(JSON.stringify(doCheckToken(e.parameter.token)));
     if (action === 'getTokens')     return out.setContent(JSON.stringify(doListTokens(e.parameter.secret)));
     if (action === 'loginEmpresa')  return out.setContent(JSON.stringify(doLoginEmpresa(e.parameter.cliente, e.parameter.senha)));
     if (action === 'tokensEmpresa') return out.setContent(JSON.stringify(doTokensEmpresa(e.parameter.cliente, e.parameter.senha)));
     if (action === 'respostasEmpresa') return out.setContent(JSON.stringify(doRespostasEmpresa(e.parameter.cliente, e.parameter.senha)));
-    return out.setContent(JSON.stringify(sheetToJson(ABA_RESPOSTAS)));
+    return out.setContent(JSON.stringify({status:'error', message:'Ação desconhecida'}));
   } catch(err) {
     return out.setContent(JSON.stringify({status:'error', message:err.toString()}));
   }
