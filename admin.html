@@ -2215,7 +2215,9 @@ function generateIndividualReport(_0x12f5e0) {
     S: parseInt(_0x4b5ffe.disc_S || 0),
     C: parseInt(_0x4b5ffe.disc_C || 0)
   };
-  const _0x44aa72 = Math.max(Object.values(_0x317d42).reduce((_0x3f4255, _0x26968b) => _0x3f4255 + _0x26968b, 0), 1);
+  // fix 14/09/2026: denominador só com scores positivos — evita que scores negativos
+  // colapssem a soma e façam D ultrapassar 100% nos relatórios existentes.
+  const _0x44aa72 = Math.max(Object.values(_0x317d42).reduce((_0x3f4255, _0x26968b) => _0x3f4255 + Math.max(0, _0x26968b), 0), 1);
   const _0x5f36b0 = _0x4b5ffe.nome || _0x4b5ffe.name || "—";
   const _0x1c5116 = _0x4b5ffe.timestamp ? new Date(_0x4b5ffe.timestamp).toLocaleDateString("pt-BR", {
     day: "2-digit",
@@ -2516,7 +2518,8 @@ function generate360Report(_0x34cd97) {
     S: parseInt(_0xe1f0f4.disc_S || 0),
     C: parseInt(_0xe1f0f4.disc_C || 0)
   };
-  const _0x39a78c = Math.max(Object.values(_0x5d7e47).reduce((_0x17e877, _0x35ae85) => _0x17e877 + _0x35ae85, 0), 1);
+  // fix 14/09/2026: só scores positivos no denominador
+  const _0x39a78c = Math.max(Object.values(_0x5d7e47).reduce((_0x17e877, _0x35ae85) => _0x17e877 + Math.max(0, _0x35ae85), 0), 1);
   const _0x2432b4 = Object.entries(_0x5d7e47).map(([_0x78ef95, _0x427132]) => _0xea57f[_0x78ef95] + ": " + Math.round(_0x427132 / _0x39a78c * 100) + "%").join(" | ");
   const _0x836d4c = {
     FOGO: "Fogo 🔥",
