@@ -663,24 +663,34 @@ const ENNEA_TYPES = [{
   num: 9,
   stmts: ["Evito conflitos e prefiro manter a harmonia do grupo", "Tenho dificuldade em saber claramente o que eu realmente quero", "Adapto minha opinião com facilidade ao grupo", "Quando há tensão no ambiente, sinto desconforto profundo"]
 }];
+// ARCH_QS v2 — 14/09/2026: 7 perguntas × 4 opções = 28 slots, cada arquétipo
+// aparece exatamente 4 vezes (balanceamento uniforme).
+// Mapa: P0→[Herói,Mago,Cuidador,Sábio] P1→[Herói,Mago,Guerreiro,Rei/Rainha]
+//        P2→[Herói,Cuidador,Guerreiro,Criador] P3→[Mago,Cuidador,Rei/Rainha,Criador]
+//        P4→[Mago,Sábio,Guerreiro,Criador] P5→[Cuidador,Sábio,Rei/Rainha,Criador]
+//        P6→[Herói,Sábio,Guerreiro,Rei/Rainha]
+// A chave de resolução (arquétipo por índice de opção) está só no Worker (ARCH_TAGS).
 const ARCH_QS = [{
   q: "Diante de um grande desafio organizacional, você:",
   opts: [["Parte para a ação imediatamente e mobiliza a equipe", "Herói"], ["Cria uma visão transformadora que inspira a todos", "Mago"], ["Garante que todos tenham recursos e apoio para avançar", "Cuidador"], ["Analisa o problema com profundidade antes de agir", "Sábio"]]
 }, {
-  q: "Seu maior presente natural para a equipe é:",
-  opts: [["Coragem e determinação para superar obstáculos", "Guerreiro"], ["A capacidade de ver possibilidades onde outros veem barreiras", "Mago"], ["O cuidado genuíno com o desenvolvimento de cada pessoa", "Cuidador"], ["Conhecimento profundo e capacidade de orientar", "Sábio"]]
+  q: "O que mais define seu estilo de liderança:",
+  opts: [["Enfrento os obstáculos com coragem e mobilizo o time para avançar", "Herói"], ["Enxergo além do óbvio e inspiro com uma visão transformadora", "Mago"], ["Tomo decisões difíceis sem hesitar quando a missão exige", "Guerreiro"], ["Estabeleço ordem, papéis claros e proteção para minha equipe", "Rei/Rainha"]]
 }, {
-  q: "Como você lidera naturalmente em tempos de crise:",
-  opts: [["Assumo o controle e dou direção clara e firme", "Rei/Rainha"], ["Mantenho a equipe unida com calma e sabedoria", "Sábio"], ["Inspiro com energia e crio um senso de missão coletiva", "Herói"], ["Facilito o diálogo e crio consenso entre as partes", "Cuidador"]]
+  q: "Quando a organização precisa se reinventar, você:",
+  opts: [["Inspira o time com energia e senso de missão", "Herói"], ["Assegura que as pessoas se sintam seguras e apoiadas na transição", "Cuidador"], ["Age com firmeza e determina o novo rumo sem hesitar", "Guerreiro"], ["Imagina o que ainda não existe e cria algo inteiramente novo", "Criador"]]
 }, {
-  q: "O que mais te motiva como líder:",
-  opts: [["Conquistar resultados que pareciam impossíveis", "Herói"], ["Transformar realidades e criar algo novo e significativo", "Mago"], ["Ver as pessoas da equipe crescerem e se desenvolverem", "Cuidador"], ["Construir estruturas e legado que perdurem", "Rei/Rainha"]]
+  q: "O legado que mais deseja construir como líder:",
+  opts: [["Ter transformado a realidade das pessoas com uma visão poderosa", "Mago"], ["Ter desenvolvido líderes que cresceram sob sua liderança", "Cuidador"], ["Ter construído estruturas sólidas e duradouras que sobrevivem à sua ausência", "Rei/Rainha"], ["Ter criado algo novo e significativo que antes não existia", "Criador"]]
 }, {
-  q: "Em decisões difíceis que envolvem pessoas, você:",
-  opts: [["Decide com firmeza — a missão precisa avançar", "Guerreiro"], ["Busca a solução que preserve os relacionamentos", "Cuidador"], ["Consulta dados e princípios antes de qualquer decisão", "Sábio"], ["Usa intuição e visão de longo prazo como guia", "Mago"]]
+  q: "Diante de um impasse complexo no time, sua tendência é:",
+  opts: [["Propor uma saída radicalmente diferente — pelo ângulo inesperado", "Mago"], ["Ouvir, analisar e trazer uma perspectiva bem fundamentada", "Sábio"], ["Avançar mesmo que seja impopular — a estagnação é pior", "Guerreiro"], ["Redesenhar o processo que gerou o impasse em vez de resolver o sintoma", "Criador"]]
 }, {
   q: "Como você lida com regras e processos estabelecidos:",
-  opts: [["Sigo quando fazem sentido — questiono quando não fazem", "Guerreiro"], ["Crio novas formas de fazer que superam as anteriores", "Criador"], ["Respeito estruturas — elas dão segurança ao time", "Rei/Rainha"], ["Analiso cada regra à luz do propósito maior", "Sábio"]]
+  opts: [["Cuido para que as regras protejam e não prejudiquem as pessoas", "Cuidador"], ["Analiso cada regra à luz do propósito maior", "Sábio"], ["Respeito estruturas — elas dão segurança e ordem ao time", "Rei/Rainha"], ["Crio novas formas de fazer que superam as anteriores", "Criador"]]
+}, {
+  q: "Quando a equipe está desmotivada e sem energia, você:",
+  opts: [["Reacende a chama da missão com energia e senso de propósito", "Herói"], ["Busco entender as causas profundas da desmotivação antes de agir", "Sábio"], ["Reestabeleço a disciplina e o foco — às vezes é o que o time precisa", "Guerreiro"], ["Reafirmo o senso de pertencimento e a proteção que o time sente", "Rei/Rainha"]]
 }];
 const KOLB_QS = [{
   q: "Em uma nova situação de aprendizado, o que você costuma fazer primeiro?",
