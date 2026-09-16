@@ -2100,6 +2100,12 @@ function exportPremiumReportPDF(nomeRespondente) {
   // as bordas nas páginas finais e cortava texto ao meio (já aconteceu).
   // Por isso capturamos a largura do PRÓPRIO clone aqui também, e usamos
   // ela (não a da página viva) na conversão lá embaixo.
+  // Fix mobile: força largura mínima de 820px para que o html2canvas
+  // renderize em modo desktop, independente do viewport do dispositivo.
+  // Sem isso, no celular scrollWidth fica ~375px e os grids colapsam.
+  el.style.minWidth = '820px';
+  el.style.width = '820px';
+
   var clonedWidthPx = el.scrollWidth;
   html2canvas(el, {
     scale: 2, useCORS: true, allowTaint: true,
