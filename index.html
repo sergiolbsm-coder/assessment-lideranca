@@ -1987,6 +1987,13 @@ function exportPDF() {
     // cortava texto ao meio mesmo com a lista de bordas certa. Por isso
     // capturamos a largura do clone aqui também e usamos ela (não a da
     // página viva) na conversão lá embaixo.
+    // Fix mobile: força largura mínima de 820px para que o html2canvas
+    // renderize com a mesma resolução de desktop, independente do viewport.
+    // Sem isso, no celular scrollWidth fica ~375px e as media queries colapsam
+    // os grids — o PDF sai estreito e com colunas empilhadas.
+    _0xCapEl.style.minWidth = "820px";
+    _0xCapEl.style.width = "820px";
+
     let _0xBoundariesPx = [];
     let _0xClonedWidthPx = _0xCapEl.scrollWidth;
     html2canvas(_0xCapEl, {
