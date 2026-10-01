@@ -1184,6 +1184,7 @@ async function loadData() {
   populateFilters();
   renderTable();
   renderDashboard();
+  syncTurmaSelects();
   if (_0x512849) {
     _0x512849.style.display = "none";
   }
@@ -3427,7 +3428,12 @@ function resetTurmas() {
   toast("Turmas restauradas para o padrão", "success");
 }
 function syncTurmaSelects() {
-  const _0x558528 = getTurmas();
+  // Mescla turmas do localStorage com turmas encontradas nos dados reais
+  const _0x558528 = [...new Set([
+    ...getTurmas(),
+    ...(allData || []).map(r => r.turma).filter(Boolean)
+  ])].sort();
+
   ["f-turma", "dash-turma"].forEach(_0x1f942b => {
     const _0x5d281b = document.getElementById(_0x1f942b);
     if (!_0x5d281b) {
@@ -3436,7 +3442,7 @@ function syncTurmaSelects() {
     const _0x32661f = _0x5d281b.value;
     _0x5d281b.innerHTML = "<option value=\"\">Todas as turmas</option>" + _0x558528.map(_0x2d5faf => "<option" + (_0x2d5faf === _0x32661f ? " selected" : "") + ">" + _0x2d5faf + "</option>").join("");
   });
-  // Popula o select da aba Evolução também
+  // Popula o select da aba Evolução com as turmas reais também
   const _evoSel = document.getElementById('evo-turma');
   if (_evoSel) {
     const _prev = _evoSel.value;
