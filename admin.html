@@ -3332,14 +3332,38 @@ function exportGroupReport() {
   toast("✅ Relatório de turma gerado com " + _0x69474e.length + " participantes", "success");
 }
 function renderTurmaList() {
-  const _0x1ed6b8 = getTurmas();
-  const _0x4e19cb = {};
-  allData.forEach(_0x2d48cd => {
-    if (_0x2d48cd.turma) {
-      _0x4e19cb[_0x2d48cd.turma] = (_0x4e19cb[_0x2d48cd.turma] || 0) + 1;
-    }
+  // Mescla turmas do localStorage com turmas encontradas nos dados reais
+  const stored = getTurmas();
+  const fromData = [...new Set((allData || []).map(r => r.turma).filter(Boolean))];
+  const allTurmas = [...new Set([...stored, ...fromData])].sort();
+
+  // Salva no localStorage se encontrou novas turmas da planilha
+  const merged = [...new Set([...stored, ...fromData])];
+  if (merged.length > stored.length) setTurmas(merged);
+
+  const counts = {};
+  (allData || []).forEach(r => {
+    if (r.turma) counts[r.turma] = (counts[r.turma] || 0) + 1;
   });
-  document.getElementById("turma-list").innerHTML = _0x1ed6b8.map((_0x5590c5, _0x372990) => "\n    <div class=\"turma-item\">\n      <span class=\"turma-name\">" + _0x5590c5 + "</span>\n      <span class=\"turma-count\">" + (_0x4e19cb[_0x5590c5] || 0) + " respondente(s)</span>\n      <div class=\"turma-actions\">\n        <button class=\"btn btn-outline btn-sm\" onclick=\"editTurma(" + _0x372990 + ")\">✏️</button>\n        <button class=\"btn btn-danger btn-sm\" onclick=\"deleteTurma(" + _0x372990 + ")\">🗑</button>\n      </div>\n    </div>").join("") || "<p style=\"color:var(--mid);font-size:13px\">Nenhuma turma cadastrada.</p>";
+
+  document.getElementById("turma-list").innerHTML = allTurmas.map((nome, idx) => {
+    const count = counts[nome] || 0;
+    const hasData = count > 0;
+    const deleteBtnHtml = hasData
+      ? `<button class="btn btn-danger btn-sm" disabled title="Turma possui ${count} respondente(s) — não pode ser excluída" style="opacity:.4;cursor:not-allowed">🗑</button>`
+      : `<button class="btn btn-danger btn-sm" onclick="deleteTurma(${idx})">🗑</button>`;
+    return `<div class="turma-item">
+      <span class="turma-name">${nome}</span>
+      <span class="turma-count">${count} respondente(s)</span>
+      <div class="turma-actions">
+        <button class="btn btn-outline btn-sm" onclick="editTurma(${idx})">✏️</button>
+        ${deleteBtnHtml}
+      </div>
+    </div>`;
+  }).join("") || "<p style=\"color:var(--mid);font-size:13px\">Nenhuma turma cadastrada.</p>";
+
+  // Mantém referência da lista completa para editTurma/deleteTurma
+  window._allTurmasList = allTurmas;
 }
 async function pushTurmasToScript(_0x304ce0) {
   try {
@@ -3382,37 +3406,64 @@ function addTurma() {
   toast("✅ Turma adicionada", "success");
 }
 function deleteTurma(_0x18ef5f) {
-  const _0x210fa1 = getTurmas();
-  if (!confirm("Remover a turma \"" + _0x210fa1[_0x18ef5f] + "\"?")) {
+  const lista = window._allTurmasList || getTurmas();
+  const nome = lista[_0x18ef5f];
+  const count = (allData || []).filter(r => r.turma === nome).length;
+  if (count > 0) {
+    toast(`⚠️ Não é possível excluir "${nome}" — ${count} respondente(s) vinculado(s).`, 'warn');
     return;
   }
-  _0x210fa1.splice(_0x18ef5f, 1);
-  setTurmas(_0x210fa1);
-  pushTurmasToScript(_0x210fa1);
+  if (!confirm(`Remover a turma "${nome}"?`)) return;
+  const nova = getTurmas().filter(t => t !== nome);
+  setTurmas(nova);
+  pushTurmasToScript(nova);
   renderTurmaList();
   syncTurmaSelects();
-  toast("Turma removida", "success");
+  toast('Turma removida', 'success');
 }
 function editTurma(_0x3f7969) {
-  const _0x1cbd29 = getTurmas();
+  const lista = window._allTurmasList || getTurmas();
   editTurmaIdx = _0x3f7969;
-  document.getElementById("edit-turma-input").value = _0x1cbd29[_0x3f7969];
+  document.getElementById("edit-turma-input").value = lista[_0x3f7969];
   document.getElementById("edit-turma-modal").classList.add("open");
 }
-function saveEditTurma() {
-  const _0x239096 = document.getElementById("edit-turma-input").value.trim();
-  if (!_0x239096) {
-    toast("Digite o nome", "warn");
-    return;
+async function saveEditTurma() {
+  const novoNome = document.getElementById("edit-turma-input").value.trim();
+  if (!novoNome) { toast("Digite o nome", "warn"); return; }
+
+  const lista   = window._allTurmasList || getTurmas();
+  const oldNome = lista[editTurmaIdx];
+  if (novoNome === oldNome) { closeEditTurma(); return; }
+
+  const secret = (typeof getSecret === 'function') ? getSecret() : '';
+  const count  = (allData || []).filter(r => r.turma === oldNome).length;
+
+  // Se tiver respondentes vinculados, renomeia direto na planilha via Apps Script
+  if (count > 0 && secret) {
+    toast(`⏳ Renomeando "${oldNome}" em ${count} resposta(s)...`, 'success');
+    try {
+      const res = await fetch(SHEETS_URL + '?action=renameTurma&old_name=' + encodeURIComponent(oldNome) +
+        '&new_name=' + encodeURIComponent(novoNome) + '&secret=' + encodeURIComponent(secret));
+      const d = await res.json();
+      if (d.status !== 'ok') {
+        toast((d.message || 'Erro ao renomear na planilha'), 'warn'); return;
+      }
+      // Atualiza allData local sem recarregar tudo
+      (allData || []).forEach(r => { if (r.turma === oldNome) r.turma = novoNome; });
+    } catch(e) {
+      toast('Erro de conexão ao renomear na planilha', 'warn'); return;
+    }
+  } else {
+    // Sem respondentes — atualiza só localStorage + aba Turmas
+    const turmas = getTurmas().map(t => t === oldNome ? novoNome : t);
+    setTurmas(turmas);
+    pushTurmasToScript(turmas);
   }
-  const _0x5e29e7 = getTurmas();
-  _0x5e29e7[editTurmaIdx] = _0x239096;
-  setTurmas(_0x5e29e7);
-  pushTurmasToScript(_0x5e29e7);
+
   closeEditTurma();
   renderTurmaList();
   syncTurmaSelects();
-  toast("✅ Turma atualizada", "success");
+  toast(`✅ Turma renomeada para "${novoNome}"`, 'success');
 }
 function closeEditTurma() {
   document.getElementById("edit-turma-modal").classList.remove("open");

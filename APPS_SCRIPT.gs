@@ -88,6 +88,7 @@ function doGet(e) {
       return out.setContent(JSON.stringify(sheetToJson(ABA_RANKING)));
     }
     if (action === 'getTurmas')     return out.setContent(JSON.stringify(doGetTurmas()));
+    if (action === 'renameTurma')   return out.setContent(JSON.stringify(doRenameTurma(e.parameter.old_name, e.parameter.new_name, e.parameter.secret)));
     if (action === 'checkToken')    return out.setContent(JSON.stringify(doCheckToken(e.parameter.token)));
     if (action === 'getTokens')     return out.setContent(JSON.stringify(doListTokens(e.parameter.secret)));
     if (action === 'loginEmpresa')  return out.setContent(JSON.stringify(doLoginEmpresa(e.parameter.cliente, e.parameter.senha)));
@@ -168,6 +169,45 @@ function doSaveTurmas(turmas) {
   sheet.getRange(2, 1, rows.length, 2).setValues(rows);
   sheet.getRange(2, 1, rows.length, 1).setNumberFormat('@');
   return {status:'ok', saved: rows.length};
+}
+
+// ── Renomear turma na aba Respostas ──────────────────────────────────────────
+// Substitui old_name por new_name em TODAS as linhas da aba Respostas.
+// Requer ADMIN_SECRET. Também atualiza a lista de turmas na aba Turmas.
+function doRenameTurma(oldName, newName, secret) {
+  var props = PropertiesService.getScriptProperties();
+  if (!secret || secret !== props.getProperty('ADMIN_SECRET')) {
+    return {status: 'error', message: 'Não autorizado'};
+  }
+  if (!oldName || !newName || oldName === newName) {
+    return {status: 'error', message: 'Nomes inválidos'};
+  }
+  var ss    = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName(ABA_RESPOSTAS);
+  if (!sheet || sheet.getLastRow() < 2) {
+    return {status: 'ok', updated: 0};
+  }
+
+  // Encontra coluna turma pelo cabeçalho
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var turmaCol = headers.indexOf('turma');
+  if (turmaCol < 0) return {status: 'error', message: 'Coluna turma não encontrada'};
+
+  var data    = sheet.getRange(2, turmaCol + 1, sheet.getLastRow() - 1, 1).getValues();
+  var updated = 0;
+  var newData = data.map(function(row) {
+    if (String(row[0]).trim() === String(oldName).trim()) { updated++; return [newName]; }
+    return row;
+  });
+  if (updated > 0) sheet.getRange(2, turmaCol + 1, newData.length, 1).setValues(newData);
+
+  // Atualiza também a aba de turmas
+  var turmas = doGetTurmas().map(function(t) {
+    return t === oldName ? newName : t;
+  });
+  doSaveTurmas(turmas);
+
+  return {status: 'ok', updated: updated, turmas: turmas};
 }
 
 // ── Tokens de licença ──────────────────────────────────────────────────────
