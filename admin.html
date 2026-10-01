@@ -618,6 +618,7 @@ function mostrarGate(){
     <div class="nav-item" data-tab="ranking" onclick="showTab('ranking')"><span class="ni">🥇</span> Ranking</div>
     <div class="nav-item" data-tab="atividades" onclick="showTab('atividades')"><span class="ni">⚙️</span> Atividades</div>
     <div class="nav-section">Evolução</div>
+    <div class="nav-item" data-tab="progresso-t2" onclick="showTab('progresso-t2')"><span class="ni">📊</span> Progresso T2/T3</div>
     <div class="nav-item" data-tab="evolucao" onclick="showTab('evolucao')"><span class="ni">📈</span> Gerar Links T2/T3</div>
     <div class="nav-section">Exportação</div>
     <div class="nav-item" data-tab="exportar" onclick="showTab('exportar')"><span class="ni">⬇️</span> Exportar</div>
@@ -739,7 +740,69 @@ function mostrarGate(){
       </div>
     </div>
 
-    <!-- ░ EVOLUÇÃO — Gerar Links T2/T3 ░ -->
+    <!-- ░ PROGRESSO T2/T3 ░ -->
+    <div id="tab-progresso-t2" class="tab-panel">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Progresso T2/T3</div>
+          <div class="page-sub">Acompanhe quem já respondeu a rodada de evolução</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span id="prog-last-update" style="font-size:11px;color:var(--mid)"></span>
+          <button class="btn btn-outline" onclick="renderProgressoT2()" style="font-size:12px">↺ Atualizar</button>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;align-items:flex-end">
+        <div style="flex:1;min-width:200px">
+          <label style="font-size:12px;color:var(--mid);display:block;margin-bottom:6px;font-weight:600">Turma</label>
+          <select id="prog-turma" class="filter-sel" style="width:100%" onchange="renderProgressoT2()">
+            <option value="">— todas —</option>
+          </select>
+        </div>
+        <div style="flex:0 0 110px">
+          <label style="font-size:12px;color:var(--mid);display:block;margin-bottom:6px;font-weight:600">Rodada alvo</label>
+          <select id="prog-rodada" class="filter-sel" style="width:100%" onchange="renderProgressoT2()">
+            <option value="2">Rodada 2</option>
+            <option value="3">Rodada 3</option>
+          </select>
+        </div>
+        <div style="flex:0 0 120px">
+          <label style="font-size:12px;color:var(--mid);display:block;margin-bottom:6px;font-weight:600">Mostrar</label>
+          <select id="prog-filtro" class="filter-sel" style="width:100%" onchange="renderProgressoT2()">
+            <option value="todos">Todos</option>
+            <option value="pendentes">Pendentes</option>
+            <option value="concluidos">Concluídos</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Cards de resumo -->
+      <div id="prog-resumo" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px"></div>
+
+      <!-- Barra de progresso -->
+      <div id="prog-barra-wrap" style="display:none;margin-bottom:20px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:13px;font-weight:600;color:var(--parch)" id="prog-barra-label"></span>
+          <span style="font-size:13px;font-weight:700;color:var(--gold)" id="prog-barra-pct"></span>
+        </div>
+        <div style="height:10px;background:var(--border);border-radius:100px;overflow:hidden">
+          <div id="prog-barra-fill" style="height:100%;background:linear-gradient(90deg,#391694,#FF0060);border-radius:100px;transition:width .4s ease"></div>
+        </div>
+      </div>
+
+      <!-- Tabela -->
+      <div class="config-block" style="padding:0;overflow:hidden">
+        <div id="prog-table-wrap" style="overflow-x:auto">
+          <div class="empty-state" style="padding:40px">
+            <div class="empty-icon">📊</div>
+            <div class="empty-title">Selecione uma turma</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<!-- ░ EVOLUÇÃO — Gerar Links T2/T3 ░ -->
     <div id="tab-evolucao" class="tab-panel">
       <div class="page-header">
         <div><div class="page-title">Gerar Links de Evolução</div><div class="page-sub">Crie links pré-configurados para T2 ou T3, com nome e e-mail já preenchidos</div></div>
@@ -3502,6 +3565,137 @@ function syncTurmaSelects() {
   syncGamificacaoSelects();
 }
 
+// ── Progresso T2/T3 ────────────────────────────────────────────────────────
+let _progAutoRefresh = null;
+
+function renderProgressoT2() {
+  const turmaFiltro = document.getElementById('prog-turma')?.value || '';
+  const rodadaAlvo  = parseInt(document.getElementById('prog-rodada')?.value || '2', 10);
+  const filtro      = document.getElementById('prog-filtro')?.value || 'todos';
+
+  // Atualiza timestamp
+  const tsEl = document.getElementById('prog-last-update');
+  if (tsEl) tsEl.textContent = 'Atualizado ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+
+  // Popula select de turmas com dados reais
+  const progSel = document.getElementById('prog-turma');
+  if (progSel) {
+    const turmas = [...new Set([...getTurmas(), ...(allData||[]).map(r=>r.turma).filter(Boolean)])].sort();
+    const prev = progSel.value;
+    progSel.innerHTML = '<option value="">— todas —</option>' + turmas.map(t => `<option${t===prev?' selected':''}>${t}</option>`).join('');
+  }
+
+  // Separa T1 (base) e rodada-alvo por email
+  const dados = allData || [];
+  const porEmail = {};
+  dados.forEach(r => {
+    const email  = String(r.email || '').trim().toLowerCase();
+    if (!email) return;
+    if (turmaFiltro && r.turma !== turmaFiltro) return;
+    const rodada = parseInt(r.rodada, 10) || 1;
+    if (!porEmail[email]) porEmail[email] = {t1: null, alvo: null, nome: r.nome || r.name || email, turma: r.turma};
+    if (rodada === 1 && !porEmail[email].t1)     porEmail[email].t1   = r;
+    if (rodada === rodadaAlvo && !porEmail[email].alvo) porEmail[email].alvo = r;
+  });
+
+  // Só considera quem tem T1
+  const pessoas = Object.values(porEmail).filter(p => p.t1);
+  const total      = pessoas.length;
+  const concluidos = pessoas.filter(p => p.alvo).length;
+  const pendentes  = total - concluidos;
+  const pct        = total > 0 ? Math.round((concluidos / total) * 100) : 0;
+
+  // Cards de resumo
+  const resumoEl = document.getElementById('prog-resumo');
+  if (resumoEl) {
+    resumoEl.innerHTML = [
+      {label:'Total T1', val: total,      cor:'#391694'},
+      {label:'Concluídos', val: concluidos, cor:'#00C48C'},
+      {label:'Pendentes',  val: pendentes,  cor:'#FF0060'},
+      {label:'Progresso',  val: pct + '%',  cor:'#C9A84C'},
+    ].map(c => `<div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 20px;text-align:center">
+      <div style="font-size:26px;font-weight:800;color:${c.cor};font-variant-numeric:tabular-nums">${c.val}</div>
+      <div style="font-size:11px;color:var(--mid);font-weight:600;margin-top:4px;letter-spacing:.06em;text-transform:uppercase">${c.label}</div>
+    </div>`).join('');
+  }
+
+  // Barra de progresso
+  const barraWrap = document.getElementById('prog-barra-wrap');
+  const barraFill = document.getElementById('prog-barra-fill');
+  const barraLabel= document.getElementById('prog-barra-label');
+  const barraPct  = document.getElementById('prog-barra-pct');
+  if (barraWrap && total > 0) {
+    barraWrap.style.display = 'block';
+    barraLabel.textContent  = `${concluidos} de ${total} concluíram a Rodada ${rodadaAlvo}`;
+    barraPct.textContent    = pct + '%';
+    setTimeout(() => { if (barraFill) barraFill.style.width = pct + '%'; }, 50);
+  } else if (barraWrap) {
+    barraWrap.style.display = 'none';
+  }
+
+  // Filtra para a tabela
+  const lista = pessoas.filter(p => {
+    if (filtro === 'pendentes')  return !p.alvo;
+    if (filtro === 'concluidos') return !!p.alvo;
+    return true;
+  }).sort((a, b) => {
+    // Pendentes primeiro, depois por nome
+    if (!a.alvo && b.alvo) return -1;
+    if (a.alvo && !b.alvo) return 1;
+    return (a.nome || '').localeCompare(b.nome || '', 'pt-BR');
+  });
+
+  const wrap = document.getElementById('prog-table-wrap');
+  if (!wrap) return;
+
+  if (!total) {
+    wrap.innerHTML = `<div class="empty-state" style="padding:40px">
+      <div class="empty-icon">📊</div>
+      <div class="empty-title">${turmaFiltro ? 'Nenhum respondente T1 nesta turma' : 'Selecione uma turma'}</div>
+    </div>`;
+    return;
+  }
+
+  const discColors = {D:'#F07030',I:'#F0C030',S:'#4A90D4',C:'#A878E0'};
+  const rows = lista.map(p => {
+    const t1Date  = p.t1?.timestamp ? new Date(p.t1.timestamp).toLocaleDateString('pt-BR') : '—';
+    const alvDate = p.alvo?.timestamp ? new Date(p.alvo.timestamp).toLocaleDateString('pt-BR') : '—';
+    const disc    = p.t1?.disc_primario || '';
+    const cor     = discColors[disc] || '#999';
+    const statusHtml = p.alvo
+      ? `<span style="background:#E6FAF3;color:#00875A;border-radius:100px;padding:3px 12px;font-size:11px;font-weight:700">✓ Concluído</span>`
+      : `<span style="background:#FFF0F3;color:#FF0060;border-radius:100px;padding:3px 12px;font-size:11px;font-weight:700">⏳ Pendente</span>`;
+
+    return `<tr>
+      <td class="td-name" style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${p.nome}">${p.nome}</td>
+      <td style="font-size:12px;color:var(--mid)">${p.t1?.email || ''}</td>
+      <td><span style="font-size:11px;font-weight:700;color:${cor};font-family:'JetBrains Mono',monospace">${disc}</span></td>
+      <td style="font-size:12px;font-variant-numeric:tabular-nums">${t1Date}</td>
+      <td style="font-size:12px;font-variant-numeric:tabular-nums">${alvDate}</td>
+      <td>${statusHtml}</td>
+    </tr>`;
+  }).join('');
+
+  wrap.innerHTML = `<table style="width:100%;border-collapse:collapse;min-width:620px">
+    <thead>
+      <tr style="background:var(--idl-background-soft,#F4F0FB)">
+        <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--mid);letter-spacing:.08em;text-transform:uppercase">Nome</th>
+        <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--mid);letter-spacing:.08em;text-transform:uppercase">E-mail</th>
+        <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--mid);letter-spacing:.08em;text-transform:uppercase">DISC</th>
+        <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--mid);letter-spacing:.08em;text-transform:uppercase">T1</th>
+        <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--mid);letter-spacing:.08em;text-transform:uppercase">R${rodadaAlvo}</th>
+        <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--mid);letter-spacing:.08em;text-transform:uppercase">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows}
+    </tbody>
+  </table>`;
+}
+
+// Auto-refresh quando a aba está ativa
+const _origShowTab = typeof showTab === 'function' ? showTab : null;
+
 // ── Evolução: gerar links T2/T3 ───────────────────────────────────────────
 function _evoAssessmentUrl() {
   // Usa a mesma origem do admin para apontar pro index.html ao lado
@@ -4292,10 +4486,18 @@ document.addEventListener("DOMContentLoaded", () => {
   setInterval(() => {
     const _0x39e3e7 = document.getElementById("tab-respondentes")?.classList.contains("active");
     const _0xf0ed22 = document.getElementById("tab-dashboard")?.classList.contains("active");
-    if ((_0x39e3e7 || _0xf0ed22) && getCfg("csv_url", "")) {
+    const _progAtivo = document.getElementById("tab-progresso-t2")?.classList.contains("active");
+    if ((_0x39e3e7 || _0xf0ed22 || _progAtivo) && getCfg("csv_url", "")) {
       loadData();
     }
-  }, 90000);
+    // Auto-refresh da tela de progresso se estiver ativa
+    if (_progAtivo) renderProgressoT2();
+  }, 30000);
+
+  // Dispara renderProgressoT2 ao entrar na aba
+  document.querySelectorAll('.nav-item[data-tab="progresso-t2"]').forEach(el => {
+    el.addEventListener('click', () => setTimeout(renderProgressoT2, 200));
+  });
 });
 </script>
 </body>
