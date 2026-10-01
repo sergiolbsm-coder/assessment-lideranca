@@ -298,7 +298,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
 </div>
 <script>
 (function(){
-  var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwA7C98Aa18JBS3Y2KcbOKcl9bZVhGXRfh2yamL6cgpoqKyMB5w4iI5m4YZc2CF0HhlKQ/exec';
+  var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyRD9FCPK5-1ZimLlJmih9lHq5O7hrH6H91rO7S3Gwf7aJyrEGIOQA7paiV4HM5jH1L5w/exec';
   var SECRET_KEY = 'il_admin_license_secret';
 
   // Mantém a URL do Apps Script sempre sincronizada sozinha — sem isso, a
@@ -617,6 +617,8 @@ function mostrarGate(){
     <div class="nav-item" data-tab="pontuacao" onclick="showTab('pontuacao')"><span class="ni">🏆</span> Lançar Pontos</div>
     <div class="nav-item" data-tab="ranking" onclick="showTab('ranking')"><span class="ni">🥇</span> Ranking</div>
     <div class="nav-item" data-tab="atividades" onclick="showTab('atividades')"><span class="ni">⚙️</span> Atividades</div>
+    <div class="nav-section">Evolução</div>
+    <div class="nav-item" data-tab="evolucao" onclick="showTab('evolucao')"><span class="ni">📈</span> Gerar Links T2/T3</div>
     <div class="nav-section">Exportação</div>
     <div class="nav-item" data-tab="exportar" onclick="showTab('exportar')"><span class="ni">⬇️</span> Exportar</div>
     <div class="nav-section">Configurações</div>
@@ -737,7 +739,44 @@ function mostrarGate(){
       </div>
     </div>
 
-    <!-- ░ EXPORTAR ░ -->
+    <!-- ░ EVOLUÇÃO — Gerar Links T2/T3 ░ -->
+    <div id="tab-evolucao" class="tab-panel">
+      <div class="page-header">
+        <div><div class="page-title">Gerar Links de Evolução</div><div class="page-sub">Crie links pré-configurados para T2 ou T3, com nome e e-mail já preenchidos</div></div>
+      </div>
+
+      <div class="config-block" style="margin-bottom:16px">
+        <div class="config-block-title">Configurar Rodada</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+          <div style="flex:1;min-width:180px">
+            <label style="font-size:12px;color:var(--mid);display:block;margin-bottom:6px;font-weight:600">Turma</label>
+            <select id="evo-turma" class="filter-sel" style="width:100%"><option value="">— todas —</option></select>
+          </div>
+          <div style="flex:0 0 100px">
+            <label style="font-size:12px;color:var(--mid);display:block;margin-bottom:6px;font-weight:600">Rodada</label>
+            <select id="evo-rodada" class="filter-sel" style="width:100%">
+              <option value="2">Rodada 2</option>
+              <option value="3">Rodada 3</option>
+            </select>
+          </div>
+          <div style="flex:0 0 auto">
+            <button class="btn btn-gold" onclick="gerarLinksEvolucao()">⟳ Gerar Links</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="evo-resultado" style="display:none">
+        <div class="config-block">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <div class="config-block-title" style="margin-bottom:0">Links Gerados</div>
+            <button class="btn btn-outline" style="font-size:12px" onclick="copiarTodosLinks()">📋 Copiar Todos</button>
+          </div>
+          <div id="evo-links-list"></div>
+        </div>
+      </div>
+    </div>
+
+<!-- ░ EXPORTAR ░ -->
     <div id="tab-exportar" class="tab-panel">
       <div class="page-header">
         <div><div class="page-title">Exportar Relatórios</div><div class="page-sub">Exporte dados individuais ou em grupo</div></div>
@@ -813,7 +852,7 @@ function mostrarGate(){
         </div>
         <div class="config-row">
           <div class="config-label">URL do Apps Script (Web App)</div>
-          <input class="config-input" id="cfg-script-url" placeholder="https://script.google.com/macros/s/XXXX/exec" value="https://script.google.com/macros/s/AKfycbwA7C98Aa18JBS3Y2KcbOKcl9bZVhGXRfh2yamL6cgpoqKyMB5w4iI5m4YZc2CF0HhlKQ/exec">
+          <input class="config-input" id="cfg-script-url" placeholder="https://script.google.com/macros/s/XXXX/exec" value="https://script.google.com/macros/s/AKfycbyRD9FCPK5-1ZimLlJmih9lHq5O7hrH6H91rO7S3Gwf7aJyrEGIOQA7paiV4HM5jH1L5w/exec">
           <div class="config-hint">Gerada ao implantar o Apps Script como Web App com acesso público.</div>
         </div>
         <button class="btn btn-gold" onclick="saveConfig()" style="margin-top:6px">💾 Salvar Configuração</button>
@@ -1068,7 +1107,7 @@ async function loadData() {
   // referenciar direto aqui), caía nela e sempre falhava, mostrando
   // "Dados de exemplo". Agora usa a mesma URL atual como default (mesma
   // string hardcoded no value= do campo cfg-script-url na Configuração).
-  const _0x51a41f = getCfg("script_url", "https://script.google.com/macros/s/AKfycbwA7C98Aa18JBS3Y2KcbOKcl9bZVhGXRfh2yamL6cgpoqKyMB5w4iI5m4YZc2CF0HhlKQ/exec");
+  const _0x51a41f = getCfg("script_url", "https://script.google.com/macros/s/AKfycbyRD9FCPK5-1ZimLlJmih9lHq5O7hrH6H91rO7S3Gwf7aJyrEGIOQA7paiV4HM5jH1L5w/exec");
   const _0x1f2c2d = getCfg("csv_url", DEFAULT_CSV);
   // A ação padrão (respondentes) agora exige o ADMIN_SECRET no servidor —
   // ver auditoria de segurança: antes qualquer pessoa com a URL do Apps
@@ -3397,7 +3436,98 @@ function syncTurmaSelects() {
     const _0x32661f = _0x5d281b.value;
     _0x5d281b.innerHTML = "<option value=\"\">Todas as turmas</option>" + _0x558528.map(_0x2d5faf => "<option" + (_0x2d5faf === _0x32661f ? " selected" : "") + ">" + _0x2d5faf + "</option>").join("");
   });
+  // Popula o select da aba Evolução também
+  const _evoSel = document.getElementById('evo-turma');
+  if (_evoSel) {
+    const _prev = _evoSel.value;
+    _evoSel.innerHTML = '<option value="">— todas —</option>' + _0x558528.map(t => '<option' + (t === _prev ? ' selected' : '') + '>' + t + '</option>').join('');
+  }
   syncGamificacaoSelects();
+}
+
+// ── Evolução: gerar links T2/T3 ───────────────────────────────────────────
+function _evoAssessmentUrl() {
+  // Usa a mesma origem do admin para apontar pro index.html ao lado
+  const origin = window.location.origin || '';
+  const path   = window.location.pathname.replace('admin.html', 'index.html');
+  return origin + path;
+}
+
+async function gerarLinksEvolucao() {
+  const secret = (typeof getSecret === 'function') ? getSecret() : '';
+  if (!secret) { toast('Faça login na aba Licenças antes de gerar links.', 'warn'); return; }
+
+  const turmaFiltro = document.getElementById('evo-turma')?.value || '';
+  const rodada      = document.getElementById('evo-rodada')?.value || '2';
+  const btn         = document.querySelector('#tab-evolucao .btn-gold');
+
+  // Filtra respondentes T1 da turma selecionada (deduplica por email)
+  const base = (allData || []).filter(r => {
+    if ((parseInt(r.rodada, 10) || 1) !== 1) return false;
+    if (turmaFiltro && r.turma !== turmaFiltro) return false;
+    return !!(r.email && (r.nome || r.name));
+  });
+  const porEmail = {};
+  base.forEach(r => {
+    const e = String(r.email).trim().toLowerCase();
+    if (!porEmail[e] || r.timestamp > porEmail[e].timestamp) porEmail[e] = r;
+  });
+  const pessoas = Object.values(porEmail);
+
+  if (!pessoas.length) { toast('Nenhum respondente T1 encontrado para essa turma.', 'warn'); return; }
+
+  // Gera um token por pessoa via Apps Script
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Gerando tokens…'; }
+  let tokens = [];
+  try {
+    const cliente = turmaFiltro || 'Evolucao-T' + rodada;
+    const res = await fetch(SHEETS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'gerarTokens', cliente: cliente, quantidade: pessoas.length, secret: secret })
+    });
+    const d = await res.json();
+    if (!d || d.status !== 'ok' || !d.codigos) {
+      toast((d && d.message) || 'Erro ao gerar tokens.', 'warn');
+      if (btn) { btn.disabled = false; btn.textContent = '⟳ Gerar Links'; }
+      return;
+    }
+    tokens = d.codigos;
+  } catch(e) {
+    toast('Erro de conexão ao gerar tokens.', 'warn');
+    if (btn) { btn.disabled = false; btn.textContent = '⟳ Gerar Links'; }
+    return;
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '⟳ Gerar Links'; }
+
+  const baseUrl = _evoAssessmentUrl();
+  const linksHtml = pessoas.map((r, i) => {
+    const token = tokens[i] || '';
+    const nome  = encodeURIComponent(r.nome || r.name || '');
+    const email = encodeURIComponent(String(r.email).trim());
+    const link  = baseUrl + '?rodada=' + rodada + '&token=' + encodeURIComponent(token) +
+                  '&prefill_nome=' + nome + '&prefill_email=' + email;
+    const nomeTxt = r.nome || r.name || r.email;
+    const linkEsc = link.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">' +
+      '<div style="flex:0 0 auto;min-width:0;max-width:200px">' +
+        '<div style="font-size:13px;font-weight:600;color:var(--parch);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + nomeTxt + '">' + nomeTxt + '</div>' +
+        '<div style="font-size:11px;color:var(--mid);font-family:\'JetBrains Mono\',monospace">' + token + '</div>' +
+      '</div>' +
+      '<input readonly value="' + linkEsc + '" style="flex:1;font-size:11px;background:#F4F0FB;border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--parch);font-family:\'JetBrains Mono\',monospace;min-width:0" onclick="this.select()">' +
+      '<button onclick="navigator.clipboard.writeText(\'' + linkEsc + '\').then(()=>toast(\'✅ Copiado!\',\'success\'))" style="padding:6px 12px;font-size:11px;background:var(--gold);color:#fff;border:none;border-radius:6px;cursor:pointer;white-space:nowrap;font-weight:600">Copiar</button>' +
+    '</div>';
+  }).join('');
+
+  document.getElementById('evo-links-list').innerHTML = linksHtml ||
+    '<div class="empty-state"><div class="empty-icon">🔗</div><div class="empty-title">Nenhum link gerado</div></div>';
+  document.getElementById('evo-resultado').style.display = 'block';
+  toast('✅ ' + pessoas.length + ' links com token gerados para Rodada ' + rodada, 'success');
+}
+
+function copiarTodosLinks() {
+  const inputs = document.querySelectorAll('#evo-links-list input[readonly]');
+  const text = Array.from(inputs).map(i => i.value).join('\n');
+  navigator.clipboard.writeText(text).then(() => toast('✅ ' + inputs.length + ' links copiados!', 'success'));
 }
 function loadConfig() {
   document.getElementById("cfg-csv-url").value = getCfg("csv_url", DEFAULT_CSV);
@@ -3451,7 +3581,7 @@ function toast(_0x2cebd9, _0x3142d1 = "info") {
 // (havia uma segunda cópia idêntica desta função logo abaixo — código
 // morto de uma duplicação antiga; removida.)
 async function loadPontuacoesFromSheet() {
-  const _0x474a98 = getCfg("script_url", "https://script.google.com/macros/s/AKfycbwA7C98Aa18JBS3Y2KcbOKcl9bZVhGXRfh2yamL6cgpoqKyMB5w4iI5m4YZc2CF0HhlKQ/exec");
+  const _0x474a98 = getCfg("script_url", "https://script.google.com/macros/s/AKfycbyRD9FCPK5-1ZimLlJmih9lHq5O7hrH6H91rO7S3Gwf7aJyrEGIOQA7paiV4HM5jH1L5w/exec");
   if (!_0x474a98) {
     return;
   }

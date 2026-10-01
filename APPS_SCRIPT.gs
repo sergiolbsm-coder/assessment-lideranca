@@ -45,9 +45,13 @@ var CAB_RESPOSTAS = [
   'disc_mask_D','disc_mask_I','disc_mask_S','disc_mask_C',
   // Também no FINAL, mesmo motivo — token usado por essa resposta, pra dar
   // pra rastrear qual licença gerou qual resposta (pedido do usuário).
-  'token'
+  'token',
+  // Rodada do assessment (1 = T1, 2 = T2, 3 = T3). Adicionada no FINAL de
+  // propósito — campos novos sempre no final para não desalinhar o histórico.
+  // Linhas anteriores ficam com célula vazia (= T1 implícito).
+  'rodada'
 ];
-var TEXT_COLS_R = [1,2,3,4,5,6,11,12,17,18,19,20,21,22,23,24,31,32,33,34,49];
+var TEXT_COLS_R = [1,2,3,4,5,6,11,12,17,18,19,20,21,22,23,24,31,32,33,34,49,50];
 
 var CAB_PONTUACAO = [
   'respondente_key','nome','email','turma','empresa',
@@ -89,6 +93,7 @@ function doGet(e) {
     if (action === 'loginEmpresa')  return out.setContent(JSON.stringify(doLoginEmpresa(e.parameter.cliente, e.parameter.senha)));
     if (action === 'tokensEmpresa') return out.setContent(JSON.stringify(doTokensEmpresa(e.parameter.cliente, e.parameter.senha)));
     if (action === 'respostasEmpresa') return out.setContent(JSON.stringify(doRespostasEmpresa(e.parameter.cliente, e.parameter.senha)));
+    if (action === 'getEvolucao')   return out.setContent(JSON.stringify(doGetEvolucao(e.parameter.turma, e.parameter.secret)));
     return out.setContent(JSON.stringify({status:'error', message:'Ação desconhecida'}));
   } catch(err) {
     return out.setContent(JSON.stringify({status:'error', message:err.toString()}));
@@ -361,6 +366,40 @@ function doRespostasEmpresa(cliente, senha) {
   return {status: 'ok', cliente: cliente, data: meus, total: meus.length};
 }
 
+// ── Evolução T1/T2/T3 ──────────────────────────────────────────────────────
+// Retorna todas as respostas de uma turma, agrupadas por email.
+// Cada pessoa vira um objeto com chave = email, valor = array de rodadas
+// ordenadas (1→2→3). Requer ADMIN_SECRET.
+function doGetEvolucao(turma, secret) {
+  var props = PropertiesService.getScriptProperties();
+  if (!secret || secret !== props.getProperty('ADMIN_SECRET')) {
+    return {status: 'error', message: 'Não autorizado'};
+  }
+  var todos = sheetToJson(ABA_RESPOSTAS);
+  var norm = turma ? String(turma).trim().toLowerCase() : null;
+  var filtrados = (todos.data || []).filter(function(r) {
+    if (!norm) return true;
+    return String(r.turma || '').trim().toLowerCase() === norm;
+  });
+  // Agrupa por email
+  var porEmail = {};
+  filtrados.forEach(function(r) {
+    var email = String(r.email || '').trim().toLowerCase();
+    if (!email) return;
+    if (!porEmail[email]) porEmail[email] = [];
+    var rodada = parseInt(r.rodada, 10) || 1;
+    porEmail[email].push({rodada: rodada, data: r});
+  });
+  // Ordena as rodadas de cada pessoa
+  Object.keys(porEmail).forEach(function(email) {
+    porEmail[email].sort(function(a, b) { return a.rodada - b.rodada; });
+  });
+  var pessoas = Object.keys(porEmail).map(function(email) {
+    return {email: email, rodadas: porEmail[email]};
+  });
+  return {status: 'ok', turma: turma || 'todas', total: pessoas.length, pessoas: pessoas};
+}
+
 // ── Salvar resposta do assessment ────────────────────────────────────────────
 // Exige token de licença válido e ainda não usado. Consumo do token é
 // protegido por LockService pra duas respostas não conseguirem gastar o
@@ -400,7 +439,8 @@ function doSaveResposta(d) {
     // Adicionadas no final de propósito — ver comentário de CAB_RESPOSTAS.
     Number(d.disc_nat_D)||0, Number(d.disc_nat_I)||0, Number(d.disc_nat_S)||0, Number(d.disc_nat_C)||0,
     Number(d.disc_mask_D)||0, Number(d.disc_mask_I)||0, Number(d.disc_mask_S)||0, Number(d.disc_mask_C)||0,
-    d.token || ''
+    d.token || '',
+    d.rodada ? String(d.rodada) : '1'
   ];
 
   sheet.appendRow(linha);

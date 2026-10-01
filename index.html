@@ -246,7 +246,7 @@ h1.hero span{display:block;background:linear-gradient(135deg,var(--idl-purple-da
 </div>
 <script>
 (function(){
-  var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwA7C98Aa18JBS3Y2KcbOKcl9bZVhGXRfh2yamL6cgpoqKyMB5w4iI5m4YZc2CF0HhlKQ/exec';
+  var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyRD9FCPK5-1ZimLlJmih9lHq5O7hrH6H91rO7S3Gwf7aJyrEGIOQA7paiV4HM5jH1L5w/exec';
   window.__licenseToken = null;
 
   // Intercepta só a chamada de SALVAR RESPOSTA (a única sem "action" no
@@ -297,6 +297,32 @@ h1.hero span{display:block;background:linear-gradient(135deg,var(--idl-purple-da
     document.getElementById('license-gate-input').addEventListener('keydown', function(e){
       if (e.key === 'Enter') validar();
     });
+
+    // Auto-validação via URL param ?token=XXXX (links gerados pelo admin para T2/T3)
+    var _urlToken = new URLSearchParams(window.location.search).get('token');
+    if (_urlToken) {
+      var _input = document.getElementById('license-gate-input');
+      var _erro  = document.getElementById('license-gate-erro');
+      var _btn   = document.getElementById('license-gate-btn');
+      _input.value = _urlToken.toUpperCase();
+      _btn.disabled = true;
+      _erro.textContent = 'Validando acesso…';
+      fetch(SHEETS_URL + '?action=checkToken&token=' + encodeURIComponent(_urlToken))
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          _btn.disabled = false;
+          if (d && d.valido) {
+            window.__licenseToken = _urlToken;
+            document.getElementById('license-gate').classList.add('hidden');
+          } else {
+            _erro.textContent = (d && d.message) || 'Link inválido ou já utilizado.';
+          }
+        })
+        .catch(function(){
+          _btn.disabled = false;
+          _erro.textContent = 'Erro de conexão — tente novamente.';
+        });
+    }
   });
 })();
 </script>
@@ -1024,6 +1050,7 @@ const state = {
   empresa: "",
   turma: "",
   fase: "",
+  rodada: "1",
   locked: {},
   disc: Array(24).fill(null).map(() => ({
     plus: null,
@@ -1614,7 +1641,7 @@ async function generateReport() {
   saveToSheets(_0x479dba, _0x295c3a, _0x183e9b, _0x4e1500, _0x53ecf6, _0x3d28cb, _0x49cae8);
   goTo("s-report");
 }
-const SHEETS_URL = "https://script.google.com/macros/s/AKfycbwA7C98Aa18JBS3Y2KcbOKcl9bZVhGXRfh2yamL6cgpoqKyMB5w4iI5m4YZc2CF0HhlKQ/exec";
+const SHEETS_URL = "https://script.google.com/macros/s/AKfycbyRD9FCPK5-1ZimLlJmih9lHq5O7hrH6H91rO7S3Gwf7aJyrEGIOQA7paiV4HM5jH1L5w/exec";
 // idl-worker — motor de pontuação/metodologia (ver memorando "Metodologia
 // Blindada"). Troca aqui só se o Worker for redeployado num domínio novo;
 // não gera URL órfã como o Apps Script (wrangler deploy reusa o mesmo nome).
@@ -1679,7 +1706,8 @@ function saveToSheets(_0x411aae, _0x2b60dc, _0x135401, _0xb443a1, _0x478fc0, _0x
     holland_A: state.holland[2] || 0,
     holland_S: state.holland[3] || 0,
     holland_E: state.holland[4] || 0,
-    holland_C: state.holland[5] || 0
+    holland_C: state.holland[5] || 0,
+    rodada: state.rodada || '1'
   };
   fetch(SHEETS_URL, {
     method: "POST",
@@ -2126,6 +2154,46 @@ document.addEventListener("DOMContentLoaded", () => {
   renderKolb();
   renderNeeds();
   renderHolland();
+
+  // ── Pré-preenchimento via URL params (T2/T3) ─────────────────────────────
+  // Ex: ?rodada=2&prefill_nome=Jo%C3%A3o&prefill_email=joao@empresa.com
+  const _urlParams = new URLSearchParams(window.location.search);
+  const _pRodada = _urlParams.get('rodada');
+  const _pNome   = _urlParams.get('prefill_nome');
+  const _pEmail  = _urlParams.get('prefill_email');
+
+  if (_pRodada && parseInt(_pRodada, 10) > 1) {
+    state.rodada = String(parseInt(_pRodada, 10));
+
+    // Banner de evolução acima do formulário
+    const _coverWrap = document.getElementById('cover');
+    if (_coverWrap) {
+      const _banner = document.createElement('div');
+      _banner.style.cssText = 'background:linear-gradient(135deg,#261062,#391694);color:#FBF9FF;border-radius:12px;padding:14px 20px;margin-bottom:24px;text-align:center;font-family:\'DM Sans\',sans-serif;font-size:14px;font-weight:600;letter-spacing:.04em';
+      _banner.innerHTML = '⟳ Avaliação de Evolução — Rodada ' + state.rodada + ' &nbsp;·&nbsp; <span style="font-weight:400;opacity:.8">Complete novamente para registrar sua evolução</span>';
+      _coverWrap.insertBefore(_banner, _coverWrap.firstChild);
+    }
+  }
+
+  if (_pNome) {
+    const _inpName = document.getElementById('inp-name');
+    if (_inpName) {
+      _inpName.value = decodeURIComponent(_pNome);
+      _inpName.readOnly = true;
+      _inpName.style.opacity = '.7';
+      _inpName.style.cursor = 'not-allowed';
+    }
+  }
+
+  if (_pEmail) {
+    const _inpEmail = document.getElementById('inp-email');
+    if (_inpEmail) {
+      _inpEmail.value = decodeURIComponent(_pEmail);
+      _inpEmail.readOnly = true;
+      _inpEmail.style.opacity = '.7';
+      _inpEmail.style.cursor = 'not-allowed';
+    }
+  }
 });
 </script>
 </body>
