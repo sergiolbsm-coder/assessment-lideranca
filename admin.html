@@ -600,6 +600,16 @@ function mostrarGate(){
 })();
 </script>
 
+<!-- getSecret/setSecret/clearSecret acima vivem dentro da IIFE da aba
+     Licenças e não são visíveis daqui pra fora — por isso "Gerar Links
+     T2/T3" e "renomear turma" (que checam `typeof getSecret === 'function'`
+     no escopo global) sempre caíam no "faça login", mesmo já logado. Esse
+     bloco só expõe o mesmo valor (mesma chave de localStorage), sem tocar
+     na IIFE nem duplicar lógica de login. -->
+<script>
+function getSecret(){ try { return localStorage.getItem('il_admin_license_secret') || ''; } catch(e){ return ''; } }
+</script>
+
 <div class="bg"></div>
 
 <div class="layout">
