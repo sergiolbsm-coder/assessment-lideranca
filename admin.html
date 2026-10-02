@@ -849,7 +849,10 @@ function scriptUrl(){
         <div class="config-block">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
             <div class="config-block-title" style="margin-bottom:0">Links Gerados</div>
-            <button class="btn btn-outline" style="font-size:12px" onclick="copiarTodosLinks()">📋 Copiar Todos</button>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-outline" style="font-size:12px" onclick="copiarTodosLinks()">📋 Copiar Todos</button>
+              <button id="evo-send-todos-btn" class="btn btn-gold" style="font-size:12px" onclick="enviarConviteEvolucaoTodos()">✉️ Enviar Todos por E-mail</button>
+            </div>
           </div>
           <div id="evo-links-list"></div>
         </div>
@@ -3768,21 +3771,28 @@ async function gerarLinksEvolucao() {
   if (btn) { btn.disabled = false; btn.textContent = '⟳ Gerar Links'; }
 
   const baseUrl = _evoAssessmentUrl();
-  const linksHtml = pessoas.map((r, i) => {
+  // Guardado à parte (não só no DOM) pra "Enviar" individual/em lote
+  // reaproveitar nome/e-mail/link sem precisar reler/reconstruir do HTML.
+  window._evoLinksData = pessoas.map((r, i) => {
     const token = tokens[i] || '';
-    const nome  = encodeURIComponent(r.nome || r.name || '');
-    const email = encodeURIComponent(String(r.email).trim());
+    const nome  = r.nome || r.name || '';
+    const email = String(r.email).trim();
     const link  = baseUrl + '?rodada=' + rodada + '&token=' + encodeURIComponent(token) +
-                  '&prefill_nome=' + nome + '&prefill_email=' + email;
-    const nomeTxt = r.nome || r.name || r.email;
-    const linkEsc = link.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                  '&prefill_nome=' + encodeURIComponent(nome) + '&prefill_email=' + encodeURIComponent(email);
+    return { nome: nome, email: email, token: token, link: link, rodada: rodada };
+  });
+
+  const linksHtml = window._evoLinksData.map((item, i) => {
+    const nomeTxt = item.nome || item.email;
+    const linkEsc = item.link.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">' +
       '<div style="flex:0 0 auto;min-width:0;max-width:200px">' +
         '<div style="font-size:13px;font-weight:600;color:var(--parch);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + nomeTxt + '">' + nomeTxt + '</div>' +
-        '<div style="font-size:11px;color:var(--mid);font-family:\'JetBrains Mono\',monospace">' + token + '</div>' +
+        '<div style="font-size:11px;color:var(--mid);font-family:\'JetBrains Mono\',monospace">' + item.token + '</div>' +
       '</div>' +
       '<input readonly value="' + linkEsc + '" style="flex:1;font-size:11px;background:#F4F0FB;border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--parch);font-family:\'JetBrains Mono\',monospace;min-width:0" onclick="this.select()">' +
       '<button onclick="navigator.clipboard.writeText(\'' + linkEsc + '\').then(()=>toast(\'✅ Copiado!\',\'success\'))" style="padding:6px 12px;font-size:11px;background:var(--gold);color:#fff;border:none;border-radius:6px;cursor:pointer;white-space:nowrap;font-weight:600">Copiar</button>' +
+      '<button id="evo-send-btn-' + i + '" onclick="enviarConviteEvolucaoUm(' + i + ')" style="padding:6px 12px;font-size:11px;background:#261062;color:#fff;border:none;border-radius:6px;cursor:pointer;white-space:nowrap;font-weight:600">✉️ Enviar</button>' +
     '</div>';
   }).join('');
 
@@ -3790,6 +3800,57 @@ async function gerarLinksEvolucao() {
     '<div class="empty-state"><div class="empty-icon">🔗</div><div class="empty-title">Nenhum link gerado</div></div>';
   document.getElementById('evo-resultado').style.display = 'block';
   toast('✅ ' + pessoas.length + ' links com token gerados para Rodada ' + rodada, 'success');
+}
+
+// Envia o convite por e-mail de UMA pessoa (botão "✉️ Enviar" da linha).
+async function enviarConviteEvolucaoUm(i) {
+  const item = (window._evoLinksData || [])[i];
+  if (!item) return;
+  const secret = (typeof getSecret === 'function') ? getSecret() : '';
+  if (!secret) { toast('Faça login na aba Licenças antes de enviar.', 'warn'); return; }
+  if (!item.email) { toast('Essa pessoa não tem e-mail cadastrado.', 'warn'); return; }
+
+  const btn = document.getElementById('evo-send-btn-' + i);
+  const textoOriginal = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = '⏳...'; }
+  try {
+    const res = await fetch(scriptUrl(), {
+      method: 'POST',
+      body: JSON.stringify({ action: 'enviarConviteEvolucao', email: item.email, nome: item.nome, link: item.link, rodada: item.rodada, secret: secret })
+    });
+    const d = await res.json();
+    if (d && d.status === 'ok') {
+      toast('✅ E-mail enviado pra ' + (item.nome || item.email) + '!', 'success');
+      if (btn) { btn.textContent = '✅ Enviado'; }
+    } else {
+      toast((d && d.message) || 'Erro ao enviar e-mail.', 'warn');
+      if (btn) { btn.disabled = false; btn.textContent = textoOriginal; }
+    }
+  } catch (e) {
+    toast('Erro de conexão ao enviar e-mail.', 'warn');
+    if (btn) { btn.disabled = false; btn.textContent = textoOriginal; }
+  }
+}
+
+// Envia o convite por e-mail de TODO MUNDO da lista gerada, um por vez
+// (mesmo endpoint do envio individual — sem ação de "lote" separada no
+// Apps Script), mostrando o progresso no botão.
+async function enviarConviteEvolucaoTodos() {
+  const lista = window._evoLinksData || [];
+  const comEmail = lista.map((item, i) => ({ item, i })).filter(x => !!x.item.email);
+  if (!comEmail.length) { toast('Nenhum e-mail pra enviar.', 'warn'); return; }
+  if (!confirm('Enviar e-mail pra ' + comEmail.length + ' pessoa(s)?')) return;
+
+  const btn = document.getElementById('evo-send-todos-btn');
+  if (btn) btn.disabled = true;
+  let enviados = 0;
+  for (let n = 0; n < comEmail.length; n++) {
+    if (btn) btn.textContent = '⏳ Enviando ' + (n + 1) + '/' + comEmail.length + '...';
+    await enviarConviteEvolucaoUm(comEmail[n].i);
+    enviados++;
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '✉️ Enviar Todos por E-mail'; }
+  toast('✅ Envio concluído (' + enviados + '/' + comEmail.length + ').', 'success');
 }
 
 function copiarTodosLinks() {

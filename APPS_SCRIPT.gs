@@ -128,6 +128,7 @@ function doPost(e) {
     if (data.action === 'saveTurmas')    return out.setContent(JSON.stringify(doSaveTurmas(data.turmas)));
     if (data.action === 'gerarTokens')   return out.setContent(JSON.stringify(doGerarTokens(data.cliente, data.quantidade, data.secret)));
     if (data.action === 'definirSenhaEmpresa') return out.setContent(JSON.stringify(doDefinirSenhaEmpresa(data.cliente, data.senha, data.secret)));
+    if (data.action === 'enviarConviteEvolucao') return out.setContent(JSON.stringify(doEnviarConviteEvolucao(data.email, data.nome, data.link, data.rodada, data.secret)));
     return out.setContent(JSON.stringify(doSaveResposta(data)));
   } catch(err) {
     Logger.log('Erro doPost: ' + err.toString());
@@ -368,6 +369,43 @@ function doDefinirSenhaEmpresa(cliente, senha, secret) {
     sheet.appendRow([cliente, hash, new Date().toISOString()]);
   }
   return {status: 'ok', cliente: cliente};
+}
+
+// Envia por e-mail o link (já com token) da Rodada 2/3 pra um respondente —
+// usado pelo botão "Gerar Links T2/T3" do admin. MailApp.sendEmail já vem
+// disponível no Apps Script, sem precisar de serviço externo nem segredo
+// adicional. Ação de admin — exige ADMIN_SECRET, igual o resto das ações
+// sensíveis desse arquivo.
+function doEnviarConviteEvolucao(email, nome, link, rodada, secret) {
+  if (!ADMIN_SECRET || secret !== ADMIN_SECRET) {
+    return {status: 'error', message: 'Não autorizado'};
+  }
+  if (!email || !link) {
+    return {status: 'error', message: 'Informe e-mail e link.'};
+  }
+  var primeiroNome = String(nome || '').trim().split(' ')[0] || 'tudo bem';
+  var rodadaTxt = (String(rodada) === '3') ? 'Rodada 3' : 'Rodada 2';
+  var assunto = 'Instituto da Liderança — convite pra ' + rodadaTxt + ' do diagnóstico';
+  var corpoHtml = '' +
+    '<div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;color:#24153E">' +
+    '<h2 style="color:#261062">Instituto da Liderança</h2>' +
+    '<p>Olá, ' + primeiroNome + '!</p>' +
+    '<p>Chegou a hora de responder a <strong>' + rodadaTxt + '</strong> do seu diagnóstico de liderança.</p>' +
+    '<p style="margin:24px 0">' +
+      '<a href="' + link + '" style="background:linear-gradient(135deg,#261062,#FF0060);color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold">Responder agora</a>' +
+    '</p>' +
+    '<p style="font-size:12px;color:#6F667E">Se o botão não funcionar, copie e cole este link no navegador:<br>' + link + '</p>' +
+    '</div>';
+  try {
+    MailApp.sendEmail({
+      to: email,
+      subject: assunto,
+      htmlBody: corpoHtml,
+    });
+    return {status: 'ok', email: email};
+  } catch (err) {
+    return {status: 'error', message: 'Falha ao enviar e-mail: ' + err.toString()};
+  }
 }
 
 // Login da empresa — retorna só válido/inválido, nenhum dado junto (evita
