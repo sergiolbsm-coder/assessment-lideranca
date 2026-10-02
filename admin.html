@@ -1186,7 +1186,7 @@ const ELEM_COLORS = {
   TERRA: "var(--moss)",
   ÁGUA: "var(--sky)"
 };
-async function loadData() {
+async function loadData(silencioso) {
   const _0x512849 = document.getElementById("empty-resp");
   // Default aqui era uma URL de implantação antiga/órfã (ficava esquecida
   // toda vez que reimplantávamos com "Nova implantação") — se por algum
@@ -1281,7 +1281,7 @@ async function loadData() {
   if (_0x512849) {
     _0x512849.style.display = "none";
   }
-  toast("✅ " + allData.length + " respondente(s) carregado(s)", "success");
+  if (!silencioso) toast("✅ " + allData.length + " respondente(s) carregado(s)", "success");
   loadPontuacoesFromSheet();
 }
 function loadDemoData() {
@@ -4654,7 +4654,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const _0xf0ed22 = document.getElementById("tab-dashboard")?.classList.contains("active");
     const _progAtivo = document.getElementById("tab-progresso-t2")?.classList.contains("active");
     if ((_0x39e3e7 || _0xf0ed22 || _progAtivo) && getCfg("csv_url", "")) {
-      loadData();
+      loadData(true); // silencioso — auto-refresh de fundo não precisa de toast a cada 30s
     }
     // Auto-refresh da tela de progresso se estiver ativa
     if (_progAtivo) renderProgressoT2();
