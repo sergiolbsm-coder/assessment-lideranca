@@ -600,14 +600,21 @@ function mostrarGate(){
 })();
 </script>
 
-<!-- getSecret/setSecret/clearSecret acima vivem dentro da IIFE da aba
-     Licenças e não são visíveis daqui pra fora — por isso "Gerar Links
-     T2/T3" e "renomear turma" (que checam `typeof getSecret === 'function'`
-     no escopo global) sempre caíam no "faça login", mesmo já logado. Esse
-     bloco só expõe o mesmo valor (mesma chave de localStorage), sem tocar
-     na IIFE nem duplicar lógica de login. -->
+<!-- getSecret/SHEETS_URL acima vivem dentro da IIFE da aba Licenças e não
+     são visíveis daqui pra fora — por isso "Gerar Links T2/T3" e "renomear
+     turma" (que checam `typeof getSecret === 'function'` e referenciam
+     `SHEETS_URL` direto, no escopo global) sempre falhavam: primeiro com
+     "faça login" (getSecret ausente), e depois de corrigir isso, com
+     "Erro de conexão" (SHEETS_URL dava ReferenceError, capturado pelo
+     try/catch). Mesmo padrão já usado em loadData() (getCfg/localStorage
+     em vez de referenciar a IIFE direto) — sem tocar nela nem duplicar a
+     lógica de login. -->
 <script>
 function getSecret(){ try { return localStorage.getItem('il_admin_license_secret') || ''; } catch(e){ return ''; } }
+function scriptUrl(){
+  var fallback = 'https://script.google.com/macros/s/AKfycbyRD9FCPK5-1ZimLlJmih9lHq5O7hrH6H91rO7S3Gwf7aJyrEGIOQA7paiV4HM5jH1L5w/exec';
+  try { return localStorage.getItem('il_admin_script_url') || fallback; } catch(e){ return fallback; }
+}
 </script>
 
 <div class="bg"></div>
@@ -3515,7 +3522,7 @@ async function saveEditTurma() {
   if (count > 0 && secret) {
     toast(`⏳ Renomeando "${oldNome}" em ${count} resposta(s)...`, 'success');
     try {
-      const res = await fetch(SHEETS_URL + '?action=renameTurma&old_name=' + encodeURIComponent(oldNome) +
+      const res = await fetch(scriptUrl() + '?action=renameTurma&old_name=' + encodeURIComponent(oldNome) +
         '&new_name=' + encodeURIComponent(novoNome) + '&secret=' + encodeURIComponent(secret));
       const d = await res.json();
       if (d.status !== 'ok') {
@@ -3742,7 +3749,7 @@ async function gerarLinksEvolucao() {
   let tokens = [];
   try {
     const cliente = turmaFiltro || 'Evolucao-T' + rodada;
-    const res = await fetch(SHEETS_URL, {
+    const res = await fetch(scriptUrl(), {
       method: 'POST',
       body: JSON.stringify({ action: 'gerarTokens', cliente: cliente, quantidade: pessoas.length, secret: secret })
     });
