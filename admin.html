@@ -636,7 +636,7 @@ function scriptUrl(){
     <div class="nav-item" data-tab="atividades" onclick="showTab('atividades')"><span class="ni">⚙️</span> Atividades</div>
     <div class="nav-section">Evolução</div>
     <div class="nav-item" data-tab="progresso-t2" onclick="showTab('progresso-t2')"><span class="ni">📊</span> Progresso T2/T3</div>
-    <div class="nav-item" data-tab="evolucao" onclick="showTab('evolucao')"><span class="ni">📈</span> Gerar Links T2/T3</div>
+    <div class="nav-item" data-tab="evolucao" onclick="showTab('evolucao'); restaurarEvoLinksCache();"><span class="ni">📈</span> Gerar Links T2/T3</div>
     <div class="nav-section">Exportação</div>
     <div class="nav-item" data-tab="exportar" onclick="showTab('exportar')"><span class="ni">⬇️</span> Exportar</div>
     <div class="nav-section">Configurações</div>
@@ -830,7 +830,11 @@ function scriptUrl(){
         <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
           <div style="flex:1;min-width:180px">
             <label style="font-size:12px;color:var(--mid);display:block;margin-bottom:6px;font-weight:600">Turma</label>
-            <select id="evo-turma" class="filter-sel" style="width:100%"><option value="">— todas —</option></select>
+            <select id="evo-turma" class="filter-sel" style="width:100%" onchange="atualizarEvoPessoaOptions()"><option value="">— todas —</option></select>
+          </div>
+          <div style="flex:1;min-width:200px">
+            <label style="font-size:12px;color:var(--mid);display:block;margin-bottom:6px;font-weight:600">Respondente</label>
+            <select id="evo-pessoa" class="filter-sel" style="width:100%"><option value="">— todos da turma —</option></select>
           </div>
           <div style="flex:0 0 100px">
             <label style="font-size:12px;color:var(--mid);display:block;margin-bottom:6px;font-weight:600">Rodada</label>
@@ -843,6 +847,7 @@ function scriptUrl(){
             <button class="btn btn-gold" onclick="gerarLinksEvolucao()">⟳ Gerar Links</button>
           </div>
         </div>
+        <div id="evo-cache-info" style="font-size:12px;color:var(--mid);margin-top:10px"></div>
       </div>
 
       <div id="evo-resultado" style="display:none">
@@ -3724,15 +3729,11 @@ function _evoAssessmentUrl() {
   return origin + path;
 }
 
-async function gerarLinksEvolucao() {
-  const secret = (typeof getSecret === 'function') ? getSecret() : '';
-  if (!secret) { toast('Faça login na aba Licenças antes de gerar links.', 'warn'); return; }
+const EVO_CACHE_KEY = 'il_admin_evo_links_cache';
 
-  const turmaFiltro = document.getElementById('evo-turma')?.value || '';
-  const rodada      = document.getElementById('evo-rodada')?.value || '2';
-  const btn         = document.querySelector('#tab-evolucao .btn-gold');
-
-  // Filtra respondentes T1 da turma selecionada (deduplica por email)
+// Respondentes T1 de uma turma (deduplicados por email) — mesma base usada
+// tanto pra gerar em lote quanto pra popular o select de "Respondente".
+function _evoPessoasDaTurma(turmaFiltro) {
   const base = (allData || []).filter(r => {
     if ((parseInt(r.rodada, 10) || 1) !== 1) return false;
     if (turmaFiltro && r.turma !== turmaFiltro) return false;
@@ -3743,9 +3744,38 @@ async function gerarLinksEvolucao() {
     const e = String(r.email).trim().toLowerCase();
     if (!porEmail[e] || r.timestamp > porEmail[e].timestamp) porEmail[e] = r;
   });
-  const pessoas = Object.values(porEmail);
+  return Object.values(porEmail);
+}
 
-  if (!pessoas.length) { toast('Nenhum respondente T1 encontrado para essa turma.', 'warn'); return; }
+// Repopula o select "Respondente" sempre que a turma muda — chamado no
+// onchange de #evo-turma e na primeira carga da aba.
+function atualizarEvoPessoaOptions() {
+  const sel = document.getElementById('evo-pessoa');
+  if (!sel) return;
+  const turmaFiltro = document.getElementById('evo-turma')?.value || '';
+  const prev = sel.value;
+  const pessoas = _evoPessoasDaTurma(turmaFiltro);
+  sel.innerHTML = '<option value="">— todos da turma —</option>' +
+    pessoas.map(p => {
+      const email = String(p.email).trim();
+      const nome  = p.nome || p.name || email;
+      return '<option value="' + email.replace(/"/g, '&quot;') + '"' + (email === prev ? ' selected' : '') + '>' + nome + '</option>';
+    }).join('');
+}
+
+async function gerarLinksEvolucao() {
+  const secret = (typeof getSecret === 'function') ? getSecret() : '';
+  if (!secret) { toast('Faça login na aba Licenças antes de gerar links.', 'warn'); return; }
+
+  const turmaFiltro  = document.getElementById('evo-turma')?.value || '';
+  const pessoaFiltro = document.getElementById('evo-pessoa')?.value || '';
+  const rodada       = document.getElementById('evo-rodada')?.value || '2';
+  const btn          = document.querySelector('#tab-evolucao .btn-gold');
+
+  let pessoas = _evoPessoasDaTurma(turmaFiltro);
+  if (pessoaFiltro) pessoas = pessoas.filter(p => String(p.email).trim().toLowerCase() === pessoaFiltro.toLowerCase());
+
+  if (!pessoas.length) { toast('Nenhum respondente T1 encontrado com esse filtro.', 'warn'); return; }
 
   // Gera um token por pessoa via Apps Script
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Gerando tokens…'; }
@@ -3771,9 +3801,7 @@ async function gerarLinksEvolucao() {
   if (btn) { btn.disabled = false; btn.textContent = '⟳ Gerar Links'; }
 
   const baseUrl = _evoAssessmentUrl();
-  // Guardado à parte (não só no DOM) pra "Enviar" individual/em lote
-  // reaproveitar nome/e-mail/link sem precisar reler/reconstruir do HTML.
-  window._evoLinksData = pessoas.map((r, i) => {
+  const novosItems = pessoas.map((r, i) => {
     const token = tokens[i] || '';
     const nome  = r.nome || r.name || '';
     const email = String(r.email).trim();
@@ -3782,7 +3810,29 @@ async function gerarLinksEvolucao() {
     return { nome: nome, email: email, token: token, link: link, rodada: rodada };
   });
 
-  const linksHtml = window._evoLinksData.map((item, i) => {
+  // Gerar só pra 1 pessoa não deve apagar o resto do lote já na tela — troca
+  // só a entrada dessa pessoa (mesmo e-mail + mesma rodada) e mantém as demais.
+  const atual = (Array.isArray(window._evoLinksData) ? window._evoLinksData : [])
+    .filter(item => item.rodada === rodada); // lote de outra rodada não se mistura
+  novosItems.forEach(novo => {
+    const idx = atual.findIndex(item => item.email.toLowerCase() === novo.email.toLowerCase());
+    if (idx >= 0) atual[idx] = novo; else atual.push(novo);
+  });
+  window._evoLinksData = atual;
+
+  salvarEvoLinksCache(turmaFiltro, rodada);
+  renderEvoLinksList();
+  const msg = pessoaFiltro
+    ? '✅ Link gerado pra ' + (novosItems[0].nome || novosItems[0].email) + '!'
+    : '✅ ' + novosItems.length + ' links com token gerados para Rodada ' + rodada;
+  toast(msg, 'success');
+}
+
+// Desenha a lista a partir de window._evoLinksData — chamado tanto depois
+// de gerar quanto ao restaurar o cache salvo (ver restaurarEvoLinksCache).
+function renderEvoLinksList() {
+  const items = window._evoLinksData || [];
+  const linksHtml = items.map((item, i) => {
     const nomeTxt = item.nome || item.email;
     const linkEsc = item.link.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">' +
@@ -3798,8 +3848,41 @@ async function gerarLinksEvolucao() {
 
   document.getElementById('evo-links-list').innerHTML = linksHtml ||
     '<div class="empty-state"><div class="empty-icon">🔗</div><div class="empty-title">Nenhum link gerado</div></div>';
-  document.getElementById('evo-resultado').style.display = 'block';
-  toast('✅ ' + pessoas.length + ' links com token gerados para Rodada ' + rodada, 'success');
+  document.getElementById('evo-resultado').style.display = items.length ? 'block' : 'none';
+}
+
+// Guarda o lote atual no localStorage, pra sobreviver a fechar a aba/painel
+// (antes, os links só existiam na memória da página e desapareciam de vez).
+function salvarEvoLinksCache(turmaFiltro, rodada) {
+  try {
+    localStorage.setItem(EVO_CACHE_KEY, JSON.stringify({
+      turma: turmaFiltro || '', rodada: rodada, items: window._evoLinksData || [], geradoEm: new Date().toISOString()
+    }));
+  } catch(e) {}
+}
+
+// Chamado ao abrir a aba "Gerar Links T2/T3" — repõe o último lote gerado
+// (de qualquer sessão anterior) sem precisar clicar em "Gerar Links" de novo.
+function restaurarEvoLinksCache() {
+  atualizarEvoPessoaOptions(); // garante o select populado mesmo sem cache pra restaurar
+  let cache = null;
+  try { cache = JSON.parse(localStorage.getItem(EVO_CACHE_KEY) || 'null'); } catch(e) {}
+  const info = document.getElementById('evo-cache-info');
+  if (!cache || !Array.isArray(cache.items) || !cache.items.length) {
+    if (info) info.textContent = '';
+    return;
+  }
+  const turmaSel = document.getElementById('evo-turma');
+  if (turmaSel) turmaSel.value = cache.turma || '';
+  atualizarEvoPessoaOptions();
+  const rodadaSel = document.getElementById('evo-rodada');
+  if (rodadaSel) rodadaSel.value = cache.rodada || '2';
+  window._evoLinksData = cache.items;
+  renderEvoLinksList();
+  if (info) {
+    const quando = cache.geradoEm ? new Date(cache.geradoEm).toLocaleString('pt-BR') : '';
+    info.textContent = '↻ Último lote restaurado automaticamente' + (quando ? ' (gerado em ' + quando + ')' : '') + '.';
+  }
 }
 
 // Envia o convite por e-mail de UMA pessoa (botão "✉️ Enviar" da linha).
