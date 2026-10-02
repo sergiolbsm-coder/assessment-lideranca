@@ -1268,9 +1268,14 @@ async function loadData() {
     }
     return;
   }
-  filteredData = [...allData];
+  // Antes era "filteredData = [...allData]" direto — isso descartava o
+  // filtro de turma/busca ativo toda vez que loadData() rodava (inclusive
+  // no auto-refresh de 30s da tela de Respondentes), e o select ficava
+  // mostrando a turma selecionada mas a tabela voltava a exibir todo mundo.
+  // filterTable() já recalcula filteredData a partir dos campos de filtro
+  // atuais e chama renderTable() sozinho.
   populateFilters();
-  renderTable();
+  filterTable();
   renderDashboard();
   syncTurmaSelects();
   if (_0x512849) {
