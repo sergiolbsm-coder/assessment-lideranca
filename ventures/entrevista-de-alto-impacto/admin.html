@@ -37,7 +37,6 @@ async function boot(){
   try{
     if(!(await requireRole(['admin'], 'Parametrizar perguntas'))) return;
     // Mostra a cópia guardada no navegador na hora e atualiza em segundo plano.
-    const sortQ = function(rows){ return rows.slice().sort(function(a,b){ return (a.order||0)-(b.order||0); }); };
     questions = sortQ(await Api.listQuestionsFast(function(rows){ if(!openId){ questions = sortQ(rows); render(); } }));
     render();
   }
@@ -59,16 +58,18 @@ function render(){
       '<div class="section-title"><h2>Parametrizar perguntas</h2>'+
         '<div style="display:flex;gap:8px;flex-wrap:wrap">'+seedBtn+'<button class="btn-primary" onclick="Admin.newQuestion()">+ Nova pergunta</button></div></div>'+
       '<p class="hint">Cada pergunta tem um padrão de resposta esperado (Direta, Reflexiva ou Método STAR), a orientação que o candidato recebe depois de responder, e o critério que a IA usa para gerar o feedback automático. Só perguntas <b>ativas</b> entram em novas simulações.</p>'+
+      '<div id="busy-banner" class="card" style="display:none;margin:14px 0;padding:12px 16px"></div>'+
       '<div class="divider"></div>'+
       '<div class="qlist" id="qlist">'+rows+'</div>'+
     '</div>';
+  updateBanner();
 }
 
 function renderRow(q){
   const open = openId === q.id;
   const meta = TIPO_META[q.tipo] || TIPO_META.direta;
   const dTipo = draftTipo[q.id] || q.tipo || 'direta';
-  return '<div class="qitem'+(open?' open':'')+(q.ativa?'':' inactive')+'">'+
+  return '<div class="qitem'+(open?' open':'')+(q.ativa?'':' inactive')+'" id="qi-'+q.id+'">'+
     '<div class="qitem-head">'+
       '<div class="qtext">'+esc(q.text)+'</div>'+
       '<div class="qitem-actions">'+
@@ -110,6 +111,37 @@ function renderDetail(q, dTipo){
   '</div>';
 }
 
+// ---- Gravações: a tela reage na hora; o envio ao Google (2 a 5 s) roda em
+// fila, uma de cada vez, e depois confere se o servidor realmente gravou.
+let pending = 0, pendingLabel = '', chain = Promise.resolve(), expectations = [];
+const sortQ = function(rows){ return rows.slice().sort(function(a,b){ return (a.order||0)-(b.order||0); }); };
+
+function updateBanner(){
+  const b = document.getElementById('busy-banner');
+  if(!b) return;
+  b.style.display = pending > 0 ? 'block' : 'none';
+  b.innerHTML = '<div class="spinner-line"><span class="spinner-dot"></span><span class="spinner-dot"></span><span class="spinner-dot"></span> '+esc(pendingLabel)+' O Google pode levar alguns segundos, não feche a página.</div>';
+}
+function enqueue(label, fn, expect){
+  pending++; pendingLabel = label; updateBanner();
+  if(expect) expectations.push(expect);
+  chain = chain.then(fn).catch(function(err){ toast('Erro: ' + err.message); }).then(function(){
+    pending--; updateBanner();
+    return pending === 0 ? settle() : null;
+  });
+}
+// Fila vazia: lê do servidor, avisa se algo não foi gravado e atualiza a lista.
+async function settle(){
+  const checks = expectations; expectations = [];
+  let fresh;
+  try{ fresh = sortQ(await Api.listQuestions()); }catch(e){ return; }
+  let falhou = false;
+  checks.forEach(function(c){ if(!c.ok(fresh)){ falhou = true; toast(c.msg); } });
+  // Se algo não foi gravado, a tela volta ao que o servidor realmente tem.
+  if(falhou){ openId = null; questions = fresh; render(); }
+  else if(!openId){ questions = fresh; render(); }
+}
+
 const Admin = {
   toggleOpen: function(id){
     openId = (openId===id) ? null : id;
@@ -124,54 +156,51 @@ const Admin = {
     if(o) o.value = tpl.orientacao;
     if(a) a.value = tpl.aiGuidance;
   },
-  newQuestion: async function(){
-    const maxOrder = questions.reduce(function(m,q){ return Math.max(m, q.order||0); }, 0);
-    const id = uid();
-    try{
-      await Api.post('upsertQuestion', {
-        id: id, text:'Nova pergunta (edite o texto)', tipo:'direta',
-        orientacao: TEMPLATES.direta.orientacao, aiGuidance: TEMPLATES.direta.aiGuidance,
-        ativa:false, order:maxOrder+1
-      });
-      await reload();
-      openId = id; draftTipo[id]='direta'; render();
-    }catch(err){ toast('Erro: ' + err.message); }
+  newQuestion: function(){
+    const q = {
+      id: uid(), text:'Nova pergunta (edite o texto)', tipo:'direta',
+      orientacao: TEMPLATES.direta.orientacao, aiGuidance: TEMPLATES.direta.aiGuidance,
+      ativa:false, order: questions.reduce(function(m,x){ return Math.max(m, x.order||0); }, 0) + 1
+    };
+    questions.push(q); openId = q.id; draftTipo[q.id] = 'direta'; render();
+    const el = document.getElementById('qi-'+q.id); if(el) el.scrollIntoView({block:'center'});
+    enqueue('Criando a pergunta…', function(){ return Api.post('upsertQuestion', q); },
+      {ok:function(fresh){ return fresh.some(function(x){ return x.id===q.id; }); },
+       msg:'A pergunta não foi criada no servidor. Sua sessão pode ter expirado: entre de novo e tente outra vez.'});
   },
-  save: async function(id){
+  save: function(id){
     const text = (document.getElementById('f-text-'+id).value||'').trim();
     const orientacao = document.getElementById('f-orient-'+id).value||'';
     const aiGuidance = document.getElementById('f-ai-'+id).value||'';
     const ativa = document.getElementById('f-ativa-'+id).checked;
     const tipo = draftTipo[id] || 'direta';
     if(!text){ toast('A pergunta não pode ficar em branco.'); return; }
-    try{
-      await Api.post('upsertQuestion', {id:id, text:text, tipo:tipo, orientacao:orientacao, aiGuidance:aiGuidance, ativa:ativa});
-      openId = null;
-      await reload();
-      toast('Pergunta salva.');
-    }catch(err){ toast('Erro ao salvar: ' + err.message); }
+    const q = questions.find(function(x){ return x.id===id; });
+    if(q) Object.assign(q, {text:text, tipo:tipo, orientacao:orientacao, aiGuidance:aiGuidance, ativa:ativa});
+    openId = null; render(); toast('Salvando…');
+    enqueue('Salvando a pergunta…', function(){ return Api.post('upsertQuestion', {id:id, text:text, tipo:tipo, orientacao:orientacao, aiGuidance:aiGuidance, ativa:ativa}); },
+      {ok:function(fresh){ const x = fresh.find(function(r){ return r.id===id; }); return !!x && x.text===text && !!x.ativa===ativa; },
+       msg:'A alteração não foi gravada no servidor. Sua sessão pode ter expirado: entre de novo e tente outra vez.'});
   },
-  remove: async function(id){
+  remove: function(id){
     if(!confirm('Excluir esta pergunta do banco? Simulações já respondidas mantêm uma cópia da pergunta.')) return;
-    try{ await Api.post('deleteQuestion', {id:id}); await reload(); toast('Pergunta excluída.'); }
-    catch(err){ toast('Erro: ' + err.message); }
+    questions = questions.filter(function(q){ return q.id!==id; }); if(openId===id) openId = null; render();
+    enqueue('Excluindo a pergunta…', function(){ return Api.post('deleteQuestion', {id:id}); },
+      {ok:function(fresh){ return !fresh.some(function(x){ return x.id===id; }); },
+       msg:'A pergunta não foi excluída no servidor. Sua sessão pode ter expirado: entre de novo e tente outra vez.'});
   },
-  seedBank: async function(){
+  seedBank: function(){
     if(!confirm('Carregar o banco de 44 perguntas de exemplo? 10 delas já entram ativas, formando uma primeira simulação equilibrada.')) return;
-    try{
-      await Api.post('seedQuestions', {questions: SEED_QUESTIONS});
-      await reload();
-      toast('Banco de exemplo carregado.');
-    }catch(err){ toast('Erro: ' + err.message); }
+    enqueue('Carregando o banco de exemplo…', function(){ return Api.post('seedQuestions', {questions: SEED_QUESTIONS}); },
+      {ok:function(fresh){ return fresh.length > 0; }, msg:'O banco de exemplo não foi carregado. Sua sessão pode ter expirado: entre de novo e tente outra vez.'});
   },
-  move: async function(id, dir){
+  move: function(id, dir){
     const idx = questions.findIndex(function(q){return q.id===id;});
     const swapIdx = idx+dir;
     if(idx<0 || swapIdx<0 || swapIdx>=questions.length) return;
-    try{
-      await Api.post('reorderQuestions', {idA: questions[idx].id, idB: questions[swapIdx].id});
-      await reload();
-    }catch(err){ toast('Erro ao reordenar: ' + err.message); }
+    const a = questions[idx], b = questions[swapIdx], tmp = a.order;
+    a.order = b.order; b.order = tmp; questions = sortQ(questions); render();
+    enqueue('Reordenando…', function(){ return Api.post('reorderQuestions', {idA: a.id, idB: b.id}); });
   }
 };
 
