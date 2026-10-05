@@ -126,7 +126,9 @@ function readAll_(sheet, headers) {
     });
 }
 function findRowIndexById_(sheet, id) {
-  const ids = sheet.getRange(2, 1, Math.max(sheet.getLastRow() - 1, 0), 1).getValues();
+  // Aba só com o cabeçalho: não há o que procurar (pedir 0 linhas dá erro no Google).
+  if (sheet.getLastRow() < 2) return -1;
+  const ids = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues();
   for (let i = 0; i < ids.length; i++) {
     if (String(ids[i][0]) === String(id)) return i + 2; // linha real (1-based, +1 pelo cabeçalho)
   }
@@ -228,7 +230,7 @@ function doGet(e) {
       // Diagnóstico sem expor segredos: só diz o que está configurado.
       const pr = props_();
       return jsonOut_({
-        status: 'ok', versao: 'contas-v1',
+        status: 'ok', versao: 'contas-v2',
         ia: pr.getProperty('GEMINI_API_KEY') ? 'gemini' : (pr.getProperty('ANTHROPIC_API_KEY') ? 'anthropic' : 'nenhuma'),
         senhaEspecialista: !!pr.getProperty('SPECIALIST_PASSWORD'),
         senhaRecrutadora: !!pr.getProperty('RECRUITER_PASSWORD'),
