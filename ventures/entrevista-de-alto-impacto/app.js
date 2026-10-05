@@ -239,7 +239,54 @@ function renderNav(active){
   if(!el) return;
   el.innerHTML = tabs.map(function(t){
     return '<a class="tab'+(t.k===active?' active':'')+'" href="'+t.href+'">'+t.label+'</a>';
-  }).join('') + (auth ? '<button class="tab" onclick="logout()" title="Encerrar sessão">Sair ('+esc(auth.role)+')</button>' : '');
+  }).join('') + (auth
+    ? '<button class="tab tab-session" onclick="logout()" title="Encerrar sessão">Sair ('+esc(ROTULO_PERFIL[auth.role]||auth.role)+')</button>'
+    : '<button class="tab tab-session tab-login" onclick="openLoginModal()">Entrar</button>');
+}
+
+var ROTULO_PERFIL = {especialista:'Especialista', recrutadora:'Recrutadora', admin:'Admin'};
+var DESTINO_PERFIL = {especialista:'especialista.html', recrutadora:'recrutadora.html', admin:'admin.html'};
+
+// Login no canto superior direito: vale para o site todo (a sessão fica
+// guardada no navegador por 11 h), então trocar de menu não pede senha de novo.
+function openLoginModal(){
+  if(document.getElementById('login-modal')) return;
+  var perfis = ['especialista'].concat(FEATURES.recrutadora ? ['recrutadora'] : []).concat(['admin']);
+  var ov = document.createElement('div');
+  ov.id = 'login-modal'; ov.className = 'modal-overlay';
+  ov.innerHTML = '<div class="modal-box" role="dialog" aria-label="Entrar">'+
+    '<h2 style="font-size:24px">Entrar</h2>'+
+    '<p class="hint" style="margin-bottom:16px">Acesso da equipe. Depois de entrar, os menus ficam liberados.</p>'+
+    '<form id="lm-form">'+
+      '<div class="field"><label>Perfil</label><select id="lm-role">'+perfis.map(function(p){ return '<option value="'+p+'">'+(p==='admin'?'Administrador':ROTULO_PERFIL[p])+'</option>'; }).join('')+'</select></div>'+
+      '<div class="field"><label>Usuário</label><input id="lm-user" autocomplete="username" autocapitalize="none" required></div>'+
+      '<div class="field"><label>Senha</label><input id="lm-pass" type="password" autocomplete="current-password" required></div>'+
+      '<div style="display:flex;gap:10px"><button class="btn-primary" id="lm-btn" type="submit" style="flex:1">Entrar</button>'+
+      '<button class="btn-secondary" type="button" id="lm-cancel">Cancelar</button></div>'+
+      '<p class="hint" id="lm-msg" style="margin-top:12px;min-height:18px"></p>'+
+    '</form></div>';
+  document.body.appendChild(ov);
+  var close = function(){ ov.remove(); document.removeEventListener('keydown', onKey); };
+  var onKey = function(e){ if(e.key === 'Escape') close(); };
+  document.addEventListener('keydown', onKey);
+  ov.addEventListener('mousedown', function(e){ if(e.target === ov) close(); });
+  document.getElementById('lm-cancel').onclick = close;
+  document.getElementById('lm-user').focus();
+  document.getElementById('lm-form').addEventListener('submit', async function(ev){
+    ev.preventDefault();
+    var role = document.getElementById('lm-role').value, btn = document.getElementById('lm-btn'), msg = document.getElementById('lm-msg');
+    btn.disabled = true; btn.textContent = 'Entrando…'; msg.textContent = '';
+    try{
+      await Api.login(role, document.getElementById('lm-user').value, document.getElementById('lm-pass').value);
+      // Na home e em Responder vai para a área do perfil; nas demais, recarrega a mesma página já liberada.
+      var pagina = location.pathname.split('/').pop() || 'index.html';
+      if(pagina === 'index.html' || pagina === 'responder.html' || pagina === 'equipe.html') location.href = DESTINO_PERFIL[role];
+      else location.reload();
+    }catch(err){
+      msg.textContent = (err.message === 'CONFIG') ? 'Backend não configurado.' : err.message;
+      btn.disabled = false; btn.textContent = 'Entrar';
+    }
+  });
 }
 
 // Banco de 44 perguntas clássicas de entrevista de emprego, classificadas

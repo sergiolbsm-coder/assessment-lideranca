@@ -157,3 +157,9 @@ label{display:block;font-size:12px;font-weight:600;color:var(--idl-text-muted);m
 
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
 .form-grid .full{grid-column:1/-1}
+
+.tab-session{margin-left:6px}
+.tab-login{border-color:var(--idl-border);background:var(--idl-white);color:var(--idl-purple)}
+.tab-login:hover{border-color:rgba(255,0,96,.4);color:var(--idl-magenta)}
+.modal-overlay{position:fixed;inset:0;z-index:1000;background:rgba(38,16,98,.6);display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-box{background:#fff;border-radius:16px;padding:28px;width:100%;max-width:380px;box-shadow:0 24px 64px rgba(57,22,148,.25)}
