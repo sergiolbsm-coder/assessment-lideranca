@@ -33,6 +33,10 @@ let current = null;
 let pollTimer = null;
 
 async function boot(){
+  if(!FEATURES.recrutadora){
+    document.getElementById('app').innerHTML = '<div class="wrap"><div class="card" style="text-align:center;padding:50px 30px"><h2>Em breve</h2><p class="muted" style="margin-top:10px">A área da recrutadora ainda não está disponível.</p><a class="btn-secondary" style="display:inline-block;margin-top:16px" href="index.html">Voltar ao início</a></div></div>';
+    return;
+  }
   document.getElementById('app').innerHTML = loadingHtml('Carregando…');
   try{
     if(!(await requireRole(['recrutadora','admin'], 'Área da recrutadora'))) return;

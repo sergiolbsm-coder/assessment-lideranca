@@ -63,7 +63,9 @@ const CAB_ENTREVISTAS = [
   // Entrevista ao vivo (recrutadora). Colunas novas entram sempre no FINAL.
   'candidateEmail','kind','recruiterName','consentAt','transcriptFileId',
   'jobStatus','improvementSuggestions','recruiterMessage',
-  'emailSentAt','emailStatus','emailTo'
+  'emailSentAt','emailStatus','emailTo',
+  // Contato de quem responde (cadastro da simulação). Sempre no FINAL.
+  'candidatePhone','candidateLinkedin','candidateInstagram','candidateCompany'
 ];
 
 const SITE_BASE = 'https://assessment.institutodalideranca.com.br/ventures/entrevista-de-alto-impacto/';
@@ -145,14 +147,21 @@ function rowToInterview_(r) {
     recruiterMessage: r.recruiterMessage || '',
     emailSentAt: r.emailSentAt || '',
     emailStatus: r.emailStatus || '',
-    emailTo: r.emailTo || ''
+    emailTo: r.emailTo || '',
+    candidatePhone: r.candidatePhone || '',
+    candidateLinkedin: r.candidateLinkedin || '',
+    candidateInstagram: r.candidateInstagram || '',
+    candidateCompany: r.candidateCompany || ''
   };
 }
 
 // Quem só tem o link do candidato não vê e-mail, nem rascunhos da recrutadora:
 // status da vaga, sugestões e mensagem só aparecem depois do envio do e-mail.
 function publicView_(row) {
-  const v = Object.assign({}, row, { candidateEmail: '', emailTo: '', emailStatus: '', consentAt: '' });
+  const v = Object.assign({}, row, {
+    candidateEmail: '', emailTo: '', emailStatus: '', consentAt: '',
+    candidatePhone: '', candidateLinkedin: '', candidateInstagram: '', candidateCompany: ''
+  });
   if (!row.emailSentAt) { v.jobStatus = ''; v.improvementSuggestions = ''; v.recruiterMessage = ''; v.recruiterName = ''; }
   return v;
 }
@@ -383,12 +392,19 @@ function reorderQuestions_(data) {
 function createInterview_(data) {
   const sh = entrevistasSheet_();
   const now = new Date().toISOString();
-  sh.appendRow([
-    data.id, data.candidateName || '', data.targetRole || '', 'em_andamento',
-    JSON.stringify(data.questionsSnapshot || []), JSON.stringify({}),
-    JSON.stringify({ status: 'none' }), JSON.stringify({ byQuestion: {}, overall: null }),
-    data.createdAt || now, '', '', ''
-  ]);
+  const txt = (v, n) => String(v == null ? '' : v).trim().slice(0, n || 200);
+  const email = txt(data.candidateEmail, 200);
+  if (email && !EMAIL_RE.test(email)) throw new Error('E-mail inválido.');
+  const row = {
+    id: data.id, candidateName: txt(data.candidateName), targetRole: txt(data.targetRole), status: 'em_andamento',
+    questionsSnapshotJSON: JSON.stringify(data.questionsSnapshot || []), answersJSON: JSON.stringify({}),
+    aiFeedbackJSON: JSON.stringify({ status: 'none' }), specialistFeedbackJSON: JSON.stringify({ byQuestion: {}, overall: null }),
+    createdAt: data.createdAt || now, kind: 'simulacao',
+    candidateEmail: email, candidatePhone: txt(data.candidatePhone, 40),
+    candidateLinkedin: txt(data.candidateLinkedin), candidateInstagram: txt(data.candidateInstagram),
+    candidateCompany: txt(data.candidateCompany)
+  };
+  sh.appendRow(CAB_ENTREVISTAS.map(h => row[h] !== undefined ? row[h] : ''));
 }
 function updateInterviewCell_(id, colName, value) {
   const sh = entrevistasSheet_();

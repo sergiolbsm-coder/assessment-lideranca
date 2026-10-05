@@ -149,7 +149,11 @@ label{display:block;font-size:12px;font-weight:600;color:var(--idl-text-muted);m
   .rescard,.report-hero,.overall-note{break-inside:avoid;box-shadow:none}
 }
 @media (max-width:640px){
+  .form-grid{grid-template-columns:1fr!important}
   .topbar-inner{gap:10px}
   .tabs{width:100%;justify-content:flex-start;overflow-x:auto}
   .tipo-picker{grid-template-columns:1fr}
 }
+
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.form-grid .full{grid-column:1/-1}

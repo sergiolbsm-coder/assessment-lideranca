@@ -121,7 +121,7 @@ function renderReport(interview){
       recruiterBlockHtml(interview)+
       cards+
       (overall ? '<div class="overall-note"><div class="res-block specialist" style="background:none;padding:0"><div class="lbl">🧑‍🏫 Síntese geral da especialista · '+esc(overall.specialistName)+'</div><p>'+nl2br(overall.text)+'</p></div></div>' : '')+
-      '<div class="nav-row noprint"><a class="btn-secondary" href="relatorio.html">← Todos os relatórios</a><button class="btn-primary" onclick="window.print()">Imprimir / salvar PDF</button></div>'+
+      '<div class="nav-row noprint">'+(getAuth()?'<a class="btn-secondary" href="relatorio.html">← Todos os relatórios</a>':'<span></span>')+'<button class="btn-primary" onclick="window.print()">Imprimir / salvar PDF</button></div>'+
     '</div>';
 }
 

@@ -27,6 +27,9 @@ const TEMPLATES = {
   }
 };
 
+// Recursos ainda não liberados ao público. Recrutadora fica desligada por enquanto.
+const FEATURES = { recrutadora: false };
+
 const JOB_STATUS = {
   em_analise: "Em análise",
   proxima_etapa: "Avançou para a próxima etapa",
@@ -221,17 +224,19 @@ function configWarningHtml(){
 
 // ---------- navegação ----------
 function renderNav(active){
+  // Quem só responde vê apenas Início e Responder. Os menus de trabalho
+  // aparecem só depois do login, conforme o perfil.
+  var auth = getAuth(), role = auth && auth.role;
   var tabs = [
     {href:'index.html', k:'inicio', label:'Início'},
-    {href:'responder.html', k:'responder', label:'Responder'},
-    {href:'recrutadora.html', k:'recrutadora', label:'Recrutadora'},
-    {href:'especialista.html', k:'especialista', label:'Especialista'},
-    {href:'relatorio.html', k:'relatorio', label:'Relatório'},
-    {href:'admin.html', k:'admin', label:'Parametrizar'}
+    {href:'responder.html', k:'responder', label:'Responder'}
   ];
+  if(role === 'especialista' || role === 'admin') tabs.push({href:'especialista.html', k:'especialista', label:'Especialista'});
+  if(FEATURES.recrutadora && (role === 'recrutadora' || role === 'admin')) tabs.push({href:'recrutadora.html', k:'recrutadora', label:'Recrutadora'});
+  if(role) tabs.push({href:'relatorio.html', k:'relatorio', label:'Relatório'});
+  if(role === 'admin') tabs.push({href:'admin.html', k:'admin', label:'Parametrizar'});
   var el = document.getElementById('tabs');
   if(!el) return;
-  var auth = getAuth();
   el.innerHTML = tabs.map(function(t){
     return '<a class="tab'+(t.k===active?' active':'')+'" href="'+t.href+'">'+t.label+'</a>';
   }).join('') + (auth ? '<button class="tab" onclick="logout()" title="Encerrar sessão">Sair ('+esc(auth.role)+')</button>' : '');

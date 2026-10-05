@@ -103,6 +103,7 @@ function renderDetail(){
       '<a class="btn-ghost" href="especialista.html">← Voltar à lista</a>'+
       '<div class="section-title"><h2>'+esc(interview.candidateName)+'</h2><span class="badge '+st.cls+'">'+st.label+'</span></div>'+
       '<p class="hint">'+(interview.targetRole?esc(interview.targetRole)+' · ':'')+'enviado em '+fmtDate(interview.submittedAt)+'</p>'+
+      contactHtml(interview)+
       '<div id="ai-banner">'+aiBannerHtml(ai)+'</div>'+
       '<div class="divider"></div>'+
       cards+
@@ -128,6 +129,32 @@ function refreshAi(){
     if(!el) return;
     el.textContent = (ai.byQuestion && ai.byQuestion[q.qid]) || (ai.status==='pending' ? 'Gerando…' : (ai.status==='unavailable' ? 'Indisponível' : '-'));
   });
+}
+
+// Contato de quem respondeu (só a equipe vê). Links só para http(s), para
+// nunca montar um link perigoso a partir do que a pessoa digitou.
+function safeUrl(v, base){
+  v = String(v||'').trim(); if(!v) return '';
+  if(/^https?:\/\//i.test(v)) return v;
+  if(base && /^[\w.\-\/]+$/.test(v.replace(/^@/,''))) return base + v.replace(/^@/,'');
+  return '';
+}
+function contactHtml(i){
+  var parts = [];
+  if(i.candidateEmail) parts.push('<a href="mailto:'+esc(i.candidateEmail)+'">'+esc(i.candidateEmail)+'</a>');
+  if(i.candidatePhone) parts.push('<a href="tel:'+esc(String(i.candidatePhone).replace(/[^\d+]/g,''))+'">'+esc(i.candidatePhone)+'</a>');
+  if(i.candidateLinkedin){
+    var l = safeUrl(/^(www\.)?linkedin\.com/i.test(i.candidateLinkedin.trim()) ? 'https://'+i.candidateLinkedin.trim() : i.candidateLinkedin, 'https://www.linkedin.com/in/');
+    parts.push(l ? '<a href="'+esc(l)+'" target="_blank" rel="noopener">LinkedIn</a>' : 'LinkedIn: '+esc(i.candidateLinkedin));
+  }
+  if(i.candidateInstagram){
+    var ig = safeUrl(i.candidateInstagram, 'https://www.instagram.com/');
+    parts.push(ig ? '<a href="'+esc(ig)+'" target="_blank" rel="noopener">Instagram '+esc(i.candidateInstagram)+'</a>' : 'Instagram: '+esc(i.candidateInstagram));
+  }
+  if(i.candidateCompany) parts.push('Empresa: '+esc(i.candidateCompany));
+  if(!parts.length) return '';
+  return '<div class="card" style="margin-top:14px;padding:14px 18px"><div class="mono" style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--idl-text-muted);margin-bottom:6px">Contato</div>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13.5px">'+parts.join('')+'</div></div>';
 }
 
 function aiBannerHtml(ai){

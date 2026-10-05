@@ -14,6 +14,7 @@ identificados.
 |---|---|---|
 | Início | `index.html` | Mini-site: o que é o projeto, como funciona, os 3 padrões de resposta, e a seção sobre a idealizadora |
 | Candidato | `responder.html` | Inicia/retoma uma simulação, responde pergunta a pergunta, vê orientação + feedback da IA ao final |
+| Acesso da equipe | `equipe.html` | Entrada única de login para especialista e admin. É o único link para a equipe que aparece no site público |
 | Recrutadora | `recrutadora.html` | Cadastra a entrevista ao vivo (com consentimento), envia a transcrição, a IA separa perguntas e respostas e avalia, e ela envia o relatório por e-mail com status da vaga, mensagem e anexo |
 | Especialista | `especialista.html` | Lista simulações enviadas, escreve feedback personalizado por pergunta |
 | Relatório | `relatorio.html` | Relatório completo e imprimível (pergunta, resposta, orientação, feedback IA + especialista) |
@@ -57,3 +58,14 @@ repositório): `SPECIALIST_PASSWORD`, `RECRUITER_PASSWORD` e `ADMIN_PASSWORD`.
 Usuários padrão: `especialista`, `recrutadora` e `admin` (mudam com `SPECIALIST_USER` / `RECRUITER_USER` / `ADMIN_USER`). A sessão
 dura 12 h. Para conferir o que está configurado no backend (sem expor
 segredos): `<URL do Apps Script>?action=status`.
+
+## Menus e recursos liberados
+
+Quem só responde vê apenas **Início** e **Responder**. Os menus Especialista,
+Relatório e Parametrizar só aparecem depois do login, conforme o perfil. A área
+da recrutadora está desligada pela chave `FEATURES.recrutadora` em `app.js`
+(mostra "Em breve"); para liberar, troque para `true`.
+
+O cadastro de quem responde coleta nome e e-mail (obrigatórios), telefone,
+LinkedIn, Instagram, empresa e cargo/função pretendida. Esses contatos só a
+equipe vê; o link público da simulação não os expõe.

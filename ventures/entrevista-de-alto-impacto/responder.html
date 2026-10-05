@@ -91,8 +91,15 @@ async function renderStart(){
       '<div class="hero"><h1>Entrevista de Alto Impacto</h1>'+
       '<p>Treine respostas reais, receba orientação de como responder cada pergunta e feedback automático da IA. Depois, feedback personalizado de uma especialista.</p></div>'+
       '<div class="card">'+
-        '<div class="field"><label>Seu nome completo</label><input id="r-nome" placeholder="Ex: Maria Silva"></div>'+
-        '<div class="field"><label>Cargo / vaga alvo (opcional)</label><input id="r-cargo" placeholder="Ex: Analista de RH Pleno"></div>'+
+        '<div class="form-grid">'+
+          '<div class="field full"><label>Nome completo *</label><input id="r-nome" autocomplete="name" placeholder="Ex: Maria Silva"></div>'+
+          '<div class="field"><label>E-mail *</label><input id="r-email" type="email" autocomplete="email" placeholder="maria@email.com"></div>'+
+          '<div class="field"><label>Telefone</label><input id="r-tel" type="tel" autocomplete="tel" placeholder="(11) 99999-0000"></div>'+
+          '<div class="field"><label>LinkedIn</label><input id="r-linkedin" placeholder="linkedin.com/in/seu-perfil"></div>'+
+          '<div class="field"><label>Instagram</label><input id="r-insta" placeholder="@seuusuario"></div>'+
+          '<div class="field"><label>Empresa</label><input id="r-empresa" autocomplete="organization" placeholder="Empresa onde você trabalha"></div>'+
+          '<div class="field"><label>Cargo / função pretendida</label><input id="r-cargo" placeholder="Ex: Analista de RH Pleno"></div>'+
+        '</div>'+
         '<button class="btn-primary" id="r-start-btn" '+(activeQs.length===0?'disabled':'')+' onclick="Responder.start()">Iniciar simulação</button>'+
         '<p class="hint" id="q-hint">'+(activeQs.length===0?'Nenhuma pergunta está ativa no momento. Peça para alguém ativar perguntas na tela Parametrizar.':
           'Você vai responder '+activeQs.length+' pergunta'+(activeQs.length===1?'':'s')+'.')+'</p>'+
@@ -107,9 +114,10 @@ async function renderStart(){
 
 const Responder = {
   start: async function(){
-    const name = (document.getElementById('r-nome').value||'').trim();
-    const cargo = (document.getElementById('r-cargo').value||'').trim();
+    const val = function(id){ return (document.getElementById(id).value||'').trim(); };
+    const name = val('r-nome'), cargo = val('r-cargo'), email = val('r-email');
     if(!name){ toast('Informe seu nome para começar.'); return; }
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ toast('Informe um e-mail válido.'); return; }
     const btn = document.getElementById('r-start-btn');
     btn.disabled = true; btn.textContent = 'Iniciando…';
     const activeQs = (window._activeQuestions||[]).slice().sort(function(a,b){ return (a.order||0)-(b.order||0); });
@@ -117,7 +125,9 @@ const Responder = {
     const id = uid();
     const createdAt = new Date().toISOString();
     try{
-      await Api.post('createInterview', {id:id, candidateName:name, targetRole:cargo, questionsSnapshot:snapshot, createdAt:createdAt});
+      await Api.post('createInterview', {id:id, candidateName:name, targetRole:cargo, questionsSnapshot:snapshot, createdAt:createdAt,
+        candidateEmail:email, candidatePhone:val('r-tel'), candidateLinkedin:val('r-linkedin'),
+        candidateInstagram:val('r-insta'), candidateCompany:val('r-empresa')});
       addMyInterview({id:id, candidateName:name, targetRole:cargo, createdAt:createdAt});
       location.href = 'responder.html?id=' + encodeURIComponent(id);
     }catch(err){
