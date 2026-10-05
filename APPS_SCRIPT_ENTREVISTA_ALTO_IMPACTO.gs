@@ -416,7 +416,7 @@ function callAiFeedback_(questionsSnapshot, answers) {
     const arr = extractJsonArray_(text);
     const byQuestion = {};
     arr.forEach(item => { if (item && item.id) byQuestion[item.id] = String(item.feedback || ''); });
-    if (!Object.keys(byQuestion).length) return { status: 'error', error: 'resposta da IA sem feedbacks no formato esperado' };
+    if (!Object.keys(byQuestion).length) return { status: 'error', error: 'resposta da IA sem feedbacks no formato esperado: ' + String(text).slice(0, 300) };
     return { status: 'ready', byQuestion: byQuestion, generatedAt: new Date().toISOString() };
   } catch (err) {
     return { status: 'error', error: String(err) };
@@ -431,7 +431,7 @@ function askGemini_(apiKey, prompt) {
       headers: { 'x-goog-api-key': apiKey },
       payload: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 4000 }
+        generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 8192 }
       }),
       muteHttpExceptions: true
     });
@@ -439,8 +439,12 @@ function askGemini_(apiKey, prompt) {
   if (resp.getResponseCode() !== 200) {
     throw new Error('Gemini: ' + ((body.error && body.error.message) || ('HTTP ' + resp.getResponseCode())));
   }
-  const parts = (body.candidates && body.candidates[0] && body.candidates[0].content && body.candidates[0].content.parts) || [];
-  return parts.map(p => p.text || '').join('');
+  const cand = (body.candidates && body.candidates[0]) || {};
+  const parts = (cand.content && cand.content.parts) || [];
+  // Ignora partes de "pensamento" do modelo; só o texto da resposta interessa.
+  const text = parts.filter(p => !p.thought).map(p => p.text || '').join('');
+  if (!text) throw new Error('Gemini sem texto (finishReason: ' + (cand.finishReason || (body.promptFeedback && body.promptFeedback.blockReason) || 'desconhecido') + ')');
+  return text;
 }
 
 function askClaude_(apiKey, prompt) {
@@ -479,11 +483,19 @@ function buildAiPrompt_(snapshot, answers) {
 }
 
 function extractJsonArray_(text) {
-  try { return JSON.parse(text); } catch (e) {}
+  const asList = v => {
+    if (Array.isArray(v)) return v;
+    if (v && typeof v === 'object') {
+      const k = Object.keys(v).filter(x => Array.isArray(v[x]))[0];
+      if (k) return v[k];
+    }
+    return null;
+  };
+  try { const l = asList(JSON.parse(text)); if (l) return l; } catch (e) {}
   const start = text.indexOf('[');
   const end = text.lastIndexOf(']');
   if (start > -1 && end > start) {
-    try { return JSON.parse(text.slice(start, end + 1)); } catch (e2) {}
+    try { const l = asList(JSON.parse(text.slice(start, end + 1))); if (l) return l; } catch (e2) {}
   }
   return [];
 }
