@@ -15,6 +15,7 @@ identificados.
 | Início | `index.html` | Mini-site: o que é o projeto, como funciona, os 3 padrões de resposta, e a seção sobre a idealizadora |
 | Candidato | `responder.html` | Inicia/retoma uma simulação, responde pergunta a pergunta, vê orientação + feedback da IA ao final |
 | Acesso da equipe | `equipe.html` | Entrada única de login para especialista e admin. É o único link para a equipe que aparece no site público |
+| Minha conta | `conta.html` | Perfil do participante e histórico das suas simulações (em qualquer aparelho) |
 | Recrutadora | `recrutadora.html` | Cadastra a entrevista ao vivo (com consentimento), envia a transcrição, a IA separa perguntas e respostas e avalia, e ela envia o relatório por e-mail com status da vaga, mensagem e anexo |
 | Especialista | `especialista.html` | Lista simulações enviadas, escreve feedback personalizado por pergunta |
 | Relatório | `relatorio.html` | Relatório completo e imprimível (pergunta, resposta, orientação, feedback IA + especialista) |
@@ -69,3 +70,18 @@ da recrutadora está desligada pela chave `FEATURES.recrutadora` em `app.js`
 O cadastro de quem responde coleta nome e e-mail (obrigatórios), telefone,
 LinkedIn, Instagram, empresa e cargo/função pretendida. Esses contatos só a
 equipe vê; o link público da simulação não os expõe.
+
+## Contas de participantes e blocos de perguntas
+
+- **Conta:** quem vai responder cria uma conta (nome, e-mail, senha, telefone, LinkedIn,
+  Instagram, empresa e cargo pretendido) em `responder.html` e entra com e-mail e senha em
+  qualquer aparelho. Os dados do perfil são usados em todas as simulações, sem redigitar.
+  A senha não é guardada: só um hash com chave secreta (`TOKEN_SECRET`, nas Propriedades do
+  script). "Esqueci minha senha" envia um código de 6 dígitos por e-mail (vale 15 min).
+- **Blocos:** em Parametrizar, aba "Blocos de perguntas", admin e especialista criam conjuntos
+  nomeados (Bloco 01, Bloco 02...) escolhendo e ordenando perguntas do banco. O participante
+  escolhe um bloco ativo. Sem nenhum bloco, vale a "Simulação padrão" (perguntas ativas).
+- **Quem vê o quê:** a equipe (especialista e admin) vê todas as simulações, de qualquer
+  participante, com ou sem conta. O participante vê só as próprias. Simulações antigas, feitas
+  sem conta, não aparecem em nenhuma conta (ligar só pelo e-mail permitiria a alguém cadastrar
+  o e-mail de outra pessoa e ver as respostas dela).

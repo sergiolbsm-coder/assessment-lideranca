@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Entrevista de Alto Impacto · Parametrizar</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Cormorant+Garamond:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="app.css?v=202610051756">
+<link rel="stylesheet" href="app.css?v=202610051935">
 </head>
 <body>
 <div class="bg"></div>
@@ -23,7 +23,7 @@
 </div>
 <div id="app"></div>
 <div id="toast-host"></div>
-<script src="app.js?v=202610051756"></script>
+<script src="app.js?v=202610051935"></script>
 <script>
 "use strict";
 renderNav('admin');
@@ -31,13 +31,19 @@ renderNav('admin');
 let questions = [];
 let openId = null;
 let draftTipo = {};
+let aba = 'perguntas';            // 'perguntas' | 'blocos'
+let blocks = [], bkEditId = null, bk = null, bkBusca = '';
 
 async function boot(){
   document.getElementById('app').innerHTML = loadingHtml('Carregando perguntas…');
   try{
-    if(!(await requireRole(['admin'], 'Parametrizar perguntas'))) return;
+    if(!(await requireRole(['admin','especialista'], 'Parametrizar perguntas'))) return;
     // Mostra a cópia guardada no navegador na hora e atualiza em segundo plano.
-    questions = sortQ(await Api.listQuestionsFast(function(rows){ if(!openId){ questions = sortQ(rows); render(); } }));
+    const r = await Promise.all([
+      Api.listQuestionsFast(function(rows){ if(!openId && aba==='perguntas'){ questions = sortQ(rows); render(); } }),
+      Api.listBlocks().catch(function(){ return []; })
+    ]);
+    questions = sortQ(r[0]); blocks = sortQ(r[1]);
     render();
   }
   catch(err){ document.getElementById('app').innerHTML = errorHtml(err); }
@@ -47,16 +53,23 @@ async function reload(){
   render();
 }
 
+function abasHtml(){
+  return '<div class="seg" style="margin:4px 0 14px"><button class="'+(aba==='perguntas'?'on':'')+'" onclick="Bk.aba(\'perguntas\')">Perguntas</button>'+
+         '<button class="'+(aba==='blocos'?'on':'')+'" onclick="Bk.aba(\'blocos\')">Blocos de perguntas</button></div>';
+}
+
 function render(){
+  if(aba === 'blocos'){ renderBlocos(); return; }
   const app = document.getElementById('app');
   const rows = questions.map(renderRow).join('') || '<div class="empty">Nenhuma pergunta cadastrada ainda.</div>';
-  const seedBtn = questions.length===0
+  const seedBtn = (questions.length===0 && (getAuth()||{}).role==='admin')
     ? '<button class="btn-secondary" onclick="Admin.seedBank()">Carregar banco de exemplo (44 perguntas)</button>'
     : '';
   app.innerHTML =
     '<div class="wrap wrap-wide">'+
       '<div class="section-title"><h2>Parametrizar perguntas</h2>'+
         '<div style="display:flex;gap:8px;flex-wrap:wrap">'+seedBtn+'<button class="btn-primary" onclick="Admin.newQuestion()">+ Nova pergunta</button></div></div>'+
+      abasHtml()+
       '<p class="hint">Cada pergunta tem um padrão de resposta esperado (Direta, Reflexiva ou Método STAR), a orientação que o candidato recebe depois de responder, e o critério que a IA usa para gerar o feedback automático. Só perguntas <b>ativas</b> entram em novas simulações.</p>'+
       '<div id="busy-banner" class="card" style="display:none;margin:14px 0;padding:12px 16px"></div>'+
       '<div class="divider"></div>'+
@@ -133,12 +146,17 @@ function enqueue(label, fn, expect){
 // Fila vazia: lê do servidor, avisa se algo não foi gravado e atualiza a lista.
 async function settle(){
   const checks = expectations; expectations = [];
-  let fresh;
-  try{ fresh = sortQ(await Api.listQuestions()); }catch(e){ return; }
+  let fresh, freshB;
+  try{
+    const r = await Promise.all([Api.listQuestions(), Api.listBlocks().catch(function(){ return null; })]);
+    fresh = sortQ(r[0]); freshB = r[1] ? sortQ(r[1]) : null;
+  }catch(e){ return; }
   let falhou = false;
-  checks.forEach(function(c){ if(!c.ok(fresh)){ falhou = true; toast(c.msg); } });
+  checks.forEach(function(c){ if(!c.ok(fresh, freshB)){ falhou = true; toast(c.msg); } });
+  if(freshB) blocks = freshB;
   // Se algo não foi gravado, a tela volta ao que o servidor realmente tem.
-  if(falhou){ openId = null; questions = fresh; render(); }
+  if(falhou){ openId = null; bkEditId = null; bk = null; questions = fresh; render(); }
+  else if(aba === 'blocos'){ if(!bkEditId) render(); questions = fresh; }
   else if(!openId){ questions = fresh; render(); }
 }
 
@@ -203,6 +221,120 @@ const Admin = {
     enqueue('Reordenando…', function(){ return Api.post('reorderQuestions', {idA: a.id, idB: b.id}); });
   }
 };
+
+// ================= BLOCOS DE PERGUNTAS =================
+function qTexto(id){ const q = questions.find(function(x){ return x.id===id; }); return q ? q.text : '(pergunta removida)'; }
+
+function renderBlocos(){
+  const app = document.getElementById('app');
+  const rows = blocks.map(renderBlocoRow).join('') || '<div class="empty">Nenhum bloco criado ainda. Crie o primeiro com "+ Novo bloco".</div>';
+  const legado = blocks.length === 0 && questions.some(function(q){ return q.ativa; })
+    ? '<div class="card" style="margin:10px 0;padding:12px 16px;font-size:13px">Enquanto não houver blocos, os respondentes recebem as perguntas <b>ativas</b> como uma "Simulação padrão". <button class="btn-ghost" onclick="Bk.doAtivas()">Criar o Bloco 01 com as perguntas ativas</button></div>' : '';
+  app.innerHTML =
+    '<div class="wrap wrap-wide">'+
+      '<div class="section-title"><h2>Parametrizar</h2><button class="btn-primary" onclick="Bk.novo()">+ Novo bloco</button></div>'+
+      abasHtml()+
+      '<p class="hint">Um bloco é um conjunto de perguntas com nome (Bloco 01, Bloco 02...). O respondente escolhe um bloco ativo para fazer a simulação. A ordem das perguntas dentro do bloco é a ordem em que ele responde.</p>'+
+      '<div id="busy-banner" class="card" style="display:none;margin:14px 0;padding:12px 16px"></div>'+legado+
+      '<div class="divider"></div><div class="qlist">'+rows+'</div>'+
+    '</div>';
+  updateBanner();
+}
+
+function renderBlocoRow(b){
+  const open = bkEditId === b.id;
+  return '<div class="qitem'+(open?' open':'')+(b.ativo?'':' inactive')+'" id="bk-'+b.id+'">'+
+    '<div class="qitem-head"><div class="qtext">'+esc(b.name)+(b.description?'<div class="hint" style="font-weight:400">'+esc(b.description)+'</div>':'')+'</div>'+
+    '<div class="qitem-actions">'+
+      '<button class="btn-icon" title="Mover para cima" onclick="Bk.move(\''+b.id+'\',-1)">↑</button>'+
+      '<button class="btn-icon" title="Mover para baixo" onclick="Bk.move(\''+b.id+'\',1)">↓</button>'+
+      '<button class="btn-icon" title="Editar" onclick="Bk.edit(\''+b.id+'\')">'+(open?'▲':'✎')+'</button></div></div>'+
+    '<div class="qitem-meta"><span class="badge '+(b.ativo?'':'muted')+'">'+(b.ativo?'Ativo':'Inativo')+'</span>'+
+    '<span class="badge muted">'+b.questionIds.length+' pergunta'+(b.questionIds.length===1?'':'s')+'</span></div>'+
+    (open ? bkEditorHtml() : '')+'</div>';
+}
+
+function bkEditorHtml(){
+  const dentro = bk.ids.map(function(id, i){
+    return '<div class="bk-line"><span class="bk-n">'+(i+1)+'</span><span class="bk-t">'+esc(qTexto(id))+'</span>'+
+      '<button class="btn-icon" onclick="Bk.sobe('+i+',-1)">↑</button><button class="btn-icon" onclick="Bk.sobe('+i+',1)">↓</button>'+
+      '<button class="btn-icon" title="Tirar do bloco" onclick="Bk.tira('+i+')">✕</button></div>';
+  }).join('') || '<div class="hint">Nenhuma pergunta neste bloco ainda. Adicione do banco ao lado.</div>';
+  const termo = bkBusca.trim().toLowerCase();
+  const fora = questions.filter(function(q){ return bk.ids.indexOf(q.id) === -1 && (!termo || q.text.toLowerCase().indexOf(termo) > -1); }).slice(0, 60)
+    .map(function(q){ return '<div class="bk-line"><span class="bk-t">'+esc(q.text)+'</span><span class="badge muted">'+esc((TIPO_META[q.tipo]||TIPO_META.direta).short)+'</span>'+
+      '<button class="btn-icon" title="Adicionar ao bloco" onclick="Bk.poe(\''+q.id+'\')">+</button></div>'; }).join('') || '<div class="hint">Nenhuma pergunta encontrada.</div>';
+  return '<div class="qitem-detail" style="display:block">'+
+    '<div class="field"><label>Nome do bloco</label><input id="bk-nome" value="'+esc(bk.name)+'" placeholder="Ex: Bloco 01"></div>'+
+    '<div class="field"><label>Descrição (opcional, o respondente vê)</label><input id="bk-desc" value="'+esc(bk.description)+'" placeholder="Ex: Perguntas iniciais de apresentação"></div>'+
+    '<div class="field" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="bk-ativo" style="width:auto" '+(bk.ativo?'checked':'')+'><label for="bk-ativo" style="margin:0">Ativo (aparece para o respondente)</label></div>'+
+    '<div class="bk-cols"><div><label>Perguntas do bloco, na ordem</label>'+dentro+'</div>'+
+    '<div><label>Banco de perguntas</label><input id="bk-busca" placeholder="Buscar pergunta…" value="'+esc(bkBusca)+'" oninput="Bk.busca(this.value)" style="margin-bottom:8px"><div class="bk-banco">'+fora+'</div></div></div>'+
+    '<div class="nav-row" style="justify-content:flex-start"><button class="btn-primary" onclick="Bk.salva()">Salvar bloco</button>'+
+    '<button class="btn-secondary" onclick="Bk.cancela()">Cancelar</button>'+
+    '<button class="btn-secondary" onclick="Bk.exclui()">Excluir bloco</button></div></div>';
+}
+
+function bkLe(){   // guarda o que foi digitado antes de redesenhar
+  const n = document.getElementById('bk-nome'); if(!n) return;
+  bk.name = n.value; bk.description = document.getElementById('bk-desc').value; bk.ativo = document.getElementById('bk-ativo').checked;
+}
+
+const Bk = {
+  aba: function(a){ aba = a; if(a==='perguntas'){ bkEditId = null; bk = null; } render(); },
+  novo: function(){
+    const id = uid();
+    bkEditId = id; bk = {id:id, name:'Bloco '+String(blocks.length+1).padStart(2,'0'), description:'', ativo:true, ids:[], novo:true};
+    blocks.push({id:id, order:(blocks.reduce(function(m,b){ return Math.max(m,b.order||0); },0)+1), name:bk.name, description:'', ativo:true, questionIds:[]});
+    render(); const el = document.getElementById('bk-'+id); if(el) el.scrollIntoView({block:'center'});
+  },
+  edit: function(id){
+    if(bkEditId === id){ Bk.cancela(); return; }
+    const b = blocks.find(function(x){ return x.id===id; }); if(!b) return;
+    bkEditId = id; bkBusca = ''; bk = {id:id, name:b.name, description:b.description||'', ativo:!!b.ativo, ids:b.questionIds.slice()}; render();
+  },
+  cancela: function(){
+    if(bk && bk.novo) blocks = blocks.filter(function(b){ return b.id !== bk.id; });  // bloco novo não salvo some
+    bkEditId = null; bk = null; render();
+  },
+  busca: function(v){ bkLe(); bkBusca = v; render(); const el = document.getElementById('bk-busca'); if(el){ el.focus(); el.setSelectionRange(v.length, v.length); } },
+  poe: function(id){ bkLe(); bk.ids.push(id); render(); },
+  tira: function(i){ bkLe(); bk.ids.splice(i,1); render(); },
+  sobe: function(i, d){ bkLe(); const j = i+d; if(j<0 || j>=bk.ids.length) return; const t = bk.ids[i]; bk.ids[i] = bk.ids[j]; bk.ids[j] = t; render(); },
+  salva: function(){
+    bkLe();
+    const name = bk.name.trim();
+    if(!name){ toast('Dê um nome ao bloco.'); return; }
+    if(bk.ativo && !bk.ids.length){ toast('Um bloco ativo precisa ter pelo menos uma pergunta.'); return; }
+    const d = {id:bk.id, name:name, description:bk.description.trim(), ativo:bk.ativo, questionIds:bk.ids.slice()};
+    const b = blocks.find(function(x){ return x.id===d.id; });
+    if(b) Object.assign(b, {name:d.name, description:d.description, ativo:d.ativo, questionIds:d.questionIds});
+    bkEditId = null; bk = null; render(); toast('Salvando…');
+    enqueue('Salvando o bloco…', function(){ return Api.post('upsertBlock', d); },
+      {ok:function(fq, fb){ if(!fb) return true; const x = fb.find(function(r){ return r.id===d.id; }); return !!x && x.name===d.name && x.questionIds.length===d.questionIds.length && !!x.ativo===d.ativo; },
+       msg:'O bloco não foi gravado no servidor. Sua sessão pode ter expirado: entre de novo e tente outra vez.'});
+  },
+  exclui: function(){
+    const id = bk.id; if(!confirm('Excluir este bloco? As simulações já feitas continuam com as perguntas que tinham.')) return;
+    blocks = blocks.filter(function(b){ return b.id !== id; }); bkEditId = null; bk = null; render();
+    enqueue('Excluindo o bloco…', function(){ return Api.post('deleteBlock', {id:id}); },
+      {ok:function(fq, fb){ return !fb || !fb.some(function(r){ return r.id===id; }); }, msg:'O bloco não foi excluído no servidor. Sua sessão pode ter expirado: entre de novo.'});
+  },
+  move: function(id, dir){
+    const i = blocks.findIndex(function(b){ return b.id===id; }), j = i+dir;
+    if(i<0 || j<0 || j>=blocks.length) return;
+    const a = blocks[i], b = blocks[j], t = a.order; a.order = b.order; b.order = t; blocks = sortQ(blocks); render();
+    enqueue('Reordenando…', function(){ return Api.post('reorderBlocks', {idA:a.id, idB:b.id}); });
+  },
+  doAtivas: function(){
+    const ids = questions.filter(function(q){ return q.ativa; }).map(function(q){ return q.id; });
+    const d = {id:uid(), name:'Bloco 01', description:'', ativo:true, questionIds:ids};
+    blocks.push({id:d.id, order:1, name:d.name, description:'', ativo:true, questionIds:ids}); render();
+    enqueue('Criando o bloco…', function(){ return Api.post('upsertBlock', d); },
+      {ok:function(fq, fb){ return !fb || fb.some(function(r){ return r.id===d.id; }); }, msg:'O bloco não foi criado no servidor. Sua sessão pode ter expirado.'});
+  }
+};
+
 
 boot();
 </script>

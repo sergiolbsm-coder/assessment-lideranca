@@ -138,8 +138,18 @@ const Api = {
   },
   async login(role, user, password){
     var j = await this.get({action:'login', role:role, user:user, password:password});
-    lsSet(AUTH_KEY, {token:j.token, role:role, exp: Date.now() + 11*3600*1000});
+    this._saveSession(j);
+    return j;
   },
+  _saveSession(j){
+    lsSet(AUTH_KEY, {token:j.token, role:j.role, name: (j.profile && j.profile.name) || '', exp: Date.now() + 11*3600*1000});
+  },
+  // Contas de participantes
+  async register(d){ var j = await this.get(Object.assign({action:'register'}, d)); this._saveSession(j); return j; },
+  async forgot(email){ return this.get({action:'forgot', email:email}); },
+  async resetPassword(email, code, password){ var j = await this.get({action:'resetPassword', email:email, code:code, password:password}); this._saveSession(j); return j; },
+  async me(){ return this.get({action:'me'}); },
+  async listBlocks(){ var j = await this.get({action:'list', resource:'blocks'}); return j.rows||[]; },
   async whoami(){ return (await this.get({action:'whoami'})).role; },
   async listQuestions(){
     var j = await this.get({action:'list', resource:'questions'});
@@ -224,69 +234,119 @@ function configWarningHtml(){
 
 // ---------- navegação ----------
 function renderNav(active){
-  // Quem só responde vê apenas Início e Responder. Os menus de trabalho
-  // aparecem só depois do login, conforme o perfil.
+  // Quem só responde vê Início e Responder (e Minha conta, se tiver conta).
+  // Os menus de trabalho aparecem só depois do login, conforme o perfil.
   var auth = getAuth(), role = auth && auth.role;
   var tabs = [
     {href:'index.html', k:'inicio', label:'Início'},
     {href:'responder.html', k:'responder', label:'Responder'}
   ];
+  if(role === 'respondente') tabs.push({href:'conta.html', k:'conta', label:'Minha conta'});
   if(role === 'especialista' || role === 'admin') tabs.push({href:'especialista.html', k:'especialista', label:'Especialista'});
   if(FEATURES.recrutadora && (role === 'recrutadora' || role === 'admin')) tabs.push({href:'recrutadora.html', k:'recrutadora', label:'Recrutadora'});
-  if(role) tabs.push({href:'relatorio.html', k:'relatorio', label:'Relatório'});
-  if(role === 'admin') tabs.push({href:'admin.html', k:'admin', label:'Parametrizar'});
+  if(role === 'especialista' || role === 'admin') tabs.push({href:'relatorio.html', k:'relatorio', label:'Relatório'});
+  if(role === 'especialista' || role === 'admin') tabs.push({href:'admin.html', k:'admin', label:'Parametrizar'});
   var el = document.getElementById('tabs');
   if(!el) return;
+  var quem = role === 'respondente' ? ((auth.name || 'Participante').split(' ')[0]) : (ROTULO_PERFIL[role] || role);
   el.innerHTML = tabs.map(function(t){
     return '<a class="tab'+(t.k===active?' active':'')+'" href="'+t.href+'">'+t.label+'</a>';
   }).join('') + (auth
-    ? '<button class="tab tab-session" onclick="logout()" title="Encerrar sessão">Sair ('+esc(ROTULO_PERFIL[auth.role]||auth.role)+')</button>'
+    ? '<button class="tab tab-session" onclick="logout()" title="Encerrar sessão">Sair ('+esc(quem)+')</button>'
     : '<button class="tab tab-session tab-login" onclick="openLoginModal()">Entrar</button>');
 }
 
-var ROTULO_PERFIL = {especialista:'Especialista', recrutadora:'Recrutadora', admin:'Admin'};
-var DESTINO_PERFIL = {especialista:'especialista.html', recrutadora:'recrutadora.html', admin:'admin.html'};
+var ROTULO_PERFIL = {respondente:'Participante', especialista:'Especialista', recrutadora:'Recrutadora', admin:'Admin'};
+var DESTINO_PERFIL = {respondente:'conta.html', especialista:'especialista.html', recrutadora:'recrutadora.html', admin:'admin.html'};
 
 // Login no canto superior direito: vale para o site todo (a sessão fica
 // guardada no navegador por 11 h), então trocar de menu não pede senha de novo.
-function openLoginModal(){
+function openLoginModal(modo){
   if(document.getElementById('login-modal')) return;
-  var perfis = ['especialista'].concat(FEATURES.recrutadora ? ['recrutadora'] : []).concat(['admin']);
+  var perfis = [['respondente','Participante (e-mail)'],['especialista','Especialista'],['admin','Administrador']];
   var ov = document.createElement('div');
   ov.id = 'login-modal'; ov.className = 'modal-overlay';
-  ov.innerHTML = '<div class="modal-box" role="dialog" aria-label="Entrar">'+
-    '<h2 style="font-size:24px">Entrar</h2>'+
-    '<p class="hint" style="margin-bottom:16px">Acesso da equipe. Depois de entrar, os menus ficam liberados.</p>'+
-    '<form id="lm-form">'+
-      '<div class="field"><label>Perfil</label><select id="lm-role">'+perfis.map(function(p){ return '<option value="'+p+'">'+(p==='admin'?'Administrador':ROTULO_PERFIL[p])+'</option>'; }).join('')+'</select></div>'+
-      '<div class="field"><label>Usuário</label><input id="lm-user" autocomplete="username" autocapitalize="none" required></div>'+
-      '<div class="field"><label>Senha</label><input id="lm-pass" type="password" autocomplete="current-password" required></div>'+
-      '<div style="display:flex;gap:10px"><button class="btn-primary" id="lm-btn" type="submit" style="flex:1">Entrar</button>'+
-      '<button class="btn-secondary" type="button" id="lm-cancel">Cancelar</button></div>'+
-      '<p class="hint" id="lm-msg" style="margin-top:12px;min-height:18px"></p>'+
-    '</form></div>';
   document.body.appendChild(ov);
   var close = function(){ ov.remove(); document.removeEventListener('keydown', onKey); };
   var onKey = function(e){ if(e.key === 'Escape') close(); };
   document.addEventListener('keydown', onKey);
   ov.addEventListener('mousedown', function(e){ if(e.target === ov) close(); });
-  document.getElementById('lm-cancel').onclick = close;
-  document.getElementById('lm-user').focus();
-  document.getElementById('lm-form').addEventListener('submit', async function(ev){
-    ev.preventDefault();
-    var role = document.getElementById('lm-role').value, btn = document.getElementById('lm-btn'), msg = document.getElementById('lm-msg');
-    btn.disabled = true; btn.textContent = 'Entrando…'; msg.textContent = '';
-    try{
-      await Api.login(role, document.getElementById('lm-user').value, document.getElementById('lm-pass').value);
-      // Na home e em Responder vai para a área do perfil; nas demais, recarrega a mesma página já liberada.
-      var pagina = location.pathname.split('/').pop() || 'index.html';
-      if(pagina === 'index.html' || pagina === 'responder.html' || pagina === 'equipe.html') location.href = DESTINO_PERFIL[role];
-      else location.reload();
-    }catch(err){
-      msg.textContent = (err.message === 'CONFIG') ? 'Backend não configurado.' : err.message;
-      btn.disabled = false; btn.textContent = 'Entrar';
-    }
-  });
+  var depois = function(role){
+    var pagina = location.pathname.split('/').pop() || 'index.html';
+    if(role === 'respondente' && pagina === 'responder.html') location.reload();
+    else if(pagina === 'index.html' || pagina === 'responder.html' || pagina === 'equipe.html' || role === 'respondente') location.href = DESTINO_PERFIL[role];
+    else location.reload();
+  };
+
+  function telaEntrar(){
+    ov.innerHTML = '<div class="modal-box" role="dialog" aria-label="Entrar">'+
+      '<h2 style="font-size:24px">Entrar</h2>'+
+      '<p class="hint" style="margin-bottom:16px">Depois de entrar, o acesso vale para todo o site.</p>'+
+      '<form id="lm-form">'+
+        '<div class="field"><label>Perfil</label><select id="lm-role">'+perfis.map(function(p){ return '<option value="'+p[0]+'">'+p[1]+'</option>'; }).join('')+'</select></div>'+
+        '<div class="field"><label id="lm-ulabel">E-mail</label><input id="lm-user" autocomplete="username" autocapitalize="none" required></div>'+
+        '<div class="field"><label>Senha</label><input id="lm-pass" type="password" autocomplete="current-password" required></div>'+
+        '<div style="display:flex;gap:10px"><button class="btn-primary" id="lm-btn" type="submit" style="flex:1">Entrar</button>'+
+        '<button class="btn-secondary" type="button" id="lm-cancel">Cancelar</button></div>'+
+        '<p class="hint" id="lm-msg" style="margin-top:12px;min-height:18px"></p>'+
+        '<p class="hint" id="lm-extra" style="display:flex;justify-content:space-between;gap:10px"><a href="responder.html" style="color:var(--idl-purple);font-weight:600">Criar conta de participante</a><a href="#" id="lm-forgot" style="color:var(--idl-purple);font-weight:600">Esqueci minha senha</a></p>'+
+      '</form></div>';
+    var sel = document.getElementById('lm-role');
+    var ajusta = function(){
+      var part = sel.value === 'respondente';
+      document.getElementById('lm-ulabel').textContent = part ? 'E-mail' : 'Usuário';
+      document.getElementById('lm-extra').style.display = part ? 'flex' : 'none';
+    };
+    sel.onchange = ajusta; ajusta();
+    document.getElementById('lm-cancel').onclick = close;
+    document.getElementById('lm-forgot').onclick = function(e){ e.preventDefault(); telaEsqueci(document.getElementById('lm-user').value); };
+    document.getElementById('lm-user').focus();
+    document.getElementById('lm-form').addEventListener('submit', async function(ev){
+      ev.preventDefault();
+      var role = sel.value, btn = document.getElementById('lm-btn'), msg = document.getElementById('lm-msg');
+      btn.disabled = true; btn.textContent = 'Entrando…'; msg.textContent = '';
+      try{
+        await Api.login(role, document.getElementById('lm-user').value, document.getElementById('lm-pass').value);
+        depois(role);
+      }catch(err){
+        msg.textContent = (err.message === 'CONFIG') ? 'Backend não configurado.' : err.message;
+        btn.disabled = false; btn.textContent = 'Entrar';
+      }
+    });
+  }
+
+  function telaEsqueci(emailInicial){
+    ov.innerHTML = '<div class="modal-box"><h2 style="font-size:24px">Redefinir senha</h2>'+
+      '<p class="hint" id="rs-dica" style="margin-bottom:14px">Informe o e-mail da sua conta. Enviaremos um código de 6 dígitos.</p>'+
+      '<form id="rs-form">'+
+        '<div class="field"><label>E-mail</label><input id="rs-email" type="email" required value="'+esc(emailInicial||'')+'"></div>'+
+        '<div id="rs-passo2" style="display:none">'+
+          '<div class="field"><label>Código recebido por e-mail</label><input id="rs-code" inputmode="numeric" maxlength="6"></div>'+
+          '<div class="field"><label>Nova senha (mínimo 8 caracteres)</label><input id="rs-pass" type="password" autocomplete="new-password"></div></div>'+
+        '<div style="display:flex;gap:10px"><button class="btn-primary" id="rs-btn" type="submit" style="flex:1">Enviar código</button>'+
+        '<button class="btn-secondary" type="button" id="rs-back">Voltar</button></div>'+
+        '<p class="hint" id="rs-msg" style="margin-top:12px;min-height:18px"></p></form></div>';
+    var passo = 1;
+    document.getElementById('rs-back').onclick = telaEntrar;
+    document.getElementById('rs-form').addEventListener('submit', async function(ev){
+      ev.preventDefault();
+      var btn = document.getElementById('rs-btn'), msg = document.getElementById('rs-msg'), email = document.getElementById('rs-email').value;
+      btn.disabled = true; msg.textContent = '';
+      try{
+        if(passo === 1){
+          await Api.forgot(email);
+          passo = 2; document.getElementById('rs-passo2').style.display = 'block';
+          document.getElementById('rs-dica').textContent = 'Se existir uma conta com esse e-mail, o código foi enviado. Ele vale por 15 minutos.';
+          btn.textContent = 'Redefinir senha'; document.getElementById('rs-code').focus();
+        } else {
+          await Api.resetPassword(email, document.getElementById('rs-code').value, document.getElementById('rs-pass').value);
+          depois('respondente'); return;
+        }
+      }catch(err){ msg.textContent = err.message; }
+      btn.disabled = false;
+    });
+  }
+  if(modo === 'esqueci') telaEsqueci(''); else telaEntrar();
 }
 
 // Banco de 44 perguntas clássicas de entrevista de emprego, classificadas

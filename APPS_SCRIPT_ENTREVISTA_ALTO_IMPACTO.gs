@@ -65,8 +65,22 @@ const CAB_ENTREVISTAS = [
   'jobStatus','improvementSuggestions','recruiterMessage',
   'emailSentAt','emailStatus','emailTo',
   // Contato de quem responde (cadastro da simulação). Sempre no FINAL.
-  'candidatePhone','candidateLinkedin','candidateInstagram','candidateCompany'
+  'candidatePhone','candidateLinkedin','candidateInstagram','candidateCompany',
+  // Conta do respondente que fez a simulação (vazio nas feitas sem conta). Sempre no FINAL.
+  'userId',
+  // Bloco de perguntas usado na simulação (vazio nas feitas antes dos blocos). Sempre no FINAL.
+  'blockId','blockName'
 ];
+
+// Blocos de perguntas: conjuntos nomeados ("Bloco 01", "Bloco 02"...) que o
+// respondente escolhe. Cada bloco guarda a lista ordenada de ids de perguntas.
+const ABA_BLOCOS = 'Blocos';
+const CAB_BLOCOS = ['id','order','name','description','questionIdsJSON','ativo','createdAt','updatedAt'];
+
+// Contas de quem responde. A senha NUNCA fica guardada: só um hash com chave
+// secreta que vive nas Propriedades do script (não na planilha).
+const ABA_USUARIOS = 'Usuarios';
+const CAB_USUARIOS = ['id','email','name','passHash','salt','phone','linkedin','instagram','company','role','createdAt','lastLoginAt'];
 
 const SITE_BASE = 'https://assessment.institutodalideranca.com.br/ventures/entrevista-de-alto-impacto/';
 const MAX_TRANSCRIPT_CHARS = 300000;
@@ -97,6 +111,8 @@ function getSheet_(name, headers) {
 }
 function questoesSheet_() { return getSheet_(ABA_PERGUNTAS, CAB_PERGUNTAS); }
 function entrevistasSheet_() { return getSheet_(ABA_ENTREVISTAS, CAB_ENTREVISTAS); }
+function usuariosSheet_() { return getSheet_(ABA_USUARIOS, CAB_USUARIOS); }
+function blocosSheet_() { return getSheet_(ABA_BLOCOS, CAB_BLOCOS); }
 
 function readAll_(sheet, headers) {
   const data = sheet.getDataRange().getValues();
@@ -151,7 +167,18 @@ function rowToInterview_(r) {
     candidatePhone: r.candidatePhone || '',
     candidateLinkedin: r.candidateLinkedin || '',
     candidateInstagram: r.candidateInstagram || '',
-    candidateCompany: r.candidateCompany || ''
+    candidateCompany: r.candidateCompany || '',
+    userId: r.userId || '',
+    blockId: r.blockId || '',
+    blockName: r.blockName || ''
+  };
+}
+
+function resumoInterview_(r) {
+  return {
+    id: r.id, candidateName: r.candidateName, candidateEmail: r.candidateEmail, targetRole: r.targetRole,
+    status: r.status, kind: r.kind, blockName: r.blockName || '', createdAt: r.createdAt, submittedAt: r.submittedAt,
+    reviewedAt: r.reviewedAt, emailSentAt: r.emailSentAt
   };
 }
 
@@ -160,7 +187,7 @@ function rowToInterview_(r) {
 function publicView_(row) {
   const v = Object.assign({}, row, {
     candidateEmail: '', emailTo: '', emailStatus: '', consentAt: '',
-    candidatePhone: '', candidateLinkedin: '', candidateInstagram: '', candidateCompany: ''
+    candidatePhone: '', candidateLinkedin: '', candidateInstagram: '', candidateCompany: '', userId: ''
   });
   if (!row.emailSentAt) { v.jobStatus = ''; v.improvementSuggestions = ''; v.recruiterMessage = ''; v.recruiterName = ''; }
   return v;
@@ -173,7 +200,25 @@ function doGet(e) {
 
     if (action === 'login') {
       const r = login_(p.role, p.user, p.password);
-      return jsonOut_(r.ok ? { status: 'ok', token: r.token, role: p.role } : { status: 'erro', mensagem: r.msg });
+      return jsonOut_(r.ok ? { status: 'ok', token: r.token, role: p.role, profile: r.profile || null } : { status: 'erro', mensagem: r.msg });
+    }
+    if (action === 'register') {
+      const r = registerUser_(p);
+      return jsonOut_(r.ok ? { status: 'ok', token: r.token, role: 'respondente', profile: r.profile } : { status: 'erro', mensagem: r.msg });
+    }
+    if (action === 'forgot') { forgotPassword_(p.email); return jsonOut_({ status: 'ok' }); }
+    if (action === 'resetPassword') {
+      const r = resetPassword_(p.email, p.code, p.password);
+      return jsonOut_(r.ok ? { status: 'ok', token: r.token, role: 'respondente', profile: r.profile } : { status: 'erro', mensagem: r.msg });
+    }
+    if (action === 'me') {
+      const a = checkAuth_(p.token);
+      if (!a || a.role !== 'respondente' || !a.sub) return jsonOut_({ status: 'erro', mensagem: 'AUTH' });
+      const u = findUserById_(a.sub);
+      if (!u) return jsonOut_({ status: 'erro', mensagem: 'AUTH' });
+      const minhas = readAll_(entrevistasSheet_(), CAB_ENTREVISTAS).filter(r => String(r.userId) === String(a.sub))
+        .map(rowToInterview_).map(resumoInterview_);
+      return jsonOut_({ status: 'ok', profile: publicProfile_(u), interviews: minhas });
     }
     if (action === 'whoami') {
       const role = checkToken_(p.token);
@@ -183,7 +228,7 @@ function doGet(e) {
       // Diagnóstico sem expor segredos: só diz o que está configurado.
       const pr = props_();
       return jsonOut_({
-        status: 'ok', versao: 'ao-vivo-v1',
+        status: 'ok', versao: 'contas-v1',
         ia: pr.getProperty('GEMINI_API_KEY') ? 'gemini' : (pr.getProperty('ANTHROPIC_API_KEY') ? 'anthropic' : 'nenhuma'),
         senhaEspecialista: !!pr.getProperty('SPECIALIST_PASSWORD'),
         senhaRecrutadora: !!pr.getProperty('RECRUITER_PASSWORD'),
@@ -200,6 +245,17 @@ function doGet(e) {
       rows.sort((a, b) => a.order - b.order);
       return jsonOut_({ status: 'ok', rows: rows });
     }
+    if (resource === 'blocks') {
+      const editor = (role => role === 'admin' || role === 'especialista')(checkToken_(p.token));
+      let rows = readAll_(blocosSheet_(), CAB_BLOCOS).map(b => ({
+        id: b.id, order: Number(b.order) || 0, name: b.name, description: b.description || '',
+        questionIds: jsonOrDefault_(b.questionIdsJSON, []),
+        ativo: b.ativo === true || b.ativo === 'TRUE' || b.ativo === 'true'
+      }));
+      if (!editor) rows = rows.filter(b => b.ativo && b.questionIds.length);   // público: só blocos ativos e com perguntas
+      rows.sort((a, b) => a.order - b.order);
+      return jsonOut_({ status: 'ok', rows: rows });
+    }
     if (resource === 'interview') {
       // Público: o candidato abre a própria simulação pelo id do link.
       const r = readAll_(entrevistasSheet_(), CAB_ENTREVISTAS).filter(x => String(x.id) === String(p.id))[0];
@@ -212,11 +268,7 @@ function doGet(e) {
       const all = readAll_(entrevistasSheet_(), CAB_ENTREVISTAS).map(rowToInterview_);
       // Listas só precisam do resumo. Mandar respostas e feedbacks de todas as
       // simulações deixava a tela lenta conforme o número de entrevistas crescia.
-      const resumo = r => ({
-        id: r.id, candidateName: r.candidateName, targetRole: r.targetRole, status: r.status, kind: r.kind,
-        createdAt: r.createdAt, submittedAt: r.submittedAt, reviewedAt: r.reviewedAt, emailSentAt: r.emailSentAt
-      });
-      return jsonOut_({ status: 'ok', rows: p.summary ? all.map(resumo) : all });
+      return jsonOut_({ status: 'ok', rows: p.summary ? all.map(resumoInterview_) : all });
     }
     return jsonOut_({ status: 'erro', mensagem: 'resource inválido' });
   } catch (err) {
@@ -237,6 +289,7 @@ function jsonOut_(obj) {
 
 const SESSION_HOURS = 12;
 const ROLES = {
+  respondente: { userProp: '', passProp: '', defaultUser: '' }, // contas de quem responde (tratadas à parte)
   especialista: { userProp: 'SPECIALIST_USER', passProp: 'SPECIALIST_PASSWORD', defaultUser: 'especialista' },
   recrutadora: { userProp: 'RECRUITER_USER', passProp: 'RECRUITER_PASSWORD', defaultUser: 'recrutadora' },
   admin: { userProp: 'ADMIN_USER', passProp: 'ADMIN_PASSWORD', defaultUser: 'admin' }
@@ -250,23 +303,29 @@ function secret_() {
 function sign_(payload) {
   return Utilities.base64EncodeWebSafe(Utilities.computeHmacSha256Signature(payload, secret_()));
 }
-function makeToken_(role) {
-  const payload = role + '.' + (Date.now() + SESSION_HOURS * 3600 * 1000);
+function makeToken_(role, sub) {
+  const payload = role + '.' + (Date.now() + SESSION_HOURS * 3600 * 1000) + '.' + (sub || '-');
   return payload + '.' + sign_(payload);
 }
-function checkToken_(token) {
+// Devolve {role, sub} ou null. Aceita também o formato antigo (3 partes, sem sub).
+function checkAuth_(token) {
   if (!token) return null;
   const parts = String(token).split('.');
-  if (parts.length !== 3) return null;
-  if (sign_(parts[0] + '.' + parts[1]) !== parts[2]) return null;
+  if (parts.length !== 3 && parts.length !== 4) return null;
+  const sig = parts.pop();
+  if (sign_(parts.join('.')) !== sig) return null;
   if (Number(parts[1]) < Date.now()) return null;
-  return ROLES[parts[0]] ? parts[0] : null;
+  if (!ROLES[parts[0]]) return null;
+  return { role: parts[0], sub: parts[2] && parts[2] !== '-' ? parts[2] : '' };
 }
+function checkToken_(token) { const a = checkAuth_(token); return a ? a.role : null; }
 function isStaff_(role) { return role === 'especialista' || role === 'recrutadora' || role === 'admin'; }
 function isRecruiter_(role) { return role === 'recrutadora' || role === 'admin'; }
 
 function login_(role, user, pass) {
+  if (role === 'respondente') return userLogin_(user, pass);
   const cfg = ROLES[role];
+  if (cfg && !cfg.passProp) return { ok: false, msg: 'Perfil inválido.' };
   if (!cfg) return { ok: false, msg: 'Perfil inválido.' };
   const cache = CacheService.getScriptCache();
   const key = 'falhas_' + role;
@@ -285,9 +344,117 @@ function login_(role, user, pass) {
   return { ok: false, msg: 'Usuário ou senha incorretos.' };
 }
 
+
+// ---------- contas de quem responde ----------
+
+function txt_(v, n) { return String(v == null ? '' : v).trim().slice(0, n || 200); }
+function normEmail_(e) { return String(e || '').trim().toLowerCase(); }
+function userHash_(pass, salt) {
+  return Utilities.base64EncodeWebSafe(Utilities.computeHmacSha256Signature(salt + '|' + pass, secret_()));
+}
+function findUser_(email) {
+  const e = normEmail_(email);
+  return readAll_(usuariosSheet_(), CAB_USUARIOS).filter(u => normEmail_(u.email) === e)[0] || null;
+}
+function findUserById_(id) {
+  return readAll_(usuariosSheet_(), CAB_USUARIOS).filter(u => String(u.id) === String(id))[0] || null;
+}
+function publicProfile_(u) {
+  return { id: u.id, name: u.name, email: u.email, phone: u.phone || '', linkedin: u.linkedin || '',
+           instagram: u.instagram || '', company: u.company || '', role: u.role || '' };
+}
+
+function registerUser_(p) {
+  const cache = CacheService.getScriptCache();
+  const n = Number(cache.get('cadastros_hora') || 0);
+  if (n >= 200) return { ok: false, msg: 'Muitos cadastros neste momento. Tente de novo mais tarde.' };
+  const name = txt_(p.name, 120), email = normEmail_(p.email), pass = String(p.password || '');
+  if (name.length < 2) return { ok: false, msg: 'Informe seu nome.' };
+  if (!EMAIL_RE.test(email)) return { ok: false, msg: 'Informe um e-mail válido.' };
+  if (pass.length < 8) return { ok: false, msg: 'A senha precisa ter pelo menos 8 caracteres.' };
+  if (findUser_(email)) return { ok: false, msg: 'Já existe uma conta com este e-mail. Use Entrar.' };
+  const salt = Utilities.getUuid(), id = Utilities.getUuid(), now = new Date().toISOString();
+  const row = {
+    id: id, email: email, name: name, passHash: userHash_(pass, salt), salt: salt,
+    phone: txt_(p.phone, 40), linkedin: txt_(p.linkedin), instagram: txt_(p.instagram),
+    company: txt_(p.company), role: txt_(p.role), createdAt: now, lastLoginAt: now
+  };
+  usuariosSheet_().appendRow(CAB_USUARIOS.map(h => row[h] !== undefined ? row[h] : ''));
+  cache.put('cadastros_hora', String(n + 1), 3600);
+  return { ok: true, token: makeToken_('respondente', id), profile: publicProfile_(row) };
+}
+
+function userLogin_(email, pass) {
+  const e = normEmail_(email);
+  const cache = CacheService.getScriptCache();
+  const key = 'falhas_u_' + e.slice(0, 200);
+  const falhas = Number(cache.get(key) || 0);
+  if (falhas >= 5) return { ok: false, msg: 'Muitas tentativas erradas. Aguarde 10 minutos.' };
+  const u = findUser_(e);
+  if (u && userHash_(String(pass || ''), u.salt) === u.passHash) {
+    cache.remove(key);
+    const sh = usuariosSheet_(), idx = findRowIndexById_(sh, u.id);
+    if (idx > -1) sh.getRange(idx, CAB_USUARIOS.indexOf('lastLoginAt') + 1).setValue(new Date().toISOString());
+    return { ok: true, token: makeToken_('respondente', u.id), profile: publicProfile_(u) };
+  }
+  cache.put(key, String(falhas + 1), 600);
+  Utilities.sleep(800);
+  return { ok: false, msg: 'E-mail ou senha incorretos.' };
+}
+
+// Esqueci a senha: manda um código de 6 dígitos por e-mail (vale 15 minutos).
+// Responde sempre igual, exista ou não a conta, para não revelar quem tem cadastro.
+function forgotPassword_(email) {
+  const e = normEmail_(email);
+  const u = EMAIL_RE.test(e) ? findUser_(e) : null;
+  if (u && MailApp.getRemainingDailyQuota() > 0) {
+    const cache = CacheService.getScriptCache();
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    cache.put('reset_' + e.slice(0, 200), userHash_(code, 'reset'), 900);
+    cache.remove('reset_tent_' + e.slice(0, 200));
+    MailApp.sendEmail({
+      to: u.email, name: 'Entrevista de Alto Impacto', subject: 'Código para redefinir sua senha',
+      body: 'Olá, ' + u.name + '.\\n\\nSeu código para redefinir a senha é: ' + code + '\\nEle vale por 15 minutos. Se não foi você, ignore este e-mail.\\n\\nEntrevista de Alto Impacto'
+    });
+  }
+  return { ok: true };
+}
+
+function resetPassword_(email, code, newPass) {
+  const e = normEmail_(email), cache = CacheService.getScriptCache();
+  const tk = 'reset_tent_' + e.slice(0, 200), tentativas = Number(cache.get(tk) || 0);
+  if (tentativas >= 5) return { ok: false, msg: 'Muitas tentativas. Peça um novo código.' };
+  if (String(newPass || '').length < 8) return { ok: false, msg: 'A senha precisa ter pelo menos 8 caracteres.' };
+  const guardado = cache.get('reset_' + e.slice(0, 200));
+  const u = findUser_(e);
+  if (!u || !guardado || userHash_(String(code || '').trim(), 'reset') !== guardado) {
+    cache.put(tk, String(tentativas + 1), 900);
+    return { ok: false, msg: 'Código inválido ou expirado.' };
+  }
+  const salt = Utilities.getUuid(), sh = usuariosSheet_(), idx = findRowIndexById_(sh, u.id);
+  sh.getRange(idx, CAB_USUARIOS.indexOf('salt') + 1).setValue(salt);
+  sh.getRange(idx, CAB_USUARIOS.indexOf('passHash') + 1).setValue(userHash_(String(newPass), salt));
+  cache.remove('reset_' + e.slice(0, 200)); cache.remove(tk); cache.remove('falhas_u_' + e.slice(0, 200));
+  return { ok: true, token: makeToken_('respondente', u.id), profile: publicProfile_(u) };
+}
+
+function updateProfile_(data) {
+  const sh = usuariosSheet_(), idx = findRowIndexById_(sh, data._sub);
+  if (idx === -1) throw new Error('conta não encontrada');
+  const set = (col, v) => sh.getRange(idx, CAB_USUARIOS.indexOf(col) + 1).setValue(v);
+  if (data.name !== undefined) { const n = txt_(data.name, 120); if (n.length < 2) throw new Error('nome inválido'); set('name', n); }
+  if (data.phone !== undefined) set('phone', txt_(data.phone, 40));
+  if (data.linkedin !== undefined) set('linkedin', txt_(data.linkedin));
+  if (data.instagram !== undefined) set('instagram', txt_(data.instagram));
+  if (data.company !== undefined) set('company', txt_(data.company));
+  if (data.role !== undefined) set('role', txt_(data.role));
+}
+
 // ---------- escrita (doPost) ----------
 
-const ADMIN_ACTIONS = ['upsertQuestion', 'seedQuestions', 'deleteQuestion', 'reorderQuestions'];
+const ADMIN_ACTIONS = ['seedQuestions'];
+// Perguntas e blocos: a especialista também pode criar e editar.
+const CONTENT_ACTIONS = ['upsertQuestion', 'deleteQuestion', 'reorderQuestions', 'upsertBlock', 'deleteBlock', 'reorderBlocks'];
 const STAFF_ACTIONS = ['saveSpecialistFeedback', 'saveOverallFeedback', 'completeReview', 'reopenReview'];
 const RECRUITER_ACTIONS = ['createLiveInterview', 'processTranscript', 'saveRecruiterFields', 'sendCandidateEmail'];
 
@@ -311,11 +478,18 @@ function doPost(e) {
       createLiveInterview: createLiveInterview_,
       processTranscript: processTranscript_,
       saveRecruiterFields: saveRecruiterFields_,
-      sendCandidateEmail: sendCandidateEmail_
+      sendCandidateEmail: sendCandidateEmail_,
+      updateProfile: updateProfile_,
+      upsertBlock: upsertBlock_,
+      deleteBlock: deleteBlock_,
+      reorderBlocks: reorderBlocks_
     };
     const fn = handlers[action];
     if (!fn) return jsonOut_({ status: 'erro', mensagem: 'action inválida: ' + action });
-    const role = checkToken_(data.token);
+    const auth = checkAuth_(data.token), role = auth ? auth.role : null;
+    data._role = role; data._sub = auth ? auth.sub : ''; // nunca confia no que o cliente mandou
+    if (action === 'updateProfile' && (role !== 'respondente' || !data._sub)) return jsonOut_({ status: 'erro', mensagem: 'AUTH' });
+    if (CONTENT_ACTIONS.indexOf(action) > -1 && role !== 'admin' && role !== 'especialista') return jsonOut_({ status: 'erro', mensagem: 'AUTH' });
     if (ADMIN_ACTIONS.indexOf(action) > -1 && role !== 'admin') return jsonOut_({ status: 'erro', mensagem: 'AUTH' });
     if (STAFF_ACTIONS.indexOf(action) > -1 && !isStaff_(role)) return jsonOut_({ status: 'erro', mensagem: 'AUTH' });
     if (RECRUITER_ACTIONS.indexOf(action) > -1 && !isRecruiter_(role)) return jsonOut_({ status: 'erro', mensagem: 'AUTH' });
@@ -359,6 +533,35 @@ function upsertQuestion_(data) {
     sh.getRange(row, 1, 1, CAB_PERGUNTAS.length).setValues([CAB_PERGUNTAS.map(h => updated[h])]);
   }
 }
+function upsertBlock_(data) {
+  if (!data.id) throw new Error('id obrigatório');
+  const name = txt_(data.name, 80);
+  if (!name) throw new Error('Dê um nome ao bloco.');
+  const known = {};
+  readAll_(questoesSheet_(), CAB_PERGUNTAS).forEach(q => { known[String(q.id)] = true; });
+  const ids = (Array.isArray(data.questionIds) ? data.questionIds : []).map(String).filter((id, i, a) => known[id] && a.indexOf(id) === i).slice(0, 60);
+  const sh = blocosSheet_(), idx = findRowIndexById_(sh, data.id), now = new Date().toISOString();
+  if (idx === -1) {
+    const maxOrder = readAll_(sh, CAB_BLOCOS).reduce((m, b) => Math.max(m, Number(b.order) || 0), 0);
+    sh.appendRow([data.id, data.order != null ? data.order : maxOrder + 1, name, txt_(data.description, 300),
+      JSON.stringify(ids), !!data.ativo, now, now]);
+  } else {
+    const set = (col, v) => sh.getRange(idx, CAB_BLOCOS.indexOf(col) + 1).setValue(v);
+    set('name', name); set('description', txt_(data.description, 300)); set('questionIdsJSON', JSON.stringify(ids));
+    set('ativo', !!data.ativo); set('updatedAt', now);
+  }
+}
+function deleteBlock_(data) {
+  const sh = blocosSheet_(), idx = findRowIndexById_(sh, data.id);
+  if (idx > -1) sh.deleteRow(idx);
+}
+function reorderBlocks_(data) {
+  const sh = blocosSheet_(), a = findRowIndexById_(sh, data.idA), b = findRowIndexById_(sh, data.idB);
+  if (a === -1 || b === -1) return;
+  const col = CAB_BLOCOS.indexOf('order') + 1, oa = sh.getRange(a, col).getValue(), ob = sh.getRange(b, col).getValue();
+  sh.getRange(a, col).setValue(ob); sh.getRange(b, col).setValue(oa);
+}
+
 function seedQuestions_(data) {
   const sh = questoesSheet_();
   if (readAll_(sh, CAB_PERGUNTAS).length > 0) return; // evita importar o banco de exemplo duas vezes
@@ -393,8 +596,15 @@ function createInterview_(data) {
   const sh = entrevistasSheet_();
   const now = new Date().toISOString();
   const txt = (v, n) => String(v == null ? '' : v).trim().slice(0, n || 200);
-  const email = txt(data.candidateEmail, 200);
+  let email = txt(data.candidateEmail, 200);
   if (email && !EMAIL_RE.test(email)) throw new Error('E-mail inválido.');
+  // Com conta, os dados pessoais vêm do perfil guardado no servidor (não do que o navegador mandou).
+  const conta = (data._role === 'respondente' && data._sub) ? findUserById_(data._sub) : null;
+  if (conta) {
+    data.candidateName = conta.name; email = conta.email; data.candidatePhone = conta.phone;
+    data.candidateLinkedin = conta.linkedin; data.candidateInstagram = conta.instagram; data.candidateCompany = conta.company;
+    if (!data.targetRole) data.targetRole = conta.role;
+  }
   const row = {
     id: data.id, candidateName: txt(data.candidateName), targetRole: txt(data.targetRole), status: 'em_andamento',
     questionsSnapshotJSON: JSON.stringify(data.questionsSnapshot || []), answersJSON: JSON.stringify({}),
@@ -402,8 +612,12 @@ function createInterview_(data) {
     createdAt: data.createdAt || now, kind: 'simulacao',
     candidateEmail: email, candidatePhone: txt(data.candidatePhone, 40),
     candidateLinkedin: txt(data.candidateLinkedin), candidateInstagram: txt(data.candidateInstagram),
-    candidateCompany: txt(data.candidateCompany)
+    candidateCompany: txt(data.candidateCompany), userId: conta ? conta.id : ''
   };
+  if (data.blockId) {
+    const bl = readAll_(blocosSheet_(), CAB_BLOCOS).filter(b => String(b.id) === String(data.blockId))[0];
+    if (bl) { row.blockId = bl.id; row.blockName = bl.name; }
+  }
   sh.appendRow(CAB_ENTREVISTAS.map(h => row[h] !== undefined ? row[h] : ''));
 }
 function updateInterviewCell_(id, colName, value) {
