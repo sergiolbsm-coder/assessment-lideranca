@@ -39,10 +39,10 @@
 
 // Modelo do Gemini (camada gratuita). Se o Google aposentar este nome, troque
 // aqui por outro modelo Flash listado em ai.google.dev/gemini-api/docs/models.
-const GEMINI_MODEL = 'gemini-3.5-flash';
+const GEMINI_MODEL = 'gemini-2.5-flash';
 // Se o modelo principal estiver sobrecarregado (503/429) ou indisponível, tenta
 // estes em ordem. Todos têm camada gratuita.
-const GEMINI_FALLBACKS = ['gemini-2.5-flash', 'gemini-3.5-flash-lite'];
+const GEMINI_FALLBACKS = ['gemini-3.5-flash', 'gemini-3.5-flash-lite'];
 const CLAUDE_MODEL = 'claude-sonnet-5';
 
 const ABA_PERGUNTAS = 'Perguntas';
