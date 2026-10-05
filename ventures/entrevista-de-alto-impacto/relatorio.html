@@ -30,9 +30,14 @@ renderNav('relatorio');
 const INTERVIEW_ID = qs('id');
 
 async function boot(){
-  if(!INTERVIEW_ID){ await renderPicker(); return; }
   document.getElementById('app').innerHTML = loadingHtml('Carregando relatório…');
   try{
+    if(!INTERVIEW_ID){
+      // Lista de todos os relatórios: só com login. O relatório individual
+      // abre pelo link do candidato, sem login.
+      if(!(await requireRole(['especialista','admin'], 'Relatórios'))) return;
+      await renderPicker(); return;
+    }
     const interview = await Api.getInterview(INTERVIEW_ID);
     if(!interview){ document.getElementById('app').innerHTML = '<div class="wrap"><div class="empty">Relatório não encontrado.</div></div>'; return; }
     renderReport(interview);

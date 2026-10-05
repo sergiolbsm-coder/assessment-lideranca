@@ -20,6 +20,9 @@
  *      de console.anthropic.com; o Gemini tem prioridade se as duas existirem.)
  *      Sem nenhuma das duas o feedback automático da IA fica marcado como
  *      indisponível, mas o resto do sistema funciona normalmente.
+ *      Para o login (ver "login e sessão" abaixo), adicione também
+ *      SPECIALIST_PASSWORD (senha da especialista) e ADMIN_PASSWORD (senha da
+ *      tela Parametrizar). Usuários padrão: "especialista" e "admin".
  *   5. Menu Implantar → Nova implantação.
  *   6. Tipo: "App da Web". Executar como: "Eu". Quem tem acesso:
  *      "Qualquer pessoa".
@@ -90,9 +93,48 @@ function jsonOrDefault_(text, fallback) {
 
 // ---------- leitura (doGet) ----------
 
+function rowToInterview_(r) {
+  return {
+    id: r.id,
+    candidateName: r.candidateName,
+    targetRole: r.targetRole,
+    status: r.status,
+    questionsSnapshot: jsonOrDefault_(r.questionsSnapshotJSON, []),
+    answers: jsonOrDefault_(r.answersJSON, {}),
+    aiFeedback: jsonOrDefault_(r.aiFeedbackJSON, { status: 'none' }),
+    specialistFeedback: jsonOrDefault_(r.specialistFeedbackJSON, { byQuestion: {}, overall: null }),
+    createdAt: r.createdAt,
+    submittedAt: r.submittedAt,
+    reviewedAt: r.reviewedAt,
+    reviewedBy: r.reviewedBy
+  };
+}
+
 function doGet(e) {
   try {
-    const resource = (e.parameter.resource || '').toLowerCase();
+    const p = e.parameter || {};
+    const action = p.action || '';
+
+    if (action === 'login') {
+      const r = login_(p.role, p.user, p.password);
+      return jsonOut_(r.ok ? { status: 'ok', token: r.token, role: p.role } : { status: 'erro', mensagem: r.msg });
+    }
+    if (action === 'whoami') {
+      const role = checkToken_(p.token);
+      return jsonOut_(role ? { status: 'ok', role: role } : { status: 'erro', mensagem: 'AUTH' });
+    }
+    if (action === 'status') {
+      // Diagnóstico sem expor segredos: só diz o que está configurado.
+      const pr = props_();
+      return jsonOut_({
+        status: 'ok', versao: 'login-v1',
+        ia: pr.getProperty('GEMINI_API_KEY') ? 'gemini' : (pr.getProperty('ANTHROPIC_API_KEY') ? 'anthropic' : 'nenhuma'),
+        senhaEspecialista: !!pr.getProperty('SPECIALIST_PASSWORD'),
+        senhaAdmin: !!pr.getProperty('ADMIN_PASSWORD')
+      });
+    }
+
+    const resource = (p.resource || '').toLowerCase();
     if (resource === 'questions') {
       const rows = readAll_(questoesSheet_(), CAB_PERGUNTAS).map(r => Object.assign({}, r, {
         ativa: r.ativa === true || r.ativa === 'TRUE' || r.ativa === 'true',
@@ -101,22 +143,15 @@ function doGet(e) {
       rows.sort((a, b) => a.order - b.order);
       return jsonOut_({ status: 'ok', rows: rows });
     }
+    if (resource === 'interview') {
+      // Público: o candidato abre a própria simulação pelo id do link.
+      const r = readAll_(entrevistasSheet_(), CAB_ENTREVISTAS).filter(x => String(x.id) === String(p.id))[0];
+      return jsonOut_({ status: 'ok', row: r ? rowToInterview_(r) : null });
+    }
     if (resource === 'interviews') {
-      const rows = readAll_(entrevistasSheet_(), CAB_ENTREVISTAS).map(r => ({
-        id: r.id,
-        candidateName: r.candidateName,
-        targetRole: r.targetRole,
-        status: r.status,
-        questionsSnapshot: jsonOrDefault_(r.questionsSnapshotJSON, []),
-        answers: jsonOrDefault_(r.answersJSON, {}),
-        aiFeedback: jsonOrDefault_(r.aiFeedbackJSON, { status: 'none' }),
-        specialistFeedback: jsonOrDefault_(r.specialistFeedbackJSON, { byQuestion: {}, overall: null }),
-        createdAt: r.createdAt,
-        submittedAt: r.submittedAt,
-        reviewedAt: r.reviewedAt,
-        reviewedBy: r.reviewedBy
-      }));
-      return jsonOut_({ status: 'ok', rows: rows });
+      // Lista completa (respostas de todos os candidatos): só com login.
+      if (!isStaff_(checkToken_(p.token))) return jsonOut_({ status: 'erro', mensagem: 'AUTH' });
+      return jsonOut_({ status: 'ok', rows: readAll_(entrevistasSheet_(), CAB_ENTREVISTAS).map(rowToInterview_) });
     }
     return jsonOut_({ status: 'erro', mensagem: 'resource inválido' });
   } catch (err) {
@@ -127,7 +162,66 @@ function jsonOut_(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
 
+// ---------- login e sessão ----------
+//
+// Senhas ficam só nas Propriedades do script (nunca no código nem no
+// GitHub). Perfis:
+//   especialista: SPECIALIST_PASSWORD (usuário: SPECIALIST_USER, padrão "especialista")
+//   admin:        ADMIN_PASSWORD      (usuário: ADMIN_USER, padrão "admin")
+// O login devolve um token assinado (HMAC) que vale por SESSION_HOURS.
+
+const SESSION_HOURS = 12;
+const ROLES = {
+  especialista: { userProp: 'SPECIALIST_USER', passProp: 'SPECIALIST_PASSWORD', defaultUser: 'especialista' },
+  admin: { userProp: 'ADMIN_USER', passProp: 'ADMIN_PASSWORD', defaultUser: 'admin' }
+};
+function props_() { return PropertiesService.getScriptProperties(); }
+function secret_() {
+  let sec = props_().getProperty('TOKEN_SECRET');
+  if (!sec) { sec = Utilities.getUuid() + Utilities.getUuid(); props_().setProperty('TOKEN_SECRET', sec); }
+  return sec;
+}
+function sign_(payload) {
+  return Utilities.base64EncodeWebSafe(Utilities.computeHmacSha256Signature(payload, secret_()));
+}
+function makeToken_(role) {
+  const payload = role + '.' + (Date.now() + SESSION_HOURS * 3600 * 1000);
+  return payload + '.' + sign_(payload);
+}
+function checkToken_(token) {
+  if (!token) return null;
+  const parts = String(token).split('.');
+  if (parts.length !== 3) return null;
+  if (sign_(parts[0] + '.' + parts[1]) !== parts[2]) return null;
+  if (Number(parts[1]) < Date.now()) return null;
+  return ROLES[parts[0]] ? parts[0] : null;
+}
+function isStaff_(role) { return role === 'especialista' || role === 'admin'; }
+
+function login_(role, user, pass) {
+  const cfg = ROLES[role];
+  if (!cfg) return { ok: false, msg: 'Perfil inválido.' };
+  const cache = CacheService.getScriptCache();
+  const key = 'falhas_' + role;
+  const falhas = Number(cache.get(key) || 0);
+  if (falhas >= 5) return { ok: false, msg: 'Muitas tentativas erradas. Aguarde 10 minutos.' };
+  const pr = props_();
+  const senha = pr.getProperty(cfg.passProp);
+  if (!senha) return { ok: false, msg: 'A senha deste perfil ainda não foi configurada no backend.' };
+  const usuario = pr.getProperty(cfg.userProp) || cfg.defaultUser;
+  if (String(user || '').trim().toLowerCase() === usuario.toLowerCase() && String(pass || '') === senha) {
+    cache.remove(key);
+    return { ok: true, token: makeToken_(role) };
+  }
+  cache.put(key, String(falhas + 1), 600);
+  Utilities.sleep(800);
+  return { ok: false, msg: 'Usuário ou senha incorretos.' };
+}
+
 // ---------- escrita (doPost) ----------
+
+const ADMIN_ACTIONS = ['upsertQuestion', 'seedQuestions', 'deleteQuestion', 'reorderQuestions'];
+const STAFF_ACTIONS = ['saveSpecialistFeedback', 'saveOverallFeedback', 'completeReview', 'reopenReview'];
 
 function doPost(e) {
   try {
@@ -149,6 +243,9 @@ function doPost(e) {
     };
     const fn = handlers[action];
     if (!fn) return jsonOut_({ status: 'erro', mensagem: 'action inválida: ' + action });
+    const role = checkToken_(data.token);
+    if (ADMIN_ACTIONS.indexOf(action) > -1 && role !== 'admin') return jsonOut_({ status: 'erro', mensagem: 'AUTH' });
+    if (STAFF_ACTIONS.indexOf(action) > -1 && !isStaff_(role)) return jsonOut_({ status: 'erro', mensagem: 'AUTH' });
     fn(data);
     return jsonOut_({ status: 'ok' });
   } catch (err) {
@@ -191,6 +288,7 @@ function upsertQuestion_(data) {
 }
 function seedQuestions_(data) {
   const sh = questoesSheet_();
+  if (readAll_(sh, CAB_PERGUNTAS).length > 0) return; // evita importar o banco de exemplo duas vezes
   const list = data.questions || [];
   const now = new Date().toISOString();
   const rows = list.map((q, i) => [

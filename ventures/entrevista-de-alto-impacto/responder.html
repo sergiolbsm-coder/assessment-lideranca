@@ -139,9 +139,14 @@ const Responder = {
     maybePoll();
   },
   retryAi: async function(){
+    currentInterview.aiFeedback = {status:'pending'};
+    renderResults();
     try{ await Api.post('retryAiFeedback', {id: currentInterview.id}); }catch(e){}
     currentInterview = await Api.getInterview(currentInterview.id).catch(function(){ return currentInterview; });
     renderResults();
+    var st = currentInterview.aiFeedback && currentInterview.aiFeedback.status;
+    if(st === 'unavailable') toast('A IA continua indisponível: o backend não encontrou a chave configurada.');
+    else if(st === 'error') toast('A IA não respondeu. Veja o motivo no bloco do feedback.');
     maybePoll();
   },
   copyLink: function(){
@@ -196,7 +201,7 @@ function renderResults(){
     let aiBlock;
     if(ai.status==='pending') aiBlock = '<div class="spinner-line"><span class="spinner-dot"></span><span class="spinner-dot"></span><span class="spinner-dot"></span> Gerando feedback automático…</div>';
     else if(ai.status==='unavailable') aiBlock = '<p class="muted">Feedback automático da IA indisponível no momento. <button class="btn-ghost" onclick="Responder.retryAi()">Tentar novamente</button></p>';
-    else if(ai.status==='error') aiBlock = '<p class="muted">Não foi possível gerar o feedback automático. <button class="btn-ghost" onclick="Responder.retryAi()">Tentar novamente</button></p>';
+    else if(ai.status==='error') aiBlock = '<p class="muted">Não foi possível gerar o feedback automático. <button class="btn-ghost" onclick="Responder.retryAi()">Tentar novamente</button></p>'+(ai.error?'<p class="hint">Motivo: '+esc(String(ai.error).slice(0,200))+'</p>':'');
     else if(aiText) aiBlock = '<p>'+nl2br(aiText)+'</p>';
     else aiBlock = '<p class="muted">-</p>';
 

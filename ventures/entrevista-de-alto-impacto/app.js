@@ -84,33 +84,95 @@ function setSpecialistName(n){ lsSet('eai_especialista_nome', n); }
 // POST usa mode:'no-cors' (contorna a falta de suporte a preflight do Apps
 // Script), a resposta fica opaca, então toda escrita é "dispara e confirma
 // via um novo GET" (padrão já usado no carreira-rh.html).
+// ---------- sessão (login da especialista e do admin) ----------
+const AUTH_KEY = 'eai_auth';
+function getAuth(){
+  var a = lsGet(AUTH_KEY, null);
+  return (a && a.token && a.exp > Date.now()) ? a : null;
+}
+function clearAuth(){ try{ localStorage.removeItem(AUTH_KEY); }catch(e){} }
+function logout(){ clearAuth(); location.href = 'index.html'; }
+
 const Api = {
+  _check(){
+    if(!API_URL || API_URL.indexOf('COLE_AQUI') === 0) throw new Error('CONFIG');
+  },
   async get(params){
-    if(!API_URL || API_URL.indexOf('COLE_AQUI') === 0){
-      throw new Error('CONFIG');
-    }
-    var url = API_URL + '?' + new URLSearchParams(Object.assign({t:Date.now()}, params)).toString();
-    var r = await fetch(url);
+    this._check();
+    var auth = getAuth();
+    var q = Object.assign({t:Date.now()}, params);
+    if(auth) q.token = auth.token;
+    var r = await fetch(API_URL + '?' + new URLSearchParams(q).toString());
     var json = await r.json();
     if(json.status !== 'ok') throw new Error(json.mensagem || 'erro');
     return json;
   },
   async post(action, payload){
-    if(!API_URL || API_URL.indexOf('COLE_AQUI') === 0){
-      throw new Error('CONFIG');
-    }
+    this._check();
+    var auth = getAuth();
     await fetch(API_URL, {
       method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(Object.assign({action:action}, payload))
+      body: JSON.stringify(Object.assign({action:action, token: auth ? auth.token : ''}, payload))
     });
   },
+  async login(role, user, password){
+    var j = await this.get({action:'login', role:role, user:user, password:password});
+    lsSet(AUTH_KEY, {token:j.token, role:role, exp: Date.now() + 11*3600*1000});
+  },
+  async whoami(){ return (await this.get({action:'whoami'})).role; },
   async listQuestions(){ var j = await this.get({action:'list', resource:'questions'}); return j.rows||[]; },
   async listInterviews(){ var j = await this.get({action:'list', resource:'interviews'}); return j.rows||[]; },
   async getInterview(id){
-    var rows = await this.listInterviews();
-    return rows.find(function(r){ return r.id===id; }) || null;
+    try{
+      var j = await this.get({action:'list', resource:'interview', id:id});
+      return j.row || null;
+    }catch(err){
+      // Backend antigo (antes do login) não tem o endpoint individual:
+      // cai para a lista completa, que ele ainda serve sem token.
+      if(err.message !== 'resource inválido') throw err;
+      var rows = await this.listInterviews();
+      return rows.find(function(r){ return r.id===id; }) || null;
+    }
   }
 };
+
+// Exige login antes de mostrar a página. `allowed` = perfis aceitos
+// (o primeiro é o que a tela de login pede). Valida o token no servidor.
+async function requireRole(allowed, titulo){
+  var auth = getAuth();
+  if(auth && allowed.indexOf(auth.role) > -1){
+    try{ await Api.whoami(); return true; }
+    catch(err){ if(err.message === 'CONFIG') throw err; clearAuth(); }
+  }
+  showLogin(allowed[0], titulo);
+  return false;
+}
+function showLogin(role, titulo){
+  var app = document.getElementById('app');
+  app.innerHTML =
+    '<div class="wrap"><div class="card" style="max-width:380px;margin:30px auto">'+
+      '<h2 style="font-size:24px">'+esc(titulo||'Acesso restrito')+'</h2>'+
+      '<p class="hint" style="margin-bottom:18px">Entre com o usuário e a senha que você recebeu.</p>'+
+      '<form id="login-form">'+
+        '<div class="field"><label>Usuário</label><input id="lg-user" autocomplete="username" autocapitalize="none" required></div>'+
+        '<div class="field"><label>Senha</label><input id="lg-pass" type="password" autocomplete="current-password" required></div>'+
+        '<button class="btn-primary" id="lg-btn" type="submit" style="width:100%">Entrar</button>'+
+        '<p class="hint" id="lg-msg" style="margin-top:12px;min-height:18px"></p>'+
+      '</form></div></div>';
+  document.getElementById('lg-user').focus();
+  document.getElementById('login-form').addEventListener('submit', async function(ev){
+    ev.preventDefault();
+    var btn = document.getElementById('lg-btn'), msg = document.getElementById('lg-msg');
+    btn.disabled = true; btn.textContent = 'Entrando…'; msg.textContent = '';
+    try{
+      await Api.login(role, document.getElementById('lg-user').value, document.getElementById('lg-pass').value);
+      location.reload();
+    }catch(err){
+      msg.textContent = (err.message === 'CONFIG') ? 'Backend não configurado.' : err.message;
+      btn.disabled = false; btn.textContent = 'Entrar';
+    }
+  });
+}
 
 function configWarningHtml(){
   return '<div class="wrap"><div class="card" style="text-align:center;padding:50px 30px">'+
@@ -130,9 +192,10 @@ function renderNav(active){
   ];
   var el = document.getElementById('tabs');
   if(!el) return;
+  var auth = getAuth();
   el.innerHTML = tabs.map(function(t){
     return '<a class="tab'+(t.k===active?' active':'')+'" href="'+t.href+'">'+t.label+'</a>';
-  }).join('');
+  }).join('') + (auth ? '<button class="tab" onclick="logout()" title="Encerrar sessão">Sair ('+esc(auth.role)+')</button>' : '');
 }
 
 // Banco de 44 perguntas clássicas de entrevista de emprego, classificadas
@@ -255,6 +318,12 @@ function loadingHtml(msg){
 }
 function errorHtml(err){
   if(err && err.message === 'CONFIG') return configWarningHtml();
+  if(err && err.message === 'AUTH'){
+    clearAuth();
+    return '<div class="wrap"><div class="card" style="text-align:center;padding:50px 30px">'+
+      '<h2>Sessão expirada</h2><p class="muted" style="margin-top:10px">Entre de novo para continuar.</p>'+
+      '<button class="btn-primary" style="margin-top:16px" onclick="location.reload()">Entrar</button></div></div>';
+  }
   return '<div class="wrap"><div class="card" style="text-align:center;padding:50px 30px">'+
     '<h2>Não foi possível carregar</h2>'+
     '<p class="muted" style="margin-top:10px">'+esc((err && err.message) || 'Tente novamente em instantes.')+'</p>'+

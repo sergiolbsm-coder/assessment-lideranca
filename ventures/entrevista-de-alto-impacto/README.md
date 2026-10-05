@@ -44,3 +44,15 @@ Depois de configurado, abra `admin.html` e clique em **"Carregar banco de
 exemplo (44 perguntas)"** para popular a planilha com o banco inicial (10
 delas já ativas, formando uma primeira simulação equilibrada entre os 3
 padrões de resposta).
+
+## Login (especialista e admin)
+
+`especialista.html`, a lista de `relatorio.html` e `admin.html` pedem usuário e
+senha. O candidato não precisa de login: ele abre a própria simulação e o
+próprio relatório pelo link com o `?id=`.
+
+As senhas ficam só nas Propriedades do script do Apps Script (nunca no
+repositório): `SPECIALIST_PASSWORD` e `ADMIN_PASSWORD`. Usuários padrão:
+`especialista` e `admin` (mudam com `SPECIALIST_USER` / `ADMIN_USER`). A sessão
+dura 12 h. Para conferir o que está configurado no backend (sem expor
+segredos): `<URL do Apps Script>?action=status`.

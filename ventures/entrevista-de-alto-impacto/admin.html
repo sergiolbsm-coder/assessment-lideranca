@@ -34,7 +34,10 @@ let draftTipo = {};
 
 async function boot(){
   document.getElementById('app').innerHTML = loadingHtml('Carregando perguntas…');
-  try{ await reload(); }
+  try{
+    if(!(await requireRole(['admin'], 'Parametrizar perguntas'))) return;
+    await reload();
+  }
   catch(err){ document.getElementById('app').innerHTML = errorHtml(err); }
 }
 async function reload(){

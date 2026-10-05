@@ -31,9 +31,10 @@ const INTERVIEW_ID = qs('id');
 let currentInterview = null;
 
 async function boot(){
-  if(!INTERVIEW_ID){ await renderList(); return; }
   document.getElementById('app').innerHTML = loadingHtml('Carregando…');
   try{
+    if(!(await requireRole(['especialista','admin'], 'Área da especialista'))) return;
+    if(!INTERVIEW_ID){ await renderList(); return; }
     const interview = await Api.getInterview(INTERVIEW_ID);
     if(!interview){ document.getElementById('app').innerHTML = '<div class="wrap"><div class="empty">Simulação não encontrada.</div></div>'; return; }
     currentInterview = interview;
