@@ -40,6 +40,9 @@
 // Modelo do Gemini (camada gratuita). Se o Google aposentar este nome, troque
 // aqui por outro modelo Flash listado em ai.google.dev/gemini-api/docs/models.
 const GEMINI_MODEL = 'gemini-3.5-flash';
+// Se o modelo principal estiver sobrecarregado (503/429) ou indisponível, tenta
+// estes em ordem. Todos têm camada gratuita.
+const GEMINI_FALLBACKS = ['gemini-2.5-flash', 'gemini-3.5-flash-lite'];
 const CLAUDE_MODEL = 'claude-sonnet-5';
 
 const ABA_PERGUNTAS = 'Perguntas';
@@ -424,27 +427,38 @@ function callAiFeedback_(questionsSnapshot, answers) {
 }
 
 function askGemini_(apiKey, prompt) {
-  const resp = UrlFetchApp.fetch(
-    'https://generativelanguage.googleapis.com/v1beta/models/' + GEMINI_MODEL + ':generateContent', {
-      method: 'post',
-      contentType: 'application/json',
-      headers: { 'x-goog-api-key': apiKey },
-      payload: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 8192 }
-      }),
-      muteHttpExceptions: true
-    });
-  const body = JSON.parse(resp.getContentText());
-  if (resp.getResponseCode() !== 200) {
-    throw new Error('Gemini: ' + ((body.error && body.error.message) || ('HTTP ' + resp.getResponseCode())));
+  const modelos = [GEMINI_MODEL].concat(GEMINI_FALLBACKS);
+  let ultimoErro = '';
+  for (let i = 0; i < modelos.length; i++) {
+    const resp = UrlFetchApp.fetch(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelos[i] + ':generateContent', {
+        method: 'post',
+        contentType: 'application/json',
+        headers: { 'x-goog-api-key': apiKey },
+        payload: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 8192 }
+        }),
+        muteHttpExceptions: true
+      });
+    const code = resp.getResponseCode();
+    let body = {};
+    try { body = JSON.parse(resp.getContentText()); } catch (e) {}
+    if (code === 200) {
+      const cand = (body.candidates && body.candidates[0]) || {};
+      const parts = (cand.content && cand.content.parts) || [];
+      // Ignora partes de "pensamento" do modelo; só o texto da resposta interessa.
+      const text = parts.filter(p => !p.thought).map(p => p.text || '').join('');
+      if (text) return text;
+      ultimoErro = modelos[i] + ': sem texto (finishReason: ' + (cand.finishReason || (body.promptFeedback && body.promptFeedback.blockReason) || 'desconhecido') + ')';
+      continue;
+    }
+    ultimoErro = modelos[i] + ': ' + ((body.error && body.error.message) || ('HTTP ' + code));
+    // Chave inválida/sem permissão: trocar de modelo não adianta.
+    if (code === 400 || code === 401 || code === 403) break;
+    Utilities.sleep(1500);
   }
-  const cand = (body.candidates && body.candidates[0]) || {};
-  const parts = (cand.content && cand.content.parts) || [];
-  // Ignora partes de "pensamento" do modelo; só o texto da resposta interessa.
-  const text = parts.filter(p => !p.thought).map(p => p.text || '').join('');
-  if (!text) throw new Error('Gemini sem texto (finishReason: ' + (cand.finishReason || (body.promptFeedback && body.promptFeedback.blockReason) || 'desconhecido') + ')');
-  return text;
+  throw new Error('Gemini ' + ultimoErro);
 }
 
 function askClaude_(apiKey, prompt) {
