@@ -200,7 +200,14 @@ function doGet(e) {
     if (resource === 'interviews') {
       // Lista completa (respostas de todos os candidatos): só com login.
       if (!isStaff_(checkToken_(p.token))) return jsonOut_({ status: 'erro', mensagem: 'AUTH' });
-      return jsonOut_({ status: 'ok', rows: readAll_(entrevistasSheet_(), CAB_ENTREVISTAS).map(rowToInterview_) });
+      const all = readAll_(entrevistasSheet_(), CAB_ENTREVISTAS).map(rowToInterview_);
+      // Listas só precisam do resumo. Mandar respostas e feedbacks de todas as
+      // simulações deixava a tela lenta conforme o número de entrevistas crescia.
+      const resumo = r => ({
+        id: r.id, candidateName: r.candidateName, targetRole: r.targetRole, status: r.status, kind: r.kind,
+        createdAt: r.createdAt, submittedAt: r.submittedAt, reviewedAt: r.reviewedAt, emailSentAt: r.emailSentAt
+      });
+      return jsonOut_({ status: 'ok', rows: p.summary ? all.map(resumo) : all });
     }
     return jsonOut_({ status: 'erro', mensagem: 'resource inválido' });
   } catch (err) {

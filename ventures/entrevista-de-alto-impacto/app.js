@@ -111,8 +111,17 @@ const Api = {
     var auth = getAuth();
     var q = Object.assign({t:Date.now()}, params);
     if(auth) q.token = auth.token;
-    var r = await fetch(API_URL + '?' + new URLSearchParams(q).toString());
-    var json = await r.json();
+    // Nunca deixa a tela "carregando" para sempre: avisa se demorar e desiste em 60 s.
+    var ctl = new AbortController();
+    var aviso = setTimeout(function(){ toast('O servidor do Google está demorando para responder. Aguarde um pouco…'); }, 8000);
+    var limite = setTimeout(function(){ ctl.abort(); }, 60000);
+    try{
+      var r = await fetch(API_URL + '?' + new URLSearchParams(q).toString(), {signal: ctl.signal});
+      var json = await r.json();
+    }catch(e){
+      if(e && e.name === 'AbortError') throw new Error('O servidor demorou demais para responder. Tente de novo em instantes.');
+      throw e;
+    }finally{ clearTimeout(aviso); clearTimeout(limite); }
     if(json.status !== 'ok') throw new Error(json.mensagem || 'erro');
     return json;
   },
@@ -146,7 +155,9 @@ const Api = {
     }
     return fresh;
   },
-  async listInterviews(){ var j = await this.get({action:'list', resource:'interviews'}); return j.rows||[]; },
+  // Lista leve (só o resumo de cada simulação). Backend antigo ignora o parâmetro e manda tudo.
+  async listInterviews(){ var j = await this.get({action:'list', resource:'interviews', summary:'1'}); return j.rows||[]; },
+  async listInterviewsFull(){ var j = await this.get({action:'list', resource:'interviews'}); return j.rows||[]; },
   async getInterview(id){
     try{
       var j = await this.get({action:'list', resource:'interview', id:id});
@@ -155,7 +166,7 @@ const Api = {
       // Backend antigo (antes do login) não tem o endpoint individual:
       // cai para a lista completa, que ele ainda serve sem token.
       if(err.message !== 'resource inválido') throw err;
-      var rows = await this.listInterviews();
+      var rows = await this.listInterviewsFull();
       return rows.find(function(r){ return r.id===id; }) || null;
     }
   }
