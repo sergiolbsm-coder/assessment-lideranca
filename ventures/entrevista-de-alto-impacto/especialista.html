@@ -89,7 +89,7 @@ function renderDetail(){
       '<div class="qn">Pergunta '+(i+1)+' de '+snap.length+' · <span class="badge muted" style="margin-left:4px">'+esc(meta.short)+'</span></div>'+
       '<h3>'+esc(q.text)+'</h3>'+
       '<div class="res-block answer"><div class="lbl">Resposta do candidato</div><p>'+nl2br(ans||'(em branco)')+'</p></div>'+
-      '<div class="res-block ai"><div class="lbl">🤖 Feedback automático da IA</div><p>'+nl2br(aiText)+'</p></div>'+
+      '<div class="res-block ai"><div class="lbl">🤖 Feedback automático da IA</div><p id="ai-q-'+q.qid+'">'+nl2br(aiText)+'</p></div>'+
       '<div class="field" style="margin-top:14px"><label>Seu feedback para esta pergunta</label>'+
         '<textarea id="sf-'+q.qid+'" rows="3" placeholder="Escreva um feedback específico…">'+esc(specEntry?specEntry.text:'')+'</textarea>'+
         '<button class="btn-primary" style="margin-top:8px" onclick="Especialista.saveOne(\''+q.qid+'\')">Salvar feedback</button>'+
@@ -103,6 +103,7 @@ function renderDetail(){
       '<a class="btn-ghost" href="especialista.html">← Voltar à lista</a>'+
       '<div class="section-title"><h2>'+esc(interview.candidateName)+'</h2><span class="badge '+st.cls+'">'+st.label+'</span></div>'+
       '<p class="hint">'+(interview.targetRole?esc(interview.targetRole)+' · ':'')+'enviado em '+fmtDate(interview.submittedAt)+'</p>'+
+      '<div id="ai-banner">'+aiBannerHtml(ai)+'</div>'+
       '<div class="divider"></div>'+
       cards+
       '<div class="card">'+
@@ -118,7 +119,42 @@ function renderDetail(){
     '</div>';
 }
 
+function refreshAi(){
+  var ai = currentInterview.aiFeedback || {};
+  var b = document.getElementById('ai-banner');
+  if(b) b.innerHTML = aiBannerHtml(ai);
+  currentInterview.questionsSnapshot.forEach(function(q){
+    var el = document.getElementById('ai-q-'+q.qid);
+    if(!el) return;
+    el.textContent = (ai.byQuestion && ai.byQuestion[q.qid]) || (ai.status==='pending' ? 'Gerando…' : (ai.status==='unavailable' ? 'Indisponível' : '-'));
+  });
+}
+
+function aiBannerHtml(ai){
+  var st = ai.status || 'none', msg, btn = 'Gerar feedback da IA', extra = '';
+  if(st === 'pending'){
+    return '<div class="card" style="margin-top:14px"><div class="spinner-line"><span class="spinner-dot"></span><span class="spinner-dot"></span><span class="spinner-dot"></span> Gerando o feedback da IA, pode levar até 1 minuto…</div></div>';
+  }
+  if(st === 'ready'){ msg = 'Feedback da IA gerado'+(ai.generatedAt?' em '+fmtDate(ai.generatedAt):'')+'.'; btn = 'Gerar de novo'; }
+  else if(st === 'error'){ msg = 'A IA não conseguiu gerar o feedback.'; extra = ai.error ? '<p class="hint" style="margin-top:6px">Motivo: '+esc(String(ai.error).slice(0,250))+'</p>' : ''; }
+  else if(st === 'unavailable'){ msg = 'Feedback da IA ainda não foi gerado (o backend não tinha a chave da IA quando a simulação foi enviada).'; }
+  else { msg = 'Feedback da IA ainda não foi gerado.'; }
+  return '<div class="card" style="margin-top:14px"><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">'+
+    '<div style="flex:1;min-width:200px;font-size:13.5px">🤖 '+msg+'</div>'+
+    '<button class="btn-secondary" onclick="Especialista.retryAi()">'+btn+'</button></div>'+extra+'</div>';
+}
+
 const Especialista = {
+  retryAi: async function(){
+    // Atualiza só o bloco da IA: não mexe nos campos que a especialista está digitando.
+    currentInterview.aiFeedback = {status:'pending'};
+    refreshAi();
+    try{ await Api.post('retryAiFeedback', {id: currentInterview.id}); }catch(e){}
+    try{ currentInterview = await Api.getInterview(currentInterview.id); }catch(e){}
+    refreshAi();
+    var st = currentInterview.aiFeedback && currentInterview.aiFeedback.status;
+    toast(st === 'ready' ? 'Feedback da IA gerado.' : 'A IA não gerou o feedback. Veja o motivo no topo da página.');
+  },
   saveOne: async function(qid){
     const text = document.getElementById('sf-'+qid).value||'';
     const name = specialistName() || 'Especialista';
