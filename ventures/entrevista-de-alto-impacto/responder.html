@@ -104,9 +104,9 @@ async function renderStart(){
         '<p class="hint" id="q-hint">'+(activeQs.length===0?'Nenhuma pergunta está ativa no momento. Peça para alguém ativar perguntas na tela Parametrizar.':
           'Você vai responder '+activeQs.length+' pergunta'+(activeQs.length===1?'':'s')+'.')+'</p>'+
       '</div>'+
-      '<div class="divider"></div>'+
+      (getAuth() ? '<div class="divider"></div>'+
       '<h2 style="font-size:19px">Minhas simulações</h2>'+
-      '<div style="margin-top:12px">'+listHtml+'</div>'+
+      '<div style="margin-top:12px">'+listHtml+'</div>' : '')+
     '</div>';
 
   window._activeQuestions = activeQs;
