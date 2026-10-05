@@ -4,7 +4,7 @@
 // ============================================================
 "use strict";
 
-const API_URL = "https://script.google.com/macros/s/AKfycbyly82xm-FoP0QapCPa12yVgGdYt9Dhs6iRQ4_nF87Wk8Vh4Pa1mblNFIeNWXdxf9nNfg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxq-j5BSn9_TTmyiF_Hm-262B3MA9pTMj8qdBOA81WGyJnBn5rE5cN4K7w3c8bTMTi-PQ/exec";
 
 const TIPO_META = {
   direta:    { label:"Resposta Direta",    short:"Direta",    desc:"Objetiva e factual" },
