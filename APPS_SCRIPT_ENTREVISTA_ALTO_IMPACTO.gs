@@ -6,7 +6,7 @@
  *
  * Acesso é público (candidatos externos não têm conta Google/Claude), então
  * TODA a persistência e a chamada de IA passam por aqui: a página estática
- * nunca fala diretamente com a Anthropic (a chave de API nunca é exposta
+ * nunca fala diretamente com a IA (a chave de API nunca é exposta
  * no navegador).
  *
  * COMO IMPLANTAR (passo a passo manual, só o dono da conta consegue fazer):
@@ -15,10 +15,11 @@
  *   2. Menu Extensões → Apps Script.
  *   3. Apague o conteúdo padrão de Code.gs e cole este arquivo inteiro.
  *   4. Menu ⚙️ Configurações do projeto → Propriedades do script → "Adicionar
- *      propriedade do script": nome ANTHROPIC_API_KEY, valor = sua chave da
- *      API da Anthropic (console.anthropic.com). Sem isso o feedback
- *      automático da IA fica marcado como indisponível, mas o resto do
- *      sistema funciona normalmente.
+ *      propriedade do script": nome GEMINI_API_KEY, valor = chave gratuita
+ *      gerada em aistudio.google.com. (Alternativa paga: ANTHROPIC_API_KEY,
+ *      de console.anthropic.com; o Gemini tem prioridade se as duas existirem.)
+ *      Sem nenhuma das duas o feedback automático da IA fica marcado como
+ *      indisponível, mas o resto do sistema funciona normalmente.
  *   5. Menu Implantar → Nova implantação.
  *   6. Tipo: "App da Web". Executar como: "Eu". Quem tem acesso:
  *      "Qualquer pessoa".
@@ -33,6 +34,9 @@
  * versão (a URL /exec não muda).
  */
 
+// Modelo do Gemini (camada gratuita). Se o Google aposentar este nome, troque
+// aqui por outro modelo Flash listado em ai.google.dev/gemini-api/docs/models.
+const GEMINI_MODEL = 'gemini-3.5-flash';
 const CLAUDE_MODEL = 'claude-sonnet-5';
 
 const ABA_PERGUNTAS = 'Perguntas';
@@ -261,7 +265,7 @@ function finishInterview_(data) {
   updateInterviewCell_(data.id, 'aiFeedbackJSON', JSON.stringify({ status: 'pending' }));
 
   const snapshot = jsonOrDefault_(current.questionsSnapshotJSON, []);
-  const feedback = callClaudeFeedback_(snapshot, answers);
+  const feedback = callAiFeedback_(snapshot, answers);
   updateInterviewCell_(data.id, 'aiFeedbackJSON', JSON.stringify(feedback));
 }
 function retryAiFeedback_(data) {
@@ -270,7 +274,7 @@ function retryAiFeedback_(data) {
   const snapshot = jsonOrDefault_(current.questionsSnapshotJSON, []);
   const answers = jsonOrDefault_(current.answersJSON, {});
   updateInterviewCell_(data.id, 'aiFeedbackJSON', JSON.stringify({ status: 'pending' }));
-  const feedback = callClaudeFeedback_(snapshot, answers);
+  const feedback = callAiFeedback_(snapshot, answers);
   updateInterviewCell_(data.id, 'aiFeedbackJSON', JSON.stringify(feedback));
 }
 
@@ -298,38 +302,66 @@ function reopenReview_(data) {
   updateInterviewCell_(data.id, 'status', 'submetido');
 }
 
-// ---------- IA (Anthropic) ----------
+// ---------- IA (Gemini ou Anthropic) ----------
 
-function callClaudeFeedback_(questionsSnapshot, answers) {
-  const apiKey = PropertiesService.getScriptProperties().getProperty('ANTHROPIC_API_KEY');
-  if (!apiKey) return { status: 'unavailable' };
+// Usa o Gemini se existir GEMINI_API_KEY (tem camada gratuita); senão usa a
+// Anthropic se existir ANTHROPIC_API_KEY; sem nenhuma das duas, marca o
+// feedback automático como indisponível (o resto do sistema segue normal).
+function callAiFeedback_(questionsSnapshot, answers) {
+  const props = PropertiesService.getScriptProperties();
+  const geminiKey = props.getProperty('GEMINI_API_KEY');
+  const claudeKey = props.getProperty('ANTHROPIC_API_KEY');
+  if (!geminiKey && !claudeKey) return { status: 'unavailable' };
   try {
     const prompt = buildAiPrompt_(questionsSnapshot, answers);
-    const resp = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
-      method: 'post',
-      contentType: 'application/json',
-      headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-      payload: JSON.stringify({
-        model: CLAUDE_MODEL,
-        max_tokens: 2500,
-        messages: [{ role: 'user', content: prompt }]
-      }),
-      muteHttpExceptions: true
-    });
-    const code = resp.getResponseCode();
-    const body = JSON.parse(resp.getContentText());
-    if (code !== 200) {
-      const msg = (body && body.error && body.error.message) || ('HTTP ' + code);
-      return { status: 'error', error: msg };
-    }
-    const text = (body.content && body.content[0] && body.content[0].text) || '';
+    const text = geminiKey ? askGemini_(geminiKey, prompt) : askClaude_(claudeKey, prompt);
     const arr = extractJsonArray_(text);
     const byQuestion = {};
     arr.forEach(item => { if (item && item.id) byQuestion[item.id] = String(item.feedback || ''); });
+    if (!Object.keys(byQuestion).length) return { status: 'error', error: 'resposta da IA sem feedbacks no formato esperado' };
     return { status: 'ready', byQuestion: byQuestion, generatedAt: new Date().toISOString() };
   } catch (err) {
     return { status: 'error', error: String(err) };
   }
+}
+
+function askGemini_(apiKey, prompt) {
+  const resp = UrlFetchApp.fetch(
+    'https://generativelanguage.googleapis.com/v1beta/models/' + GEMINI_MODEL + ':generateContent', {
+      method: 'post',
+      contentType: 'application/json',
+      headers: { 'x-goog-api-key': apiKey },
+      payload: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 4000 }
+      }),
+      muteHttpExceptions: true
+    });
+  const body = JSON.parse(resp.getContentText());
+  if (resp.getResponseCode() !== 200) {
+    throw new Error('Gemini: ' + ((body.error && body.error.message) || ('HTTP ' + resp.getResponseCode())));
+  }
+  const parts = (body.candidates && body.candidates[0] && body.candidates[0].content && body.candidates[0].content.parts) || [];
+  return parts.map(p => p.text || '').join('');
+}
+
+function askClaude_(apiKey, prompt) {
+  const resp = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
+    method: 'post',
+    contentType: 'application/json',
+    headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+    payload: JSON.stringify({
+      model: CLAUDE_MODEL,
+      max_tokens: 2500,
+      messages: [{ role: 'user', content: prompt }]
+    }),
+    muteHttpExceptions: true
+  });
+  const body = JSON.parse(resp.getContentText());
+  if (resp.getResponseCode() !== 200) {
+    throw new Error('Anthropic: ' + ((body.error && body.error.message) || ('HTTP ' + resp.getResponseCode())));
+  }
+  return (body.content && body.content[0] && body.content[0].text) || '';
 }
 
 function buildAiPrompt_(snapshot, answers) {

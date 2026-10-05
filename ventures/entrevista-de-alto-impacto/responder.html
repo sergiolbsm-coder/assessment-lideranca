@@ -195,7 +195,7 @@ function renderResults(){
     const aiText = ai.byQuestion && ai.byQuestion[q.qid];
     let aiBlock;
     if(ai.status==='pending') aiBlock = '<div class="spinner-line"><span class="spinner-dot"></span><span class="spinner-dot"></span><span class="spinner-dot"></span> Gerando feedback automático…</div>';
-    else if(ai.status==='unavailable') aiBlock = '<p class="muted">Feedback automático da IA indisponível no momento.</p>';
+    else if(ai.status==='unavailable') aiBlock = '<p class="muted">Feedback automático da IA indisponível no momento. <button class="btn-ghost" onclick="Responder.retryAi()">Tentar novamente</button></p>';
     else if(ai.status==='error') aiBlock = '<p class="muted">Não foi possível gerar o feedback automático. <button class="btn-ghost" onclick="Responder.retryAi()">Tentar novamente</button></p>';
     else if(aiText) aiBlock = '<p>'+nl2br(aiText)+'</p>';
     else aiBlock = '<p class="muted">-</p>';
