@@ -666,37 +666,51 @@ function callAiFeedback_(questionsSnapshot, answers) {
   }
 }
 
+// "Pensamento" do modelo é o que mais demora (30 a 40 s). Para extrair texto e
+// escrever feedback curto ele não é necessário: reduz ao mínimo. Se o Google
+// recusar o parâmetro neste modelo, refaz a chamada sem ele.
+function thinkingConfigFor_(modelo) {
+  if (modelo.indexOf('gemini-2.5') === 0) return { thinkingBudget: 0 };
+  if (modelo.indexOf('gemini-3') === 0) return { thinkingLevel: 'low' };
+  return null;
+}
+
 function askGemini_(apiKey, prompt, maxTokens) {
   const modelos = [GEMINI_MODEL].concat(GEMINI_FALLBACKS);
   let ultimoErro = '';
   for (let i = 0; i < modelos.length; i++) {
-    const resp = UrlFetchApp.fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/' + modelos[i] + ':generateContent', {
-        method: 'post',
-        contentType: 'application/json',
-        headers: { 'x-goog-api-key': apiKey },
-        payload: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { responseMimeType: 'application/json', maxOutputTokens: maxTokens || 8192 }
-        }),
-        muteHttpExceptions: true
-      });
-    const code = resp.getResponseCode();
-    let body = {};
-    try { body = JSON.parse(resp.getContentText()); } catch (e) {}
-    if (code === 200) {
-      const cand = (body.candidates && body.candidates[0]) || {};
-      const parts = (cand.content && cand.content.parts) || [];
-      // Ignora partes de "pensamento" do modelo; só o texto da resposta interessa.
-      const text = parts.filter(p => !p.thought).map(p => p.text || '').join('');
-      if (text) return text;
-      ultimoErro = modelos[i] + ': sem texto (finishReason: ' + (cand.finishReason || (body.promptFeedback && body.promptFeedback.blockReason) || 'desconhecido') + ')';
-      continue;
+    let comPensamentoReduzido = !!thinkingConfigFor_(modelos[i]);
+    for (let tentativa = 0; tentativa < 2; tentativa++) {
+      const gen = { responseMimeType: 'application/json', maxOutputTokens: maxTokens || 8192 };
+      if (comPensamentoReduzido) gen.thinkingConfig = thinkingConfigFor_(modelos[i]);
+      const resp = UrlFetchApp.fetch(
+        'https://generativelanguage.googleapis.com/v1beta/models/' + modelos[i] + ':generateContent', {
+          method: 'post',
+          contentType: 'application/json',
+          headers: { 'x-goog-api-key': apiKey },
+          payload: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: gen }),
+          muteHttpExceptions: true
+        });
+      const code = resp.getResponseCode();
+      let body = {};
+      try { body = JSON.parse(resp.getContentText()); } catch (e) {}
+      if (code === 200) {
+        const cand = (body.candidates && body.candidates[0]) || {};
+        const parts = (cand.content && cand.content.parts) || [];
+        // Ignora partes de "pensamento" do modelo; só o texto da resposta interessa.
+        const text = parts.filter(p => !p.thought).map(p => p.text || '').join('');
+        if (text) return text;
+        ultimoErro = modelos[i] + ': sem texto (finishReason: ' + (cand.finishReason || (body.promptFeedback && body.promptFeedback.blockReason) || 'desconhecido') + ')';
+        break;
+      }
+      const msg = (body.error && body.error.message) || ('HTTP ' + code);
+      ultimoErro = modelos[i] + ': ' + msg;
+      if (code === 400 && comPensamentoReduzido && /think/i.test(msg)) { comPensamentoReduzido = false; continue; }
+      // Chave inválida/sem permissão: trocar de modelo não adianta.
+      if (code === 400 || code === 401 || code === 403) throw new Error('Gemini ' + ultimoErro);
+      Utilities.sleep(1500);
+      break;
     }
-    ultimoErro = modelos[i] + ': ' + ((body.error && body.error.message) || ('HTTP ' + code));
-    // Chave inválida/sem permissão: trocar de modelo não adianta.
-    if (code === 400 || code === 401 || code === 403) break;
-    Utilities.sleep(1500);
   }
   throw new Error('Gemini ' + ultimoErro);
 }

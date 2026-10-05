@@ -66,10 +66,19 @@ async function renderStart(){
   const app = document.getElementById('app');
   app.innerHTML = loadingHtml('Carregando perguntas…');
   let questions = [];
-  try{ questions = await Api.listQuestions(); }
+  const onlyActive = function(rows){ return rows.filter(function(q){ return q.ativa; }); };
+  try{
+    questions = await Api.listQuestionsFast(function(rows){
+      // Lista mudou no servidor: atualiza sem recriar o formulário (não apaga o que já foi digitado).
+      window._activeQuestions = onlyActive(rows);
+      var n = window._activeQuestions.length, h = document.getElementById('q-hint'), b = document.getElementById('r-start-btn');
+      if(h) h.textContent = n ? 'Você vai responder '+n+' pergunta'+(n===1?'':'s')+'.' : 'Nenhuma pergunta está ativa no momento. Peça para alguém ativar perguntas na tela Parametrizar.';
+      if(b) b.disabled = (n===0);
+    });
+  }
   catch(err){ app.innerHTML = errorHtml(err); return; }
 
-  const activeQs = questions.filter(function(q){ return q.ativa; });
+  const activeQs = onlyActive(questions);
   const mine = myInterviews();
   const listHtml = mine.length ? mine.map(function(m){
     return '<a class="list-row" href="responder.html?id='+encodeURIComponent(m.id)+'">'+
@@ -85,8 +94,8 @@ async function renderStart(){
         '<div class="field"><label>Seu nome completo</label><input id="r-nome" placeholder="Ex: Maria Silva"></div>'+
         '<div class="field"><label>Cargo / vaga alvo (opcional)</label><input id="r-cargo" placeholder="Ex: Analista de RH Pleno"></div>'+
         '<button class="btn-primary" id="r-start-btn" '+(activeQs.length===0?'disabled':'')+' onclick="Responder.start()">Iniciar simulação</button>'+
-        (activeQs.length===0?'<p class="hint">Nenhuma pergunta está ativa no momento. Peça para alguém ativar perguntas na tela Parametrizar.</p>':
-          '<p class="hint">Você vai responder '+activeQs.length+' pergunta'+(activeQs.length===1?'':'s')+'.</p>')+
+        '<p class="hint" id="q-hint">'+(activeQs.length===0?'Nenhuma pergunta está ativa no momento. Peça para alguém ativar perguntas na tela Parametrizar.':
+          'Você vai responder '+activeQs.length+' pergunta'+(activeQs.length===1?'':'s')+'.')+'</p>'+
       '</div>'+
       '<div class="divider"></div>'+
       '<h2 style="font-size:19px">Minhas simulações</h2>'+

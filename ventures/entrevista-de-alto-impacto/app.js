@@ -129,7 +129,23 @@ const Api = {
     lsSet(AUTH_KEY, {token:j.token, role:role, exp: Date.now() + 11*3600*1000});
   },
   async whoami(){ return (await this.get({action:'whoami'})).role; },
-  async listQuestions(){ var j = await this.get({action:'list', resource:'questions'}); return j.rows||[]; },
+  async listQuestions(){
+    var j = await this.get({action:'list', resource:'questions'});
+    var rows = j.rows||[];
+    lsSet('eai_q_cache', {t:Date.now(), rows:rows});
+    return rows;
+  },
+  // Devolve na hora a cópia guardada no navegador (se tiver menos de 24 h) e
+  // confere no servidor em segundo plano; onUpdate recebe a lista nova se mudou.
+  async listQuestionsFast(onUpdate){
+    var c = lsGet('eai_q_cache', null);
+    var fresh = this.listQuestions();
+    if(c && c.rows && Date.now() - c.t < 24*3600*1000){
+      fresh.then(function(rows){ if(onUpdate && JSON.stringify(rows) !== JSON.stringify(c.rows)) onUpdate(rows); }).catch(function(){});
+      return c.rows;
+    }
+    return fresh;
+  },
   async listInterviews(){ var j = await this.get({action:'list', resource:'interviews'}); return j.rows||[]; },
   async getInterview(id){
     try{
@@ -150,8 +166,10 @@ const Api = {
 async function requireRole(allowed, titulo){
   var auth = getAuth();
   if(auth && allowed.indexOf(auth.role) > -1){
-    try{ await Api.whoami(); return true; }
-    catch(err){ if(err.message === 'CONFIG') throw err; clearAuth(); }
+    // Mostra a página já; a conferência no servidor roda em paralelo (cada
+    // chamada ao Apps Script custa ~2 s) e só interrompe se a sessão caiu.
+    Api.whoami().catch(function(err){ if(err.message === 'AUTH'){ clearAuth(); location.reload(); } });
+    return true;
   }
   showLogin(allowed[0], titulo);
   return false;

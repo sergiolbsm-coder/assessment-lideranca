@@ -36,7 +36,10 @@ async function boot(){
   document.getElementById('app').innerHTML = loadingHtml('Carregando perguntas…');
   try{
     if(!(await requireRole(['admin'], 'Parametrizar perguntas'))) return;
-    await reload();
+    // Mostra a cópia guardada no navegador na hora e atualiza em segundo plano.
+    const sortQ = function(rows){ return rows.slice().sort(function(a,b){ return (a.order||0)-(b.order||0); }); };
+    questions = sortQ(await Api.listQuestionsFast(function(rows){ if(!openId){ questions = sortQ(rows); render(); } }));
+    render();
   }
   catch(err){ document.getElementById('app').innerHTML = errorHtml(err); }
 }
