@@ -27,7 +27,16 @@ const TEMPLATES = {
   }
 };
 
+const JOB_STATUS = {
+  em_analise: "Em análise",
+  proxima_etapa: "Avançou para a próxima etapa",
+  banco_talentos: "Banco de talentos",
+  nao_seguiu: "Não seguiu neste processo",
+  contratado: "Contratação"
+};
+
 const STATUS_META = {
+  aguardando_transcricao: { label:"Aguardando transcrição", cls:"muted" },
   em_andamento: { label:"Em andamento", cls:"muted" },
   submetido:    { label:"Aguardando especialista", cls:"purple" },
   avaliado:     { label:"Avaliado", cls:"" }
@@ -186,6 +195,7 @@ function renderNav(active){
   var tabs = [
     {href:'index.html', k:'inicio', label:'Início'},
     {href:'responder.html', k:'responder', label:'Responder'},
+    {href:'recrutadora.html', k:'recrutadora', label:'Recrutadora'},
     {href:'especialista.html', k:'especialista', label:'Especialista'},
     {href:'relatorio.html', k:'relatorio', label:'Relatório'},
     {href:'admin.html', k:'admin', label:'Parametrizar'}

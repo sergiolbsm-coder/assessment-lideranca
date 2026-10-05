@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Entrevista de Alto Impacto · Recrutadora</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Cormorant+Garamond:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div class="bg"></div>
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html">
+      <img class="logo-mark" src="logo.svg" alt="Entrevista de Alto Impacto">
+      <div>
+        <div class="brand-name">Entrevista de Alto Impacto</div>
+        <div class="brand-sub"><img class="idealizadora-avatar" src="franciane-novais.jpg" alt="Franciane Novais">Idealizadora <b>Franciane Novais</b><br>Venture desenvolvida em parceria com o Instituto da Liderança</div>
+      </div>
+    </a>
+    <div class="tabs" id="tabs"></div>
+  </div>
+</div>
+<div id="app"></div>
+<div id="toast-host"></div>
+<script src="app.js"></script>
+<script>
+"use strict";
+renderNav('recrutadora');
+const INTERVIEW_ID = qs('id');
+const MAX_ATTACH_BYTES = 5 * 1024 * 1024;
+let current = null;
+let pollTimer = null;
+
+async function boot(){
+  document.getElementById('app').innerHTML = loadingHtml('Carregando…');
+  try{
+    if(!(await requireRole(['recrutadora','admin'], 'Área da recrutadora'))) return;
+    if(!INTERVIEW_ID){ await renderList(); return; }
+    current = await Api.getInterview(INTERVIEW_ID);
+    if(!current){ document.getElementById('app').innerHTML = '<div class="wrap"><div class="empty">Entrevista não encontrada.</div></div>'; return; }
+    renderDetail();
+    watchPending();
+  }catch(err){ document.getElementById('app').innerHTML = errorHtml(err); }
+}
+
+// ---------------- lista + nova entrevista ----------------
+async function renderList(){
+  const app = document.getElementById('app');
+  let rows = await Api.listInterviews();
+  rows = rows.filter(function(i){ return i.kind === 'ao_vivo'; })
+    .sort(function(a,b){ return new Date(b.createdAt) - new Date(a.createdAt); });
+
+  const listHtml = rows.length ? rows.map(function(i){
+    const st = STATUS_META[i.status] || {label:i.status, cls:'muted'};
+    const sent = i.emailSentAt ? ' · e-mail enviado' : '';
+    return '<a class="list-row" href="recrutadora.html?id='+encodeURIComponent(i.id)+'">'+
+      '<div><div class="name">'+esc(i.candidateName)+'</div><div class="sub">'+(i.targetRole?esc(i.targetRole)+' · ':'')+fmtDate(i.createdAt)+sent+'</div></div>'+
+      '<div class="spacer"></div><span class="badge '+st.cls+'">'+st.label+'</span></a>';
+  }).join('') : '<div class="empty">Nenhuma entrevista ao vivo cadastrada ainda.</div>';
+
+  app.innerHTML =
+    '<div class="wrap wrap-wide">'+
+      '<div class="section-title"><h2>Entrevistas ao vivo</h2>'+
+        '<button class="btn-primary" onclick="toggleForm()">+ Nova entrevista</button></div>'+
+      '<p class="hint">Faça a entrevista no Zoom, Google Meet ou Teams, exporte a transcrição (Tactiq, a transcrição do próprio Meet ou Teams, ou o arquivo .vtt do Zoom) e envie aqui. O sistema separa as perguntas e respostas, avalia cada uma e monta o relatório do candidato.</p>'+
+      '<div class="card" id="new-form" style="display:none;margin:16px 0">'+
+        '<div class="field"><label>Nome do candidato</label><input id="n-nome" placeholder="Ex: Maria Silva"></div>'+
+        '<div class="field"><label>E-mail do candidato (para enviar o relatório)</label><input id="n-email" type="email" placeholder="maria@email.com"></div>'+
+        '<div class="field"><label>Vaga (opcional)</label><input id="n-vaga" placeholder="Ex: Analista de RH Pleno"></div>'+
+        '<div class="field"><label>Seu nome (aparece no e-mail)</label><input id="n-rec" value="'+esc(lsGet('eai_recrutadora_nome',''))+'" placeholder="Ex: Ana Souza"></div>'+
+        '<label style="display:flex;gap:8px;align-items:flex-start;font-weight:500;font-size:13px;color:var(--idl-text);margin-bottom:16px"><input type="checkbox" id="n-consent" style="width:auto;margin-top:3px"> <span>O candidato foi informado e <b>consentiu</b> com a gravação e a transcrição da entrevista, e com o envio do texto à IA para análise.</span></label>'+
+        '<button class="btn-primary" id="n-btn" onclick="createLive()">Criar entrevista</button>'+
+      '</div>'+
+      '<div class="divider"></div>'+listHtml+
+    '</div>';
+}
+function toggleForm(){ var f=document.getElementById('new-form'); f.style.display = f.style.display==='none'?'block':'none'; }
+
+async function createLive(){
+  const nome=document.getElementById('n-nome').value.trim(), email=document.getElementById('n-email').value.trim(),
+        vaga=document.getElementById('n-vaga').value.trim(), rec=document.getElementById('n-rec').value.trim(),
+        consent=document.getElementById('n-consent').checked;
+  if(!nome){ toast('Informe o nome do candidato.'); return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ toast('Informe um e-mail válido.'); return; }
+  if(!consent){ toast('Confirme o consentimento do candidato.'); return; }
+  lsSet('eai_recrutadora_nome', rec);
+  const btn=document.getElementById('n-btn'); btn.disabled=true; btn.textContent='Criando…';
+  const id = uid();
+  try{
+    await Api.post('createLiveInterview', {id:id, candidateName:nome, candidateEmail:email, targetRole:vaga, recruiterName:rec, consent:true});
+    // O POST não devolve resposta ao navegador: confirma lendo a entrevista.
+    for(let i=0;i<8;i++){
+      await sleep(1200);
+      const r = await Api.getInterview(id).catch(function(){ return null; });
+      if(r){ location.href='recrutadora.html?id='+encodeURIComponent(id); return; }
+    }
+    toast('Não foi possível criar a entrevista. Confira os dados e tente de novo.');
+  }catch(err){ toast('Erro: '+err.message); }
+  btn.disabled=false; btn.textContent='Criar entrevista';
+}
+
+// ---------------- detalhe ----------------
+function hasAnalysis(){ return current.questionsSnapshot && current.questionsSnapshot.length > 0 && current.aiFeedback && current.aiFeedback.status === 'ready'; }
+
+function renderDetail(){
+  const app = document.getElementById('app');
+  const i = current, ai = i.aiFeedback || {status:'none'};
+  const st = STATUS_META[i.status] || {label:i.status, cls:'muted'};
+
+  let transcriptCard;
+  if(ai.status === 'pending'){
+    transcriptCard = '<div class="card"><div class="spinner-line"><span class="spinner-dot"></span><span class="spinner-dot"></span><span class="spinner-dot"></span> Analisando a transcrição. Pode levar até 1 ou 2 minutos, não feche a página.</div></div>';
+  } else {
+    const problem = ai.status==='error' ? '<p class="hint" style="color:#b00020">A análise falhou: '+esc(ai.error||'erro desconhecido')+'</p>'
+      : ai.status==='unavailable' ? '<p class="hint" style="color:#b00020">A chave da IA não está configurada no backend.</p>' : '';
+    transcriptCard = '<div class="card">'+
+      '<h3 style="font-size:18px">'+(hasAnalysis()?'Trocar a transcrição':'1. Enviar a transcrição')+'</h3>'+
+      '<p class="hint" style="margin-bottom:12px">Aceita arquivos .txt, .vtt, .srt ou .md. Ou cole o texto abaixo. O texto é enviado à IA (Gemini) para análise e uma cópia fica guardada no Drive da conta que administra o sistema. Use apenas com o consentimento do candidato.</p>'+
+      '<div class="field"><input type="file" id="t-file" accept=".txt,.vtt,.srt,.md,.csv,text/plain"></div>'+
+      '<div class="field"><textarea id="t-text" rows="6" placeholder="Ou cole aqui a transcrição completa da entrevista…"></textarea></div>'+
+      problem+
+      '<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn-primary" id="t-btn" onclick="sendTranscript()">Analisar transcrição</button>'+
+      (i.hasTranscript ? '<button class="btn-secondary" onclick="reprocess()">Reanalisar a transcrição já enviada</button>' : '')+'</div></div>';
+  }
+
+  let results = '';
+  if(hasAnalysis()){
+    results = '<h2 style="font-size:21px;margin:26px 0 12px">Perguntas e respostas identificadas</h2>'+
+      i.questionsSnapshot.map(function(q,n){
+        const meta = TIPO_META[q.tipo] || TIPO_META.direta;
+        const ans = (i.answers[q.qid]||{}).text || '';
+        return '<div class="rescard"><div class="qn">Pergunta '+(n+1)+' de '+i.questionsSnapshot.length+' · <span class="badge muted" style="margin-left:4px">'+esc(meta.short)+'</span></div>'+
+          '<h3>'+esc(q.text)+'</h3>'+
+          '<div class="res-block answer"><div class="lbl">Resposta do candidato (resumo da transcrição)</div><p>'+nl2br(ans)+'</p></div>'+
+          '<div class="res-block ai"><div class="lbl">🤖 Feedback automático da IA</div><p>'+nl2br((ai.byQuestion||{})[q.qid]||'-')+'</p></div></div>';
+      }).join('');
+  }
+
+  let report = '';
+  if(hasAnalysis()){
+    const opts = '<option value="">(não informar)</option>'+Object.keys(JOB_STATUS).map(function(k){
+      return '<option value="'+k+'"'+(i.jobStatus===k?' selected':'')+'>'+esc(JOB_STATUS[k])+'</option>'; }).join('');
+    const sent = i.emailSentAt ? '<p class="hint" style="margin-top:10px">✅ '+esc(i.emailStatus||'enviado')+' em '+fmtDate(i.emailSentAt)+' para '+esc(i.emailTo)+'.</p>'
+      : (i.emailStatus && i.emailStatus.indexOf('erro')===0 ? '<p class="hint" style="margin-top:10px;color:#b00020">Último envio falhou: '+esc(i.emailStatus)+'</p>' : '');
+    report = '<div class="card" style="margin-top:26px">'+
+      '<h3 style="font-size:18px">2. Relatório para o candidato</h3>'+
+      '<p class="hint" style="margin-bottom:14px">O candidato recebe um e-mail com o status, a sua mensagem, as sugestões e o link do relatório (respostas, feedback da IA e, se já existir, o da especialista).</p>'+
+      '<div class="field"><label>Status da vaga</label><select id="r-status">'+opts+'</select></div>'+
+      '<div class="field"><label>Pontos fortes e sugestões de melhoria (rascunho da IA, edite à vontade)</label><textarea id="r-sug" rows="7">'+esc(i.improvementSuggestions||'')+'</textarea></div>'+
+      '<div class="field"><label>Mensagem ao candidato</label><textarea id="r-msg" rows="5" placeholder="Ex: Foi um prazer conhecer você. Seguem os próximos passos…">'+esc(i.recruiterMessage||'')+'</textarea></div>'+
+      '<div class="field"><label>E-mail do candidato</label><input id="r-email" type="email" value="'+esc(i.candidateEmail||'')+'"></div>'+
+      '<div class="field"><label>Seu e-mail para respostas do candidato (opcional)</label><input id="r-reply" type="email" value="'+esc(lsGet('eai_recrutadora_email',''))+'" placeholder="voce@empresa.com"></div>'+
+      '<div class="field"><label>Anexo (opcional, até 5 MB)</label><input type="file" id="r-file"></div>'+
+      '<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn-secondary" onclick="saveDraft()">Salvar rascunho</button>'+
+      '<button class="btn-primary" id="r-send" onclick="sendEmail()">Enviar por e-mail</button>'+
+      '<a class="btn-secondary" style="display:inline-block;text-align:center" target="_blank" href="relatorio.html?id='+encodeURIComponent(i.id)+'">Abrir relatório</a></div>'+
+      sent+'</div>';
+  }
+
+  app.innerHTML =
+    '<div class="wrap">'+
+      '<a class="btn-ghost" href="recrutadora.html">← Voltar à lista</a>'+
+      '<div class="section-title"><h2>'+esc(i.candidateName)+'</h2><span class="badge '+st.cls+'">'+st.label+'</span></div>'+
+      '<p class="hint">'+(i.targetRole?esc(i.targetRole)+' · ':'')+esc(i.candidateEmail||'')+' · criada em '+fmtDate(i.createdAt)+'</p>'+
+      '<div class="divider"></div>'+transcriptCard+results+report+
+    '</div>';
+}
+
+function watchPending(){
+  if(pollTimer) clearInterval(pollTimer);
+  if(!(current.aiFeedback && current.aiFeedback.status === 'pending')) return;
+  let tries = 0;
+  pollTimer = setInterval(async function(){
+    tries++;
+    const r = await Api.getInterview(current.id).catch(function(){ return null; });
+    if(r){ current = r; if(!(r.aiFeedback && r.aiFeedback.status==='pending') || tries>50){ clearInterval(pollTimer); } renderDetail(); }
+  }, 5000);
+}
+
+// Limpa legendas .vtt/.srt (códigos de tempo e numeração) para economizar texto.
+function cleanTranscript(name, text){
+  if(!/\.(vtt|srt)$/i.test(name)) return text;
+  return text.split(/\r?\n/).filter(function(l){
+    return !/^\s*(WEBVTT.*)?$/.test(l) && !/^\d+\s*$/.test(l) && !/-->/.test(l);
+  }).join('\n');
+}
+function readFileText(file){
+  return new Promise(function(res, rej){ var fr=new FileReader(); fr.onload=function(){res(String(fr.result))}; fr.onerror=function(){rej(new Error('Não foi possível ler o arquivo.'))}; fr.readAsText(file); });
+}
+function readFileBase64(file){
+  return new Promise(function(res, rej){ var fr=new FileReader(); fr.onload=function(){res(String(fr.result).split(',')[1]||'')}; fr.onerror=function(){rej(new Error('Não foi possível ler o anexo.'))}; fr.readAsDataURL(file); });
+}
+
+async function runProcess(payload){
+  current.aiFeedback = {status:'pending'}; renderDetail();
+  try{ await Api.post('processTranscript', Object.assign({id: current.id}, payload)); }catch(e){}
+  current = await Api.getInterview(current.id).catch(function(){ return current; });
+  renderDetail(); watchPending();
+  const st = current.aiFeedback && current.aiFeedback.status;
+  toast(st==='ready' ? 'Transcrição analisada.' : 'A análise não foi concluída. Veja o aviso na tela.');
+}
+
+async function sendTranscript(){
+  const file = document.getElementById('t-file').files[0];
+  let text = document.getElementById('t-text').value.trim();
+  try{ if(file) text = cleanTranscript(file.name, await readFileText(file)).trim(); }
+  catch(err){ toast(err.message); return; }
+  if(text.length < 200){ toast('A transcrição está vazia ou curta demais. Envie o arquivo completo da entrevista.'); return; }
+  if(text.length > 300000){ toast('Transcrição grande demais (máximo de 300 mil caracteres).'); return; }
+  await runProcess({transcript:text});
+}
+async function reprocess(){ await runProcess({}); }
+
+function fieldsPayload(){
+  return {
+    jobStatus: document.getElementById('r-status').value,
+    improvementSuggestions: document.getElementById('r-sug').value,
+    recruiterMessage: document.getElementById('r-msg').value,
+    candidateEmail: document.getElementById('r-email').value.trim(),
+    recruiterName: current.recruiterName || lsGet('eai_recrutadora_nome','')
+  };
+}
+async function saveDraft(){
+  try{ await Api.post('saveRecruiterFields', Object.assign({id:current.id}, fieldsPayload())); toast('Rascunho salvo.'); }
+  catch(err){ toast('Erro: '+err.message); }
+}
+async function sendEmail(){
+  const f = fieldsPayload();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(f.candidateEmail)){ toast('Informe um e-mail válido para o candidato.'); return; }
+  if(!confirm('Enviar o relatório por e-mail para '+f.candidateEmail+'?')) return;
+  const reply = document.getElementById('r-reply').value.trim();
+  if(reply) lsSet('eai_recrutadora_email', reply);
+  const file = document.getElementById('r-file').files[0];
+  let attachment = null;
+  if(file){
+    if(file.size > MAX_ATTACH_BYTES){ toast('O anexo passa de 5 MB.'); return; }
+    try{ attachment = {name:file.name, mime:file.type||'application/octet-stream', data: await readFileBase64(file)}; }
+    catch(err){ toast(err.message); return; }
+  }
+  const btn = document.getElementById('r-send'); btn.disabled = true; btn.textContent = 'Enviando…';
+  const before = current.emailSentAt;
+  const payload = Object.assign({id:current.id, replyTo:reply}, f); if(attachment) payload.attachment = attachment;
+  try{ await Api.post('sendCandidateEmail', payload); }catch(e){}
+  // O POST não devolve resposta: confirma pelo status gravado na entrevista.
+  let ok = false;
+  for(let n=0;n<10;n++){
+    const r = await Api.getInterview(current.id).catch(function(){ return null; });
+    if(r){ current = r; if(r.emailSentAt && r.emailSentAt !== before){ ok = true; break; } if(r.emailStatus && r.emailStatus.indexOf('erro')===0) break; }
+    await sleep(1500);
+  }
+  renderDetail();
+  toast(ok ? 'E-mail enviado ao candidato.' : 'O e-mail não foi enviado. Veja o aviso na tela.');
+}
+
+boot();
+</script>
+</body>
+</html>

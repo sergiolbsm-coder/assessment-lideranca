@@ -14,6 +14,7 @@ identificados.
 |---|---|---|
 | Início | `index.html` | Mini-site: o que é o projeto, como funciona, os 3 padrões de resposta, e a seção sobre a idealizadora |
 | Candidato | `responder.html` | Inicia/retoma uma simulação, responde pergunta a pergunta, vê orientação + feedback da IA ao final |
+| Recrutadora | `recrutadora.html` | Cadastra a entrevista ao vivo (com consentimento), envia a transcrição, a IA separa perguntas e respostas e avalia, e ela envia o relatório por e-mail com status da vaga, mensagem e anexo |
 | Especialista | `especialista.html` | Lista simulações enviadas, escreve feedback personalizado por pergunta |
 | Relatório | `relatorio.html` | Relatório completo e imprimível (pergunta, resposta, orientação, feedback IA + especialista) |
 | Parametrização | `admin.html` | Cadastra perguntas, define o padrão de resposta (Direta / Reflexiva / Método STAR), a orientação e o critério da IA |
@@ -47,12 +48,12 @@ padrões de resposta).
 
 ## Login (especialista e admin)
 
-`especialista.html`, a lista de `relatorio.html` e `admin.html` pedem usuário e
+`recrutadora.html`, `especialista.html`, a lista de `relatorio.html` e `admin.html` pedem usuário e
 senha. O candidato não precisa de login: ele abre a própria simulação e o
 próprio relatório pelo link com o `?id=`.
 
 As senhas ficam só nas Propriedades do script do Apps Script (nunca no
-repositório): `SPECIALIST_PASSWORD` e `ADMIN_PASSWORD`. Usuários padrão:
-`especialista` e `admin` (mudam com `SPECIALIST_USER` / `ADMIN_USER`). A sessão
+repositório): `SPECIALIST_PASSWORD`, `RECRUITER_PASSWORD` e `ADMIN_PASSWORD`.
+Usuários padrão: `especialista`, `recrutadora` e `admin` (mudam com `SPECIALIST_USER` / `RECRUITER_USER` / `ADMIN_USER`). A sessão
 dura 12 h. Para conferir o que está configurado no backend (sem expor
 segredos): `<URL do Apps Script>?action=status`.

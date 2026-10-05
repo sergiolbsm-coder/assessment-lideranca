@@ -35,7 +35,7 @@ async function boot(){
     if(!INTERVIEW_ID){
       // Lista de todos os relatórios: só com login. O relatório individual
       // abre pelo link do candidato, sem login.
-      if(!(await requireRole(['especialista','admin'], 'Relatórios'))) return;
+      if(!(await requireRole(['especialista','recrutadora','admin'], 'Relatórios'))) return;
       await renderPicker(); return;
     }
     const interview = await Api.getInterview(INTERVIEW_ID);
@@ -67,6 +67,17 @@ async function renderPicker(){
       '<p class="hint">Selecione uma simulação para ver o relatório completo e imprimir ou salvar em PDF.</p>'+
       '<div class="divider"></div>'+
       listHtml+
+    '</div>';
+}
+
+// Status da vaga, mensagem e sugestões da recrutadora (o backend só envia
+// esses campos ao candidato depois que o e-mail foi enviado).
+function recruiterBlockHtml(i){
+  if(!i.jobStatus && !i.recruiterMessage && !i.improvementSuggestions) return '';
+  return '<div class="overall-note" style="margin-bottom:16px">'+
+    (i.jobStatus && JOB_STATUS[i.jobStatus] ? '<div class="lbl mono" style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--idl-text-muted)">Status da vaga</div><p style="font-size:16px;font-weight:700;margin:4px 0 14px;color:var(--idl-purple-dark)">'+esc(JOB_STATUS[i.jobStatus])+'</p>' : '')+
+    (i.recruiterMessage ? '<div class="res-block" style="margin-top:0"><div class="lbl">Mensagem'+(i.recruiterName?' de '+esc(i.recruiterName):' da recrutadora')+'</div><p>'+nl2br(i.recruiterMessage)+'</p></div>' : '')+
+    (i.improvementSuggestions ? '<div class="res-block orient"><div class="lbl">Pontos fortes e sugestões de melhoria</div><p>'+nl2br(i.improvementSuggestions)+'</p></div>' : '')+
     '</div>';
 }
 
@@ -104,9 +115,10 @@ function renderReport(interview){
         '<div class="report-idealizadora"><img class="idealizadora-avatar-lg" src="franciane-novais.jpg" alt="Franciane Novais">Idealizadora <b>Franciane Novais</b></div>'+
         '<div class="report-tagline">Venture desenvolvida em parceria com o Instituto da Liderança</div>'+
         '<div class="report-name">'+esc(interview.candidateName)+'</div>'+
-        '<div class="report-meta">'+(interview.targetRole?esc(interview.targetRole)+' · ':'')+'Simulação de entrevista · '+fmtDate(interview.createdAt)+'</div>'+
+        '<div class="report-meta">'+(interview.targetRole?esc(interview.targetRole)+' · ':'')+(interview.kind==='ao_vivo'?'Entrevista ao vivo':'Simulação de entrevista')+' · '+fmtDate(interview.createdAt)+'</div>'+
         '<span class="badge '+st.cls+'" style="margin-top:10px">'+st.label+'</span>'+
       '</div>'+
+      recruiterBlockHtml(interview)+
       cards+
       (overall ? '<div class="overall-note"><div class="res-block specialist" style="background:none;padding:0"><div class="lbl">🧑‍🏫 Síntese geral da especialista · '+esc(overall.specialistName)+'</div><p>'+nl2br(overall.text)+'</p></div></div>' : '')+
       '<div class="nav-row noprint"><a class="btn-secondary" href="relatorio.html">← Todos os relatórios</a><button class="btn-primary" onclick="window.print()">Imprimir / salvar PDF</button></div>'+
