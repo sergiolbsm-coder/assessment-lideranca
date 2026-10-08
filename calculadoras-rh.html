@@ -114,7 +114,7 @@ const P_DEFAULT={
   teto:8475.55,
   inss:[[1621.00,0.075],[2902.84,0.09],[4354.27,0.12],[8475.55,0.14]],
   ir:[[2428.80,0,0],[2826.65,0.075,182.16],[3751.05,0.15,394.16],[4664.68,0.225,675.49],[1e12,0.275,908.73]],
-  dep:189.59,simpl:564.80,
+  dep:189.59,simpl:607.20,
   isenta:5000,redAte:7350,redA:978.62,redB:0.133145,redutor13:true,
   patronal:{cpp:0.20,terceiros:0.058,rat:0.02}
 };
@@ -674,7 +674,10 @@ function runPar(){
   ${tabela([{d:'Salário mínimo',p:P.minimo},{d:'Teto do INSS',p:P.teto},{d:'Dedução por dependente (IRRF)',p:P.dep},{d:'Desconto simplificado (IRRF)',p:P.simpl},{d:'Isenção total do IRRF até (renda mensal)',p:P.isenta},{d:'Redução gradual do IRRF até',p:P.redAte}],['Parâmetro','','Valor',''])}
   <h3>INSS · alíquotas progressivas</h3>${tabela(P.inss.map((f,i)=>({d:'Até '+brl(f[0]),ref:(f[1]*100).toFixed(1).replace('.',',')+'%'})),['Faixa','Alíquota','',''])}
   <h3>IRRF · tabela mensal</h3>${tabela(P.ir.map(f=>({d:f[0]>=1e11?'Acima da faixa anterior':'Até '+brl(f[0]),ref:(f[1]*100).toFixed(1).replace('.',',')+'%',p:f[2]})),['Faixa','Alíquota','Parcela a deduzir',''])}
-  <p class="note">Confira os valores com as tabelas oficiais da Receita Federal e do INSS a cada atualização. Qualquer alteração fica salva só neste navegador.</p></div>`;
+  <p class="note"><b>Fontes oficiais (conferidas em out/2026):</b>
+  <a href="https://www.gov.br/inss/pt-br/direitos-e-deveres/inscricao-e-contribuicao/tabela-de-contribuicao-mensal" target="_blank" rel="noopener">INSS · tabela de contribuição</a> (Portaria Interministerial MPS/MF 13/2026) ·
+  <a href="https://www.gov.br/receitafederal/pt-br/assuntos/meu-imposto-de-renda/tabelas/2026" target="_blank" rel="noopener">Receita Federal · tabelas 2026</a> (Lei 15.270/2025).
+  A tabela do IRRF e a fórmula da redução (978,62 − 0,133145 × rendimento tributável bruto) estão confirmadas. O desconto simplificado de R$ 607,20 e a dedução de R$ 189,59 por dependente vieram de fonte secundária. A aplicação da redução ao 13º não está explícita nas fontes que consegui ler (opção <code>redutor13</code>). Alterações feitas aqui ficam salvas só neste navegador.</p></div>`;
 }
 function salvarPar(){try{const o=JSON.parse(val('pjson'));P=Object.assign({},P_DEFAULT,o);try{localStorage.setItem('idl_rh_params',JSON.stringify(P))}catch(e){}runPar();alert('Parâmetros salvos neste navegador.')}catch(e){alert('JSON inválido: '+e.message)}}
 function restaurarPar(){P=JSON.parse(JSON.stringify(P_DEFAULT));try{localStorage.removeItem('idl_rh_params')}catch(e){}show('par')}
