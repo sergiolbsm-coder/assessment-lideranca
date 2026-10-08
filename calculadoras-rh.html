@@ -188,7 +188,8 @@ function tabela(rows,cols=['Descrição','Referência','Proventos','Descontos'])
   }
   return h+'</table>';
 }
-const actions=(extra='')=>`<div class="actions"><button class="btn" onclick="window.print()">Imprimir / salvar PDF</button>${extra}</div>`;
+const actions=(extra='')=>`<div class="actions"><button class="btn" onclick="exportar()">Baixar em Word (.docx)</button>${extra}</div>`;
+const cnomeF=`<label for="cnome">Colaborador <small>(opcional, aparece no documento)</small></label><input id="cnome" type="text" autocomplete="off">`;
 
 /* ═════════ MÓDULO: Rescisão CLT ═════════ */
 const TIPOS={
@@ -204,6 +205,7 @@ const TIPOS={
 };
 function formResc(){return `
 <h3>Vínculo</h3>
+${cnomeF}
 ${sel('tipo','Tipo de desligamento',Object.entries(TIPOS),'sjc')}
 <div class="row2">${fld('adm','Admissão','date')}${fld('des','Último dia / desligamento','date')}</div>
 <div id="boxFim" style="display:none">${fld('fimctr','Data prevista de término do contrato','date')}</div>
@@ -321,6 +323,7 @@ function runResc(){
 /* ═════════ MÓDULO: Rescisão de estágio ═════════ */
 function formEst(){return `
 <h3>Contrato de estágio</h3>
+${cnomeF}
 ${sel('motivo','Motivo do desligamento',[['term','Término do prazo do contrato'],['conc','Conclusão / trancamento / abandono do curso'],['emp','Rescisão antecipada pela empresa'],['est','Rescisão antecipada pelo estagiário'],['inst','Rescisão por iniciativa da instituição de ensino'],['desc','Descumprimento do termo de compromisso']],'term')}
 <div class="row2">${fld('eini','Início do estágio','date')}${fld('efim','Último dia','date')}</div>
 <h3>Bolsa e benefícios</h3>
@@ -378,6 +381,7 @@ function runEst(){
 
 /* ═════════ MÓDULO: Férias ═════════ */
 function formFer(){return `
+${cnomeF}
 ${money('fsal','Salário base (R$)')}${money('fmed','Média de variáveis (R$)')}
 <div class="row2">${fld('fader','Início do período aquisitivo','date')}${fld('fgozo','Início do gozo','date')}</div>
 <div class="row2">${fld('fdias','Dias de gozo','number','30','min="5" max="30"')}${fld('ffalt','Faltas injustificadas no período','number','0','min="0"')}</div>
@@ -422,6 +426,7 @@ function runFer(){
 
 /* ═════════ MÓDULO: 13º ═════════ */
 function formDec(){return `
+${cnomeF}
 ${money('dsal','Salário base (R$)')}${money('dmed','Média de variáveis (R$)')}
 <div class="row2">${fld('dadm','Admissão','date')}${fld('dano','Ano de referência','number',new Date().getFullYear(),'min="2000"')}</div>
 ${fld('dav','Avos (deixe vazio para calcular)','number','','min="0" max="12"')}
@@ -448,6 +453,7 @@ function runDec(){
 
 /* ═════════ MÓDULO: Folha simplificada ═════════ */
 function formFol(){return `
+${cnomeF}
 <h3>Proventos</h3>
 ${money('fosal','Salário base (R$)')}
 <div class="row2">${money('foHE','Horas extras + DSR (R$)')}${money('foAd','Adicionais (R$)')}</div>
@@ -577,16 +583,25 @@ const DOCS={
 let BRAND={logo:'',w:0,h:0},SAVED={};
 try{BRAND=Object.assign(BRAND,JSON.parse(localStorage.getItem('idl_rh_brand')||'{}'));SAVED=JSON.parse(localStorage.getItem('idl_rh_docfields')||'{}')}catch(e){}
 const sv=id=>esc(SAVED[id]||'');
+const IDENT_IDS=['dtitulo','dempresa','dcnpj','dcidade','dresp','drhcargo'];
+function saveIdent(){IDENT_IDS.forEach(i=>{if($(i))SAVED[i]=val(i)});try{localStorage.setItem('idl_rh_docfields',JSON.stringify(SAVED))}catch(e){}}
+function identFields(){return `<label for="dlogo">Logo da empresa <small>(PNG ou JPG)</small></label>
+<input id="dlogo" type="file" accept="image/*">
+<div class="logoBox" id="logoBox"></div>
+<h3>Empresa e assinatura do RH</h3>
+${fld('dempresa','Razão social','text',sv('dempresa'))}${fld('dcnpj','CNPJ','text',sv('dcnpj'))}
+${fld('dcidade','Cidade / UF','text',sv('dcidade'))}
+<div class="row2">${fld('dresp','Nome do RH (assinatura)','text',sv('dresp'))}${fld('drhcargo','Cargo do RH','text',sv('drhcargo'),'placeholder="Recursos Humanos"')}</div>`}
 function saveBrand(){try{localStorage.setItem('idl_rh_brand',JSON.stringify(BRAND))}catch(e){}}
 function logoBox(){const b=$('logoBox');if(!b)return;b.innerHTML=BRAND.logo?`<img src="${BRAND.logo}" alt="logo"><button class="btn sec" type="button" onclick="removerLogo()">Remover</button>`:'<span class="note" style="margin:0">Nenhuma logo carregada. Ela fica salva só neste navegador.</span>'}
-function removerLogo(){BRAND.logo='';BRAND.w=BRAND.h=0;saveBrand();logoBox();runDoc()}
+function removerLogo(){BRAND.logo='';BRAND.w=BRAND.h=0;saveBrand();logoBox();if(window.RUN)RUN()}
 function carregarLogo(file){
   if(!file)return;
   const fr=new FileReader();
   fr.onload=()=>{const im=new Image();im.onload=()=>{
     const k=Math.min(1,600/im.width),w=Math.round(im.width*k),h=Math.round(im.height*k);
     const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);
-    BRAND.logo=c.toDataURL('image/png');BRAND.w=w;BRAND.h=h;saveBrand();logoBox();runDoc()};
+    BRAND.logo=c.toDataURL('image/png');BRAND.w=w;BRAND.h=h;saveBrand();logoBox();if(window.RUN)RUN()};
     im.src=fr.result};
   fr.readAsDataURL(file);
 }
@@ -594,13 +609,7 @@ function formDoc(){return `
 ${sel('doc','Documento',Object.entries(DOCS),'dispensa')}
 <h3>Cabeçalho e assinatura</h3>
 ${fld('dtitulo','Título no topo do documento','text',sv('dtitulo'),'placeholder="Em branco = nome do documento"')}
-<label for="dlogo">Logo da empresa <small>(PNG ou JPG)</small></label>
-<input id="dlogo" type="file" accept="image/*">
-<div class="logoBox" id="logoBox"></div>
-<h3>Empresa</h3>
-${fld('dempresa','Razão social','text',sv('dempresa'))}${fld('dcnpj','CNPJ','text',sv('dcnpj'))}
-${fld('dcidade','Cidade / UF','text',sv('dcidade'))}
-<div class="row2">${fld('dresp','Nome do RH (assinatura)','text',sv('dresp'))}${fld('drhcargo','Cargo do RH','text',sv('drhcargo'),'placeholder="Recursos Humanos"')}</div>
+${identFields()}
 <h3>Colaborador</h3>
 ${fld('dnome','Nome completo')}
 <div class="row2">${fld('dcpf','CPF')}${fld('dcargo','Cargo')}</div>
@@ -616,7 +625,7 @@ function runDoc(){
   const g=id=>val(id).trim();
   const emp=g('dempresa')||'[EMPRESA]',cnpj=g('dcnpj')||'[CNPJ]',cid=g('dcidade')||'[CIDADE/UF]',resp=g('dresp')||'[NOME DO RH]';
   const rhc=(g('drhcargo')||'Recursos Humanos')+' · '+emp;
-  try{SAVED={};['dtitulo','dempresa','dcnpj','dcidade','dresp','drhcargo'].forEach(i=>SAVED[i]=val(i));localStorage.setItem('idl_rh_docfields',JSON.stringify(SAVED))}catch(e){}
+  saveIdent();
   logoBox();
   const nome=g('dnome')||'[NOME DO COLABORADOR]',cpf=g('dcpf')||'[CPF]',cargo=g('dcargo')||'[CARGO]';
   const dd=D(val('ddata')),des=D(val('ddes'));
@@ -646,12 +655,89 @@ function runDoc(){
   }
   const titulo=g('dtitulo')||DOCS[tipo];
   CURDOC={titulo,txt,nome:g('dnome')||'colaborador'};
-  $('out').innerHTML=`<div class="doc"><div class="hd">${BRAND.logo?`<img src="${BRAND.logo}" alt="">`:''}<h2>${esc(titulo)}</h2></div><div class="body">${esc(txt)}</div></div>${actions('<button class="btn" id="wrd">Baixar em Word (.docx)</button><button class="btn sec" id="cpy">Copiar texto</button>')}`;
-  $('wrd').onclick=baixarWord;
+  $('out').innerHTML=`<div class="doc"><div class="hd">${BRAND.logo?`<img src="${BRAND.logo}" alt="">`:''}<h2>${esc(titulo)}</h2></div><div class="body">${esc(txt)}</div></div>${actions('<button class="btn sec" id="cpy">Copiar texto</button>')}`;
   $('cpy').onclick=()=>{navigator.clipboard.writeText(txt).then(()=>{$('cpy').textContent='Copiado!'}).catch(()=>{})};
 }
 
 let CURDOC=null;
+function exportar(){if(cur==='doc')baixarWord();else baixarModulo()}
+function nomeArq(t){return t.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'_')}
+function logoBytes(){
+  if(!BRAND.logo)return null;
+  const bin=atob(BRAND.logo.split(',')[1]),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+  const hh=Math.min(70,BRAND.h),ww=Math.round(BRAND.w*hh/BRAND.h);return {u,ww,hh};
+}
+function domParaDocx(root){
+  const {Paragraph,TextRun,Table,TableRow,TableCell,WidthType,ShadingType,AlignmentType}=docx;
+  const W=9298,out=[];
+  const para=(t,o={})=>new Paragraph({alignment:o.align,spacing:{before:o.before||0,after:o.after===undefined?100:o.after},
+    shading:o.fill?{type:ShadingType.CLEAR,fill:o.fill,color:'auto'}:undefined,
+    children:[new TextRun({text:t,font:'Arial',size:o.size||20,bold:o.bold,color:o.color})]});
+  const cell=(kids,w,o={})=>new TableCell({width:{size:w,type:WidthType.DXA},columnSpan:o.span,
+    shading:o.fill?{type:ShadingType.CLEAR,fill:o.fill,color:'auto'}:undefined,margins:{top:50,bottom:50,left:100,right:100},children:kids});
+  const fills={w:'FFF7ED',e:'FEF2F2',i:'F0FDFA'};
+  const walk=el=>{
+    if(el.nodeType!==1)return;
+    const c=el.classList;
+    if(c.contains('actions')||c.contains('doc'))return;
+    if(c.contains('alert')){out.push(para(el.innerText.trim(),{fill:fills[['w','e','i'].find(x=>c.contains(x))],after:120}));return}
+    if(c.contains('kpis')){
+      const ks=[...el.children],w=Math.floor(W/ks.length);
+      out.push(new Table({width:{size:w*ks.length,type:WidthType.DXA},columnWidths:ks.map(()=>w),rows:[new TableRow({children:ks.map(k=>
+        cell([para(k.children[0].innerText,{size:15,color:'6F667E',after:20}),para(k.children[1].innerText,{size:26,bold:true,color:k.classList.contains('hl')?'FF0060':'261062',after:0})],w,{fill:'F4F0FB'}))})]}));
+      out.push(para('',{after:100}));return}
+    if(el.tagName==='TABLE'){
+      const trs=[...el.querySelectorAll('tr')];
+      const n=Math.max(...trs.map(t=>t.children.length));
+      const pr=n===4?[.44,.24,.16,.16]:n===3?[.5,.25,.25]:n===2?[.7,.3]:Array(n).fill(1/n);
+      const cw=pr.map(x=>Math.floor(W*x));
+      const rows=trs.map(tr=>{
+        const cs=[...tr.children];
+        if(cs.length===1&&cs[0].colSpan>1)return new TableRow({children:[cell([para(cs[0].innerText,{bold:true,size:17,color:'391694',after:0})],W,{span:n,fill:'FBF9FF'})]});
+        const tot=tr.classList.contains('tot');
+        return new TableRow({children:cs.map((td,i)=>{
+          const hd=td.tagName==='TH';
+          const t=td.innerText.trim()||' ';
+          return cell([para(t,{align:td.classList.contains('n')?AlignmentType.RIGHT:undefined,bold:tot||hd,size:hd?16:19,color:hd?'6F667E':(td.classList.contains('neg')?'C0152F':undefined),after:0})],cw[i],{fill:tot||hd?'F4F0FB':undefined})})});
+      });
+      out.push(new Table({width:{size:cw.reduce((a,b)=>a+b,0),type:WidthType.DXA},columnWidths:cw,rows}));
+      out.push(para('',{after:100}));return}
+    if(el.tagName==='H3'){out.push(para(el.innerText.toUpperCase(),{bold:true,color:'391694',before:200,after:80}));return}
+    if(c.contains('ck')){out.push(para('☐  '+el.innerText.trim().replace(/\n+/g,' — '),{after:60}));return}
+    if(el.tagName==='P'||c.contains('note')){out.push(para(el.innerText.trim(),{size:17,color:'6F667E',after:100}));return}
+    [...el.children].forEach(walk);
+  };
+  [...root.children].forEach(walk);
+  return out;
+}
+function baixarModulo(){
+  const m=MODS.find(x=>x.id===cur),saved=SAVED||{};
+  const empresa=saved.dempresa||'',cnpj=saved.dcnpj||'',cid=saved.dcidade||'',rh=saved.dresp||'Nome do RH',rhc=(saved.drhcargo||'Recursos Humanos')+(empresa?' · '+empresa:'');
+  const colab=$('cnome')?val('cnome').trim():'';
+  const dataL=new Date().toLocaleDateString('pt-BR',{day:'numeric',month:'long',year:'numeric'});
+  const arq=nomeArq(m.t+(colab?' - '+colab:''));
+  if(typeof docx==='undefined'){
+    const cl=$('out').cloneNode(true);cl.querySelectorAll('.actions').forEach(x=>x.remove());
+    const h=`<html><head><meta charset="utf-8"><style>body{font-family:Arial;font-size:10pt}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ccc;padding:4px;text-align:left}.kpis{display:none}</style></head><body>${BRAND.logo?`<p align="center"><img src="${BRAND.logo}" width="${Math.round(BRAND.w/3)}"></p>`:''}<h2 align="center">${esc(m.t)}</h2><p align="center">${esc(empresa)} ${esc(cnpj)}<br>${esc(colab?'Colaborador: '+colab:'')}</p>${cl.innerHTML}<p><br><br>_______________________<br>${esc(rh)}<br>${esc(rhc)}</p></body></html>`;
+    return baixar(new Blob(['\ufeff',h],{type:'application/msword'}),arq+'.doc');
+  }
+  const {Document,Packer,Paragraph,TextRun,ImageRun,AlignmentType,BorderStyle}=docx;
+  const T=(t,o={})=>new Paragraph({alignment:o.align,spacing:{after:o.after===undefined?60:o.after,before:o.before||0},border:o.border,children:[new TextRun({text:t,font:'Arial',size:o.size||20,bold:o.bold,color:o.color})]});
+  const ch=[];
+  const lb=logoBytes();
+  if(lb)ch.push(new Paragraph({alignment:AlignmentType.CENTER,spacing:{after:100},children:[new ImageRun({data:lb.u,type:'png',transformation:{width:lb.ww,height:lb.hh}})]}));
+  if(empresa)ch.push(T(empresa+(cnpj?'  ·  CNPJ '+cnpj:''),{align:AlignmentType.CENTER,size:18,color:'6F667E'}));
+  ch.push(T(m.t.toUpperCase(),{align:AlignmentType.CENTER,size:30,bold:true,color:'261062',before:120,after:60,border:{bottom:{style:BorderStyle.SINGLE,size:12,color:'391694',space:8}}}));
+  ch.push(T((cid?cid+', ':'')+dataL,{align:AlignmentType.CENTER,size:18,color:'6F667E',before:60,after:colab?20:200}));
+  if(colab)ch.push(T('Colaborador: '+colab,{align:AlignmentType.CENTER,size:20,bold:true,after:200}));
+  domParaDocx($('out')).forEach(x=>ch.push(x));
+  ch.push(T('',{after:500}));
+  ch.push(T('_______________________________________',{before:400,after:20}));
+  ch.push(T(rh,{bold:true,after:0}));
+  ch.push(T(rhc,{size:18,color:'6F667E'}));
+  const doc=new Document({sections:[{properties:{page:{margin:{top:1134,bottom:1134,left:1304,right:1304}}},children:ch}]});
+  Packer.toBlob(doc).then(b=>baixar(b,arq+'.docx')).catch(e=>alert('Erro ao gerar o Word: '+e.message));
+}
 function baixar(blob,nome){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
 function baixarWord(){
   if(!CURDOC)return;
@@ -727,6 +813,12 @@ function runChk(){
   $('out').innerHTML=`<div class="card"><h3>${titulo}</h3>${itens.map((i,n)=>`<label class="ck" id="ck${n}" style="margin:0"><input type="checkbox" onchange="this.parentNode.classList.toggle('done',this.checked)"><span>${i[0]}${i[1]?`<small>${i[1]}</small>`:''}</span></label>`).join('')}</div>${actions()}`;
 }
 
+/* ═════════ MÓDULO: Identidade ═════════ */
+function formIde(){return identFields()+`<p class="note">Estes dados valem para todos os documentos Word: logo no topo, empresa no cabeçalho e assinatura do RH no rodapé. Ficam salvos só neste navegador.</p>`}
+function runIde(){saveIdent();logoBox();
+  $('out').innerHTML=`<div class="card"><h3>Prévia do cabeçalho</h3><div class="doc"><div class="hd">${BRAND.logo?`<img src="${BRAND.logo}" alt="">`:''}<h2>${esc(val('dempresa')||'Nome da empresa')}</h2></div>
+  <div class="body">${esc((val('dcnpj')?'CNPJ '+val('dcnpj')+'\n':'')+(val('dcidade')||'Cidade / UF'))}\n\n\n_______________________________________\n${esc(val('dresp')||'Nome do RH')}\n${esc((val('drhcargo')||'Recursos Humanos')+' · '+(val('dempresa')||'Empresa'))}</div></div></div>`}
+
 /* ═════════ MÓDULO: Parâmetros ═════════ */
 function formPar(){return `<label for="pjson">Tabelas e parâmetros (JSON)</label><textarea id="pjson" style="min-height:420px;font:12px monospace">${esc(JSON.stringify(P,null,1))}</textarea>
 <div class="actions"><button class="btn" onclick="salvarPar()">Salvar</button><button class="btn sec" onclick="restaurarPar()">Restaurar padrão</button></div>`}
@@ -758,6 +850,7 @@ const MODS=[
   {id:'cus',t:'Custo do colaborador',s:'Quanto cada contratação custa de verdade, com encargos e provisões.',f:formCus,r:runCus},
   {id:'rea',t:'Reajuste / dissídio',s:'Simule o impacto na folha de um reajuste coletivo ou individual.',f:formRea,r:runRea},
   {g:'Sistema'},
+  {id:'ide',t:'Logo e assinatura',s:'Identidade da empresa usada no cabeçalho e na assinatura de todos os documentos Word.',f:formIde,r:runIde},
   {id:'par',t:'Parâmetros',s:'Tabelas de INSS, IRRF e salário mínimo usadas nos cálculos.',f:formPar,r:runPar}
 ];
 let cur=null;
@@ -767,6 +860,7 @@ function show(id){
   $('ttl').textContent=m.t;$('sub').textContent=m.s;
   $('view').innerHTML=`<div class="grid"><div class="card form" id="frm">${m.f()}</div><div id="out"></div></div>`;
   const run=()=>{try{m.r()}catch(e){$('out').innerHTML=al('e','Erro no cálculo: '+esc(e.message))}};
+  window.RUN=run;
   $('frm').addEventListener('input',run);$('frm').addEventListener('change',run);
   run();
   document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.id===id));
