@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Calculadoras RH — Instituto da Liderança</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --magenta:#FF0060;--purple:#391694;--purple-dark:#261062;--violet:#4D1DBF;--turq:#00D0C9;
+  --text:#24153E;--muted:#6F667E;--bg:#FBF9FF;--soft:#F4F0FB;--white:#fff;--border:rgba(57,22,148,.13);
+  --ok:#168D53;--warn:#B45309;--err:#C0152F;--r:12px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex}
+aside{width:250px;background:linear-gradient(160deg,#261062,#391694 70%,#4D1DBF);color:#fff;padding:20px 14px;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0}
+aside .brand{display:flex;align-items:center;gap:10px;padding:0 6px 16px;border-bottom:1px solid rgba(255,255,255,.15);margin-bottom:12px}
+aside .brand img{height:34px}
+aside .brand b{font-family:'Cormorant Garamond',serif;font-size:19px;line-height:1.1}
+aside .grp{font-size:10px;letter-spacing:.12em;text-transform:uppercase;opacity:.55;padding:12px 8px 4px}
+aside button{display:block;width:100%;text-align:left;background:none;border:0;color:#fff;font:500 13.5px 'DM Sans';padding:9px 10px;border-radius:8px;cursor:pointer;opacity:.85}
+aside button:hover{background:rgba(255,255,255,.1);opacity:1}
+aside button.on{background:var(--magenta);opacity:1;font-weight:600}
+main{flex:1;padding:28px 32px;min-width:0}
+h1{font-family:'Cormorant Garamond',serif;font-size:32px;color:var(--purple-dark);margin-bottom:4px}
+.sub{color:var(--muted);font-size:14px;margin-bottom:20px;max-width:760px}
+.grid{display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:20px;align-items:start}
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:18px}
+.card h3{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--purple);margin:14px 0 8px}
+.card h3:first-child{margin-top:0}
+label{display:block;font-size:12.5px;font-weight:600;margin:10px 0 4px;color:var(--text)}
+label small{font-weight:400;color:var(--muted)}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:8px;font:14px 'DM Sans';background:#fff;color:var(--text)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--violet);outline-offset:-1px}
+textarea{min-height:110px;resize:vertical}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chk{display:flex;gap:8px;align-items:center;margin-top:10px;font-size:13px;font-weight:500}
+.chk input{width:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--border)}
+td{padding:7px 8px;border-bottom:1px solid var(--soft);vertical-align:top}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.ref{color:var(--muted);font-size:12px}
+tr.tot td{font-weight:700;border-top:2px solid var(--purple);border-bottom:0;background:var(--soft)}
+tr.sec td{font-weight:700;color:var(--purple);background:var(--bg);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.neg{color:var(--err)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--soft);border-radius:10px;padding:12px}
+.kpi span{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.kpi b{font-size:20px;color:var(--purple-dark)}
+.kpi.hl{background:var(--purple-dark);color:#fff}.kpi.hl span{color:rgba(255,255,255,.7)}.kpi.hl b{color:#fff}
+.note{font-size:12.5px;color:var(--muted);margin-top:10px;line-height:1.5}
+.alert{border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:8px;border-left:4px solid}
+.alert.w{background:#FFF7ED;border-color:var(--warn);color:#7C2D12}
+.alert.e{background:#FEF2F2;border-color:var(--err);color:#7F1D1D}
+.alert.i{background:#F0FDFA;border-color:var(--turq);color:#134E4A}
+.actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.btn{background:var(--purple);color:#fff;border:0;border-radius:8px;padding:9px 16px;font:600 13px 'DM Sans';cursor:pointer}
+.btn.sec{background:var(--soft);color:var(--purple)}
+.btn:hover{filter:brightness(1.1)}
+.doc{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:36px 44px;font:14.5px/1.7 Georgia,serif;white-space:pre-wrap;color:#111}
+.ck{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--soft);font-size:14px}
+.ck input{width:auto;margin-top:3px}
+.ck.done span{text-decoration:line-through;opacity:.5}
+.ck small{display:block;color:var(--muted);font-size:12px}
+.foot{margin-top:28px;font-size:12px;color:var(--muted);max-width:760px}
+@media(max-width:900px){
+  body{flex-direction:column}
+  aside{width:100%;height:auto;position:static;display:flex;flex-wrap:wrap;gap:4px;padding:12px}
+  aside .brand,aside .grp{width:100%}
+  aside button{width:auto}
+  main{padding:18px 16px}
+  .grid{grid-template-columns:1fr}
+  .doc{padding:20px}
+}
+@media print{
+  aside,.form,.actions,.sub,h1,.foot{display:none!important}
+  body{display:block;background:#fff}
+  main{padding:0}
+  .grid{display:block}
+  .card,.doc{border:0;padding:0}
+}
+</style>
+</head>
+<body>
+<aside id="nav"></aside>
+<main>
+  <h1 id="ttl"></h1>
+  <p class="sub" id="sub"></p>
+  <div id="view"></div>
+  <p class="foot">Ferramenta de apoio ao cálculo. Os valores seguem a CLT, a Lei 11.788/2008 (estágio) e as tabelas da aba Parâmetros, que devem ser conferidas a cada mudança de legislação ou convenção coletiva. Não substitui a análise da contabilidade ou do jurídico. Nenhum dado digitado sai do seu navegador.</p>
+</main>
+
+<script>
+/* ───────── utilidades ───────── */
+const $=id=>document.getElementById(id);
+const r2=v=>Math.round((v+Number.EPSILON)*100)/100;
+const brl=v=>(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const num=id=>{const e=$(id);if(!e)return 0;let s=String(e.value).trim();if(!s)return 0;if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');return parseFloat(s)||0};
+const val=id=>$(id)?$(id).value:'';
+const chk=id=>$(id)&&$(id).checked;
+const D=s=>s?new Date(s+'T00:00:00Z'):null;
+const fmtD=d=>d?String(d.getUTCDate()).padStart(2,'0')+'/'+String(d.getUTCMonth()+1).padStart(2,'0')+'/'+d.getUTCFullYear():'';
+const addDays=(d,n)=>new Date(d.getTime()+n*864e5);
+const diffDays=(a,b)=>Math.round((b-a)/864e5);
+const addMonths=(d,n)=>{const y=d.getUTCFullYear(),m=d.getUTCMonth()+n;const last=new Date(Date.UTC(y,m+1,0)).getUTCDate();return new Date(Date.UTC(y,m,Math.min(d.getUTCDate(),last)))};
+const today=()=>{const t=new Date();return new Date(Date.UTC(t.getFullYear(),t.getMonth(),t.getDate()))};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ───────── parâmetros legais (editáveis na aba Parâmetros) ───────── */
+const P_DEFAULT={
+  vigencia:'2026',
+  minimo:1621.00,
+  teto:8475.55,
+  inss:[[1621.00,0.075],[2902.84,0.09],[4354.27,0.12],[8475.55,0.14]],
+  ir:[[2428.80,0,0],[2826.65,0.075,182.16],[3751.05,0.15,394.16],[4664.68,0.225,675.49],[1e12,0.275,908.73]],
+  dep:189.59,simpl:564.80,
+  isenta:5000,redAte:7350,redA:978.62,redB:0.133145,redutor13:true,
+  patronal:{cpp:0.20,terceiros:0.058,rat:0.02}
+};
+let P=JSON.parse(JSON.stringify(P_DEFAULT));
+try{const s=localStorage.getItem('idl_rh_params');if(s)P=Object.assign({},P,JSON.parse(s))}catch(e){}
+
+function inss(base){
+  if(base<=0)return 0;let prev=0,tot=0;
+  for(const [lim,r] of P.inss){const b=Math.min(base,lim);if(b>prev)tot+=(b-prev)*r;prev=lim;if(base<=lim)break}
+  return r2(tot);
+}
+function irrf(bruto,inssV,ndep,redutor=true){
+  const f=b=>{if(b<=0)return 0;for(const [lim,a,d] of P.ir)if(b<=lim)return Math.max(0,b*a-d);return 0};
+  let imp=Math.min(f(bruto-inssV-ndep*P.dep),f(bruto-P.simpl));
+  if(redutor){
+    if(bruto<=P.isenta)imp=0;
+    else if(bruto<=P.redAte)imp=Math.max(0,imp-(P.redA-P.redB*bruto));
+  }
+  return r2(imp);
+}
+
+/* ───────── datas de vínculo ───────── */
+function anosCompletos(adm,fim){
+  let n=fim.getUTCFullYear()-adm.getUTCFullYear();
+  const a=new Date(Date.UTC(fim.getUTCFullYear(),adm.getUTCMonth(),adm.getUTCDate()));
+  if(a>fim)n--;return Math.max(0,n);
+}
+function ultimoAniv(adm,fim){
+  const y=fim.getUTCFullYear();
+  let a=new Date(Date.UTC(y,adm.getUTCMonth(),adm.getUTCDate()));
+  if(a>fim)a=new Date(Date.UTC(y-1,adm.getUTCMonth(),adm.getUTCDate()));
+  return a<adm?adm:a;
+}
+function avosPeriodo(ini,fim){
+  let m=0;
+  while(addDays(addMonths(ini,m+1),-1)<=fim&&m<12)m++;
+  if(m<12&&diffDays(addMonths(ini,m),fim)+1>=15)m++;
+  return Math.min(12,m);
+}
+function avos13(adm,fim){
+  const y=fim.getUTCFullYear();let c=0;
+  const ini=adm.getUTCFullYear()===y?adm:new Date(Date.UTC(y,0,1));
+  for(let m=0;m<=fim.getUTCMonth();m++){
+    const ms=new Date(Date.UTC(y,m,1)),me=new Date(Date.UTC(y,m+1,0));
+    const s=ms<ini?ini:ms,e=me>fim?fim:me;
+    if(e>=s&&diffDays(s,e)+1>=15)c++;
+  }
+  return c;
+}
+
+/* ───────── construtores de formulário ───────── */
+const fld=(id,l,t='text',v='',x='')=>`<label for="${id}">${l}</label><input id="${id}" type="${t}" value="${v}" ${t==='text'?'inputmode="decimal"':''} ${x}>`;
+const money=(id,l,v='')=>fld(id,l,'text',v,'placeholder="0,00"');
+const sel=(id,l,opts,s='')=>`<label for="${id}">${l}</label><select id="${id}">${opts.map(o=>`<option value="${o[0]}"${o[0]===s?' selected':''}>${o[1]}</option>`).join('')}</select>`;
+const cb=(id,l,c=false)=>`<label class="chk"><input id="${id}" type="checkbox"${c?' checked':''}>${l}</label>`;
+const al=(k,t)=>`<div class="alert ${k}">${t}</div>`;
+const kpi=(l,v,hl)=>`<div class="kpi${hl?' hl':''}"><span>${l}</span><b>${v}</b></div>`;
+function tabela(rows,cols=['Descrição','Referência','Proventos','Descontos']){
+  let h=`<table><tr><th>${cols[0]}</th><th>${cols[1]}</th><th class="n">${cols[2]}</th><th class="n">${cols[3]}</th></tr>`;
+  for(const r of rows){
+    if(r.sec){h+=`<tr class="sec"><td colspan="4">${r.sec}</td></tr>`;continue}
+    h+=`<tr${r.tot?' class="tot"':''}><td>${r.d}</td><td class="ref">${r.ref||''}</td><td class="n">${r.p!=null?brl(r.p):''}</td><td class="n neg">${r.v!=null?brl(r.v):''}</td></tr>`;
+  }
+  return h+'</table>';
+}
+const actions=(extra='')=>`<div class="actions"><button class="btn" onclick="window.print()">Imprimir / salvar PDF</button>${extra}</div>`;
+
+/* ═════════ MÓDULO: Rescisão CLT ═════════ */
+const TIPOS={
+  sjc:'Dispensa sem justa causa (demissional)',
+  jc:'Dispensa por justa causa',
+  pd:'Pedido de demissão',
+  ac:'Acordo entre as partes (art. 484-A)',
+  ri:'Rescisão indireta (art. 483)',
+  tc:'Término de contrato determinado / experiência',
+  ae:'Rescisão antecipada pelo empregador (contrato determinado)',
+  ap:'Rescisão antecipada pelo empregado (contrato determinado)',
+  fa:'Falecimento do empregado'
+};
+function formResc(){return `
+<h3>Vínculo</h3>
+${sel('tipo','Tipo de desligamento',Object.entries(TIPOS),'sjc')}
+<div class="row2">${fld('adm','Admissão','date')}${fld('des','Último dia / desligamento','date')}</div>
+<div id="boxFim" style="display:none">${fld('fimctr','Data prevista de término do contrato','date')}</div>
+${sel('aviso','Aviso prévio',[['trab','Trabalhado'],['ind','Indenizado (pago pela empresa)'],['nao','Não cumprido pelo empregado (desconto)'],['disp','Dispensado / não se aplica']],'trab')}
+<h3>Remuneração</h3>
+<div class="row2">${money('sal','Salário base (R$)')}${money('media','Média de variáveis (R$)')}</div>
+<p class="note">Média de horas extras, comissões e adicionais habituais dos últimos 12 meses. Entra no 13º, nas férias e no aviso.</p>
+${money('extraMes','Variáveis do mês da rescisão (R$)')}
+<h3>Férias, 13º e FGTS</h3>
+<div class="row2">${fld('nvenc','Períodos de férias vencidos','number','0','min="0" step="1"')}${money('d13','13º já adiantado (R$)')}</div>
+${cb('dobra','Férias vencidas fora do prazo concessivo (pagar em dobro)')}
+${money('fgtsSaldo','Saldo FGTS do extrato (R$)')}
+<p class="note">Se deixar em branco, estimamos 8% do salário × meses de contrato.</p>
+<h3>Descontos</h3>
+<div class="row2">${fld('ndep','Dependentes IR','number','0','min="0"')}${money('outDesc','Adiantamentos / outros (R$)')}</div>
+${money('indem480','Indenização art. 480 (R$)')}
+<div class="actions"><button class="btn sec" onclick="resetForm()">Limpar</button></div>`}
+
+function runResc(){
+  const t=val('tipo');
+  $('boxFim').style.display=(t==='ae'||t==='ap')?'block':'none';
+  const adm=D(val('adm')),des=D(val('des')),sal=num('sal');
+  if(!adm||!des||!sal)return $('out').innerHTML=al('i','Preencha admissão, desligamento e salário para calcular.');
+  if(des<adm)return $('out').innerHTML=al('e','A data de desligamento é anterior à admissão.');
+  const media=num('media'),rem=sal+media,aviso=val('aviso'),nd=Math.round(num('ndep'));
+  const anos=anosCompletos(adm,des),avisoDias=Math.min(90,30+3*anos);
+  const rows=[],alerts=[];let P_=0,V_=0;
+  const add=(d,ref,p,v)=>{rows.push({d,ref,p,v});if(p)P_+=p;if(v)V_+=v};
+  const comAviso=(t==='sjc'||t==='ri'||t==='ac');
+  let projDias=0,avisoVal=0;
+  if(comAviso&&aviso==='ind'){const f=t==='ac'?0.5:1;projDias=Math.round(avisoDias*f);avisoVal=r2(rem/30*avisoDias*f)}
+  const fim=addDays(des,projDias);
+
+  /* saldo de salário */
+  const ini=(adm.getUTCFullYear()===des.getUTCFullYear()&&adm.getUTCMonth()===des.getUTCMonth())?adm.getUTCDate():1;
+  const dias=Math.min(30,des.getUTCDate()-ini+1);
+  const saldo=r2(sal/30*dias),extra=num('extraMes'),trib=saldo+extra;
+  rows.push({sec:'Proventos'});
+  add('Saldo de salário',dias+' dias',saldo,null);
+  if(extra)add('Variáveis do mês','',extra,null);
+  if(avisoVal)add('Aviso prévio indenizado',(t==='ac'?Math.round(avisoDias/2)+' dias (50%)':avisoDias+' dias'),avisoVal,null);
+
+  /* 13º */
+  let v13=0,a13=0;
+  if(t!=='jc'){a13=avos13(adm,fim);v13=r2(rem/12*a13);if(v13)add('13º salário proporcional',a13+'/12',v13,null)}
+  /* férias */
+  const nv=Math.round(num('nvenc'));
+  if(nv>0){
+    const m=chk('dobra')?2:1;
+    add('Férias vencidas'+(m===2?' (em dobro)':''),nv+' período(s)',r2(rem*nv*m),null);
+    add('1/3 sobre férias vencidas','',r2(rem*nv*m/3),null);
+  }
+  if(t!=='jc'){
+    const aa=ultimoAniv(adm,fim),af=avosPeriodo(aa,fim);
+    if(af>0){const vf=r2(rem/12*af);add('Férias proporcionais',af+'/12',vf,null);add('1/3 sobre férias proporcionais','',r2(vf/3),null)}
+  }
+  /* indenização 479 */
+  if(t==='ae'){
+    const fc=D(val('fimctr'));
+    if(fc&&fc>des){const rest=diffDays(des,fc);add('Indenização art. 479 (50% do restante)',rest+' dias',r2(rem/30*rest/2),null)}
+    else alerts.push(al('w','Informe a data prevista de término do contrato para calcular a indenização do art. 479.'));
+  }
+  if(t==='ap'&&!num('indem480'))alerts.push(al('w','Rescisão antecipada pelo empregado: a empresa pode descontar indenização por prejuízos (art. 480), limitada ao que o empregado receberia se fosse dispensado. Informe no campo próprio se for aplicar.'));
+
+  /* descontos */
+  rows.push({sec:'Descontos'});
+  const iS=inss(trib);if(iS)add('INSS sobre saldo de salário','',null,iS);
+  const irS=irrf(trib,iS,nd);if(irS)add('IRRF sobre saldo de salário','',null,irS);
+  if(v13){
+    const i13=inss(v13);if(i13)add('INSS sobre 13º','',null,i13);
+    const ir13=irrf(v13,i13,nd,P.redutor13);if(ir13)add('IRRF sobre 13º (exclusivo na fonte)','',null,ir13);
+  }
+  if(t==='pd'&&aviso==='nao'){add('Aviso prévio não cumprido',30+' dias',null,r2(rem/30*30))}
+  if(num('d13'))add('13º adiantado','',null,num('d13'));
+  if(num('indem480'))add('Indenização art. 480','',null,num('indem480'));
+  if(num('outDesc'))add('Adiantamentos / outros descontos','',null,num('outDesc'));
+  const liq=r2(P_-V_);
+  rows.push({d:'Líquido a pagar ao empregado',p:liq,tot:1});
+
+  /* FGTS */
+  const baseFgts=trib+v13+avisoVal;
+  const depos=r2(baseFgts*0.08);
+  const meses=Math.max(0,(des.getUTCFullYear()-adm.getUTCFullYear())*12+des.getUTCMonth()-adm.getUTCMonth());
+  const saldoFgts=num('fgtsSaldo')||r2(sal*0.08*meses);
+  const pct=(t==='sjc'||t==='ri'||t==='ae')?0.4:(t==='ac'?0.2:0);
+  const multa=r2((saldoFgts+depos)*pct);
+
+  const prazo=addDays(des,10);
+  let prz=`<div class="alert i"><b>Prazos:</b> pagamento das verbas e entrega dos documentos até <b>${fmtD(prazo)}</b> (10 dias corridos); eSocial S-2299 até <b>${fmtD(prazo)}</b>; ASO demissional antes da homologação (dispensável se o último ASO for recente, conforme NR-7).</div>`;
+  if(t==='sjc'||t==='ri')prz+=`<div class="alert i">Seguro-desemprego: requerimento de 7 a 120 dias após a dispensa (até ${fmtD(addDays(des,120))}). Saque do FGTS liberado (100%).</div>`;
+  if(t==='ac')prz+=`<div class="alert i">Acordo 484-A: saque de 80% do FGTS; <b>sem</b> direito a seguro-desemprego.</div>`;
+  if(t==='jc')alerts.push(al('w','Justa causa: sem 13º proporcional, sem férias proporcionais, sem multa do FGTS e sem seguro-desemprego. Documente o motivo e a gradação das penalidades; o risco de reversão judicial é alto sem prova.'));
+  if(t==='pd'&&aviso==='trab')alerts.push(al('i','Pedido de demissão com aviso trabalhado: o empregado cumpre 30 dias. Não há multa do FGTS nem seguro-desemprego, e o saque do FGTS não é liberado.'));
+  if(comAviso&&aviso==='nao')alerts.push(al('w','"Não cumprido pelo empregado" só se aplica a pedido de demissão. Nos demais tipos, escolha aviso trabalhado ou indenizado.'));
+  if(projDias)alerts.push(al('i',`Aviso indenizado de ${avisoDias} dias${t==='ac'?' (50%)':''}: o 13º e as férias foram projetados até ${fmtD(fim)}.`));
+  if(!num('fgtsSaldo'))alerts.push(al('i','Multa do FGTS calculada sobre saldo estimado. Informe o saldo do extrato para o valor exato.'));
+
+  $('out').innerHTML=alerts.join('')+`
+  <div class="kpis">${kpi('Líquido ao empregado',brl(liq),1)}${kpi('Proventos',brl(P_))}${kpi('Descontos',brl(V_))}${kpi('FGTS + multa (GRRF)',brl(depos+multa))}</div>
+  <div class="card">${tabela(rows)}</div>
+  <div class="card" style="margin-top:14px"><h3>FGTS da rescisão</h3>
+    ${tabela([
+      {d:'Depósito de 8% sobre verbas rescisórias',ref:brl(baseFgts)+' × 8%',p:depos},
+      {d:'Saldo FGTS considerado',ref:num('fgtsSaldo')?'extrato':'estimado',p:saldoFgts},
+      {d:'Multa rescisória',ref:(pct*100)+'% sobre (saldo + depósito)',p:multa},
+      {d:'Total a recolher pela empresa (GRRF)',p:r2(depos+multa),tot:1}
+    ],['Item','Base','Valor',''])}
+  </div>
+  <div class="card" style="margin-top:14px"><h3>Custo total para a empresa</h3>
+    <p style="font-size:14px">Verbas brutas ${brl(P_)} + FGTS e multa ${brl(depos+multa)} = <b>${brl(P_+depos+multa)}</b>
+    <br><span class="note">Não inclui encargos patronais (INSS patronal) sobre o saldo de salário e o 13º.</span></p></div>
+  <div style="margin-top:12px">${prz}</div>${actions()}`;
+}
+
+/* ═════════ MÓDULO: Rescisão de estágio ═════════ */
+function formEst(){return `
+<h3>Contrato de estágio</h3>
+${sel('motivo','Motivo do desligamento',[['term','Término do prazo do contrato'],['conc','Conclusão / trancamento / abandono do curso'],['emp','Rescisão antecipada pela empresa'],['est','Rescisão antecipada pelo estagiário'],['inst','Rescisão por iniciativa da instituição de ensino'],['desc','Descumprimento do termo de compromisso']],'term')}
+<div class="row2">${fld('eini','Início do estágio','date')}${fld('efim','Último dia','date')}</div>
+<h3>Bolsa e benefícios</h3>
+<div class="row2">${money('bolsa','Bolsa-auxílio mensal (R$)')}${fld('bolsaIni','Bolsa paga a partir de','date')}</div>
+<p class="note">Deixe a data vazia se a bolsa vale desde o início do estágio.</p>
+<div class="row2">${money('benVal','Benefício mensal, ex.: VR/VA (R$)')}${fld('benIni','Benefício a partir de','date')}</div>
+<p class="note">Para benefício liberado depois de uma carência (ex.: 3 meses), informe a data de início. O valor proporcional do último mês entra no acerto.</p>
+<h3>Recesso e auxílios</h3>
+${fld('recGoz','Dias de recesso já gozados no período atual','number','0','min="0" step="0.5"')}
+<div class="row2">${money('atVal','Auxílio-transporte a acertar (R$)')}${money('estOut','Outros descontos (R$)')}</div>
+${cb('pcd','Estagiário com deficiência (prazo máximo de 2 anos não se aplica)')}
+<div class="actions"><button class="btn sec" onclick="resetForm()">Limpar</button></div>`}
+
+function runEst(){
+  const ini=D(val('eini')),fim=D(val('efim')),bolsa=num('bolsa');
+  if(!ini||!fim||!bolsa)return $('out').innerHTML=al('i','Preencha início, último dia e bolsa-auxílio.');
+  if(fim<ini)return $('out').innerHTML=al('e','O último dia é anterior ao início.');
+  const rows=[],al_=[];let P_=0,V_=0;
+  const add=(d,ref,p,v)=>{rows.push({d,ref,p,v});if(p)P_+=p;if(v)V_+=v};
+  const diasMes=(inicio)=>{
+    const mi=new Date(Date.UTC(fim.getUTCFullYear(),fim.getUTCMonth(),1));
+    const s0=[ini,inicio,mi].filter(Boolean).reduce((a,b)=>a>b?a:b);
+    if(s0>fim)return 0;
+    return Math.min(30,diffDays(s0,fim)+1);
+  };
+  const bIni=D(val('bolsaIni'));
+  const dias=diasMes(bIni);
+  if(bIni&&bIni>ini)al_.push(al('i',`Bolsa paga a partir de ${fmtD(bIni)} (${Math.max(0,Math.floor(diffDays(ini,bIni)/30))} meses após o início). O saldo considera apenas dias a partir dessa data.`));
+  if(bIni&&bIni>fim)al_.push(al('w','A data de início da bolsa é posterior ao último dia: não há saldo de bolsa a pagar.'));
+  add('Saldo da bolsa-auxílio',dias+' dias'+(bIni&&bIni>ini?' (desde '+fmtD(bIni)+')':''),r2(bolsa/30*dias),null);
+  const benV=num('benVal'),benI=D(val('benIni'));
+  if(benV){
+    const bd=diasMes(benI);
+    if(bd>0)add('Benefício proporcional'+(benI?' (desde '+fmtD(benI)+')':''),bd+' dias',r2(benV/30*bd),null);
+    else al_.push(al('w','O benefício começaria em '+fmtD(benI)+', depois do último dia do estágio: nada a pagar.'));
+  }
+  const aa=ultimoAniv(ini,fim),af=avosPeriodo(aa,fim);
+  const anos=anosCompletos(ini,fim);
+  const devidos=r2(af*2.5),goz=num('recGoz'),saldoRec=Math.max(0,r2(devidos-goz));
+  if(saldoRec>0)add('Recesso remunerado proporcional',af+'/12 → '+saldoRec.toString().replace('.',',')+' dias',r2(bolsa/30*saldoRec),null);
+  if(num('atVal'))add('Auxílio-transporte',"",num('atVal'),null);
+  if(num('estOut'))add('Descontos',"",null,num('estOut'));
+  rows.push({d:'Total a pagar ao estagiário',p:r2(P_-V_),tot:1});
+  const tot=diffDays(ini,fim)+1;
+  if(tot>730&&!chk('pcd'))al_.push(al('e',`Estágio com ${tot} dias: a Lei 11.788 limita a 2 anos na mesma empresa (exceto estagiário com deficiência). Há risco de reconhecimento de vínculo empregatício.`));
+  if(anos>=1)al_.push(al('w','Estágio com 1 ano ou mais: o recesso deve ser gozado durante o contrato. Confira se os períodos anteriores foram concedidos ou pagos.'));
+  const prazo=addDays(fim,10);
+  $('out').innerHTML=al_.join('')+`
+  <div class="kpis">${kpi('Total ao estagiário',brl(P_-V_),1)}${kpi('Recesso devido',(saldoRec).toString().replace('.',',')+' dias')}${kpi('Tempo de estágio',Math.floor(tot/30)+' meses')}</div>
+  <div class="card">${tabela(rows)}</div>
+  <div class="alert i" style="margin-top:12px"><b>O estágio não gera:</b> 13º salário, férias + 1/3, aviso prévio, FGTS, multa de 40% ou seguro-desemprego, e não tem INSS ou IRRF sobre a bolsa abaixo dos limites legais (confira a tabela do IRRF).</div>
+  <div class="alert i"><b>Obrigações ao desligar:</b> entregar o <b>Termo de Realização do Estágio</b> (com resumo das atividades e avaliação de desempenho), comunicar a instituição de ensino, cancelar o seguro de acidentes pessoais e enviar o evento <b>eSocial S-2399</b>. Pagar o recesso proporcional em dinheiro até ${fmtD(prazo)}.</div>
+  ${actions()}`;
+}
+
+/* ═════════ MÓDULO: Férias ═════════ */
+function formFer(){return `
+${money('fsal','Salário base (R$)')}${money('fmed','Média de variáveis (R$)')}
+<div class="row2">${fld('fader','Início do período aquisitivo','date')}${fld('fgozo','Início do gozo','date')}</div>
+<div class="row2">${fld('fdias','Dias de gozo','number','30','min="5" max="30"')}${fld('ffalt','Faltas injustificadas no período','number','0','min="0"')}</div>
+${cb('fabono','Vender 1/3 das férias (abono pecuniário)')}
+${fld('fdep','Dependentes IR','number','0','min="0"')}`}
+function runFer(){
+  const sal=num('fsal');if(!sal)return $('out').innerHTML=al('i','Informe o salário.');
+  const rem=sal+num('fmed'),falt=num('ffalt');
+  const direito=falt<=5?30:falt<=14?24:falt<=23?18:falt<=32?12:0;
+  let dias=Math.min(num('fdias')||30,direito);const abonoDias=chk('fabono')?Math.floor(direito/3):0;
+  if(chk('fabono')&&dias>direito-abonoDias)dias=direito-abonoDias;
+  if(!direito)return $('out').innerHTML=al('e','Mais de 32 faltas injustificadas: perda do direito às férias no período.');
+  const valor=r2(rem/30*dias),terco=r2(valor/3);
+  const abono=r2(rem/30*abonoDias),abTerco=r2(abono/3);
+  const trib=valor+terco,iN=inss(trib),irN=irrf(trib,iN,Math.round(num('fdep')));
+  const liq=r2(valor+terco+abono+abTerco-iN-irN);
+  const ini=D(val('fader'));let prazos='',alerts=[];
+  const gozo=D(val('fgozo'));
+  if(ini){
+    const fimAq=addDays(addMonths(ini,12),-1),limite=addDays(addMonths(ini,24),-1);
+    prazos=`<div class="alert i"><b>Período aquisitivo:</b> ${fmtD(ini)} a ${fmtD(fimAq)}. <b>Prazo para conceder:</b> até ${fmtD(limite)} (após isso as férias são pagas em dobro).</div>`;
+    if(gozo){
+      prazos+=`<div class="alert i"><b>Aviso ao empregado:</b> até ${fmtD(addDays(gozo,-30))} (30 dias antes). <b>Pagamento:</b> até ${fmtD(addDays(gozo,-2))} (2 dias antes do início).</div>`;
+      if(addDays(gozo,dias-1)>limite)alerts.push(al('e','O gozo termina depois do prazo concessivo: risco de pagamento em dobro.'));
+      const dow=gozo.getUTCDay();if(dow===5||dow===6||dow===0||dow===4)alerts.push(al('w','Início do gozo em dia próximo ao repouso: a CLT veda início nos 2 dias que antecedem feriado ou DSR (art. 134 §3º).'));
+    }
+  }
+  if(dias<14&&dias>0)alerts.push(al('w','Fracionamento: um dos períodos deve ter no mínimo 14 dias corridos e os demais no mínimo 5 dias, em até 3 períodos.'));
+  $('out').innerHTML=alerts.join('')+`
+  <div class="kpis">${kpi('Líquido a receber',brl(liq),1)}${kpi('Dias de direito',direito+' dias')}${kpi('Dias de gozo',dias+' dias')}${kpi('Abono',abonoDias+' dias')}</div>
+  <div class="card">${tabela([
+    {sec:'Proventos'},
+    {d:'Férias',ref:dias+' dias',p:valor},
+    {d:'1/3 constitucional',p:terco},
+    ...(abonoDias?[{d:'Abono pecuniário',ref:abonoDias+' dias',p:abono},{d:'1/3 sobre abono',p:abTerco}]:[]),
+    {sec:'Descontos'},
+    {d:'INSS',v:iN},{d:'IRRF',v:irN},
+    {d:'Líquido',p:liq,tot:1}])}
+  <p class="note">O abono pecuniário e o 1/3 sobre ele são isentos de INSS e IRRF. O 13º pode ser adiantado junto com as férias se o empregado pedir em janeiro.</p></div>
+  <div style="margin-top:12px">${prazos}</div>${actions()}`;
+}
+
+/* ═════════ MÓDULO: 13º ═════════ */
+function formDec(){return `
+${money('dsal','Salário base (R$)')}${money('dmed','Média de variáveis (R$)')}
+<div class="row2">${fld('dadm','Admissão','date')}${fld('dano','Ano de referência','number',new Date().getFullYear(),'min="2000"')}</div>
+${fld('dav','Avos (deixe vazio para calcular)','number','','min="0" max="12"')}
+<p class="note">Mês com 15 dias ou mais trabalhados conta como 1 avo. Faltas injustificadas que levem o mês abaixo de 15 dias de trabalho também descontam.</p>
+${fld('ddep','Dependentes IR','number','0','min="0"')}${money('dadi','1ª parcela já paga (R$)')}`}
+function runDec(){
+  const sal=num('dsal');if(!sal)return $('out').innerHTML=al('i','Informe o salário.');
+  const rem=sal+num('dmed'),ano=parseInt(val('dano'))||new Date().getFullYear();
+  let av=val('dav')!==''?Math.min(12,Math.max(0,Math.round(num('dav')))):12;
+  const adm=D(val('dadm'));
+  if(val('dav')===''&&adm)av=avos13(adm,new Date(Date.UTC(ano,11,31)));
+  const total=r2(rem/12*av),p1=r2(total/2),i=inss(total),ir=irrf(total,i,Math.round(num('ddep')),P.redutor13);
+  const adi=num('dadi')||p1,p2=r2(total-adi-i-ir);
+  $('out').innerHTML=`
+  <div class="kpis">${kpi('13º bruto',brl(total),1)}${kpi('Avos',av+'/12')}${kpi('1ª parcela (50%)',brl(p1))}${kpi('2ª parcela líquida',brl(p2))}</div>
+  <div class="card">${tabela([
+    {sec:'1ª parcela · até 30/11'},{d:'Adiantamento (50% do bruto, sem descontos)',p:p1},
+    {sec:'2ª parcela · até 20/12'},
+    {d:'13º integral proporcional',ref:av+'/12',p:total},
+    {d:'(–) 1ª parcela paga',v:adi},{d:'(–) INSS',v:i},{d:'(–) IRRF (exclusivo na fonte)',v:ir},
+    {d:'2ª parcela líquida',p:p2,tot:1}])}
+  <p class="note">INSS e IRRF incidem sobre o valor total do 13º, na 2ª parcela, calculados separadamente do salário do mês.</p></div>${actions()}`;
+}
+
+/* ═════════ MÓDULO: Folha simplificada ═════════ */
+function formFol(){return `
+<h3>Proventos</h3>
+${money('fosal','Salário base (R$)')}
+<div class="row2">${money('foHE','Horas extras + DSR (R$)')}${money('foAd','Adicionais (R$)')}</div>
+${money('foCom','Comissões / outros (R$)')}
+<h3>Descontos</h3>
+<div class="row2">${fld('fodep','Dependentes IR','number','0','min="0"')}${money('foPen','Pensão alimentícia (R$)')}</div>
+${cb('foVT','Optou por vale-transporte (desconto de 6% do salário)',true)}
+${money('foVTc','Custo mensal do VT (R$)')}
+<div class="row2">${money('foVR','Coparticipação VR/VA (R$)')}${money('foPS','Plano de saúde (R$)')}</div>
+${money('foOut','Outros descontos (R$)')}`}
+function runFol(){
+  const sal=num('fosal');if(!sal)return $('out').innerHTML=al('i','Informe o salário.');
+  const bruto=sal+num('foHE')+num('foAd')+num('foCom');
+  const iN=inss(bruto),irN=irrf(bruto,iN,Math.round(num('fodep')));
+  let vt=0;if(chk('foVT')){vt=r2(sal*0.06);if(num('foVTc'))vt=Math.min(vt,num('foVTc'))}
+  const desc=iN+irN+vt+num('foPen')+num('foVR')+num('foPS')+num('foOut'),liq=r2(bruto-desc);
+  $('out').innerHTML=`
+  <div class="kpis">${kpi('Salário líquido',brl(liq),1)}${kpi('Bruto',brl(bruto))}${kpi('Descontos',brl(desc))}${kpi('FGTS (empresa)',brl(bruto*0.08))}</div>
+  <div class="card">${tabela([
+    {sec:'Proventos'},{d:'Salário base',p:sal},
+    ...(num('foHE')?[{d:'Horas extras + DSR',p:num('foHE')}]:[]),
+    ...(num('foAd')?[{d:'Adicionais',p:num('foAd')}]:[]),
+    ...(num('foCom')?[{d:'Comissões / outros',p:num('foCom')}]:[]),
+    {sec:'Descontos'},{d:'INSS',ref:'progressivo',v:iN},{d:'IRRF',v:irN},
+    ...(vt?[{d:'Vale-transporte',ref:'6% ou custo',v:vt}]:[]),
+    ...(num('foPen')?[{d:'Pensão alimentícia',v:num('foPen')}]:[]),
+    ...(num('foVR')?[{d:'Coparticipação VR/VA',v:num('foVR')}]:[]),
+    ...(num('foPS')?[{d:'Plano de saúde',v:num('foPS')}]:[]),
+    ...(num('foOut')?[{d:'Outros',v:num('foOut')}]:[]),
+    {d:'Líquido',p:liq,tot:1}])}</div>${actions()}`;
+}
+
+/* ═════════ MÓDULO: Custo do colaborador ═════════ */
+function formCus(){return `
+${money('cusal','Salário base (R$)')}
+<h3>Benefícios mensais pagos pela empresa</h3>
+<div class="row2">${money('cuVT','Vale-transporte (líquido de 6%)')}${money('cuVR','VR/VA')}</div>
+<div class="row2">${money('cuPS','Plano de saúde')}${money('cuOut','Outros benefícios')}</div>
+<h3>Encargos</h3>
+${sel('cureg','Regime tributário da empresa',[['pr','Lucro Presumido / Real (INSS patronal + terceiros)'],['sn','Simples Nacional (sem INSS patronal)']],'pr')}
+<div class="row2">${fld('curat','RAT × FAP (%)','text','2','inputmode="decimal"')}${fld('cuter','Terceiros / Sistema S (%)','text','5,8','inputmode="decimal"')}</div>`}
+function runCus(){
+  const s=num('cusal');if(!s)return $('out').innerHTML=al('i','Informe o salário.');
+  const pr=val('cureg')==='pr',rat=num('curat')/100,ter=num('cuter')/100;
+  const ben=num('cuVT')+num('cuVR')+num('cuPS')+num('cuOut');
+  const enc=pr?s*(0.20+rat+ter):0;
+  const fgts=s*0.08,d13=s/12,fer=s/12*4/3,multa=s*0.08*0.4,encProv=pr?(d13+fer)*(0.20+rat+ter):0;
+  const aviso=s/12; /* provisão de aviso indenizado ≈ 1/12 */
+  const custo=s+ben+enc+fgts+d13+fer+multa+encProv+aviso;
+  $('out').innerHTML=`
+  <div class="kpis">${kpi('Custo mensal total',brl(custo),1)}${kpi('Custo anual',brl(custo*12))}${kpi('Multiplicador','×'+(custo/s).toFixed(2).replace('.',','))}</div>
+  <div class="card">${tabela([
+    {sec:'Mensal'},{d:'Salário',p:s},{d:'Benefícios',p:ben},
+    {d:'Encargos patronais (INSS + RAT + terceiros)',ref:pr?((0.2+rat+ter)*100).toFixed(1).replace('.',',')+'%':'Simples',p:enc},
+    {d:'FGTS (8%)',p:fgts},
+    {sec:'Provisões mensais'},
+    {d:'13º salário (1/12)',p:d13},{d:'Férias + 1/3 (1/12 × 4/3)',p:fer},
+    {d:'Encargos sobre 13º e férias',p:encProv},
+    {d:'Multa FGTS de 40% (provisão)',p:multa},{d:'Aviso prévio indenizado (provisão 1/12)',p:aviso},
+    {d:'Custo mensal total',p:custo,tot:1}],['Item','Referência','Valor',''])}
+  <p class="note">O multiplicador ajuda a precificar vagas: o custo real costuma ficar entre 1,6 e 2,0 vezes o salário. Não inclui treinamento, equipamento nem custo de recrutamento. No Simples, alguns anexos (IV) ainda pagam INSS patronal, e as provisões são estimativas.</p></div>${actions()}`;
+}
+
+/* ═════════ MÓDULO: Horas extras e adicionais ═════════ */
+function formHe(){return `
+${money('hsal','Salário base (R$)')}
+<div class="row2">${fld('hdiv','Divisor mensal (horas)','number','220','min="1"')}${fld('hdu','Dias úteis no mês','number','22','min="1"')}</div>
+${fld('hdsr','Domingos + feriados no mês','number','5','min="0"')}
+<h3>Horas</h3>
+<div class="row2">${fld('h50','Horas extras 50%','number','0','min="0" step="0.5"')}${fld('h100','Horas extras 100%','number','0','min="0" step="0.5"')}</div>
+${fld('hnot','Horas noturnas trabalhadas (22h às 5h)','number','0','min="0" step="0.5"')}
+<h3>Adicionais sobre o salário</h3>
+${sel('hins','Insalubridade (sobre salário mínimo)',[['0','Não'],['0.1','Grau mínimo · 10%'],['0.2','Grau médio · 20%'],['0.4','Grau máximo · 40%']],'0')}
+${cb('hper','Periculosidade (30% sobre o salário)')}`}
+function runHe(){
+  const s=num('hsal');if(!s)return $('out').innerHTML=al('i','Informe o salário.');
+  const per=chk('hper')?s*0.3:0,ins=parseFloat(val('hins'))*P.minimo;
+  const hv=(s+per)/(num('hdiv')||220);
+  const he50=num('h50')*hv*1.5,he100=num('h100')*hv*2;
+  const hn=num('hnot')*(60/52.5),not=hn*hv*0.2;
+  const he=he50+he100,dsr=(he/(num('hdu')||22))*num('hdsr');
+  const tot=he+dsr+not+per+ins;
+  const refl=(he+dsr+not)*(1/12+1/12*4/3+0.08);
+  $('out').innerHTML=`
+  <div class="kpis">${kpi('Total a pagar',brl(tot),1)}${kpi('Valor da hora normal',brl(hv))}${kpi('Reflexos estimados',brl(refl))}</div>
+  <div class="card">${tabela([
+    {d:'Horas extras 50%',ref:num('h50')+'h × '+brl(hv*1.5),p:he50},
+    {d:'Horas extras 100%',ref:num('h100')+'h × '+brl(hv*2),p:he100},
+    {d:'DSR sobre horas extras',ref:'(HE ÷ dias úteis) × DSR',p:dsr},
+    {d:'Adicional noturno 20%',ref:num('hnot')+'h = '+hn.toFixed(2).replace('.',',')+'h computadas',p:not},
+    {d:'Periculosidade 30%',p:per},
+    {d:'Insalubridade',ref:'sobre o salário mínimo de '+brl(P.minimo),p:ins},
+    {d:'Total',p:tot,tot:1}],['Descrição','Cálculo','Valor',''])}
+  <p class="note">Hora noturna reduzida: 52min30s equivalem a 1 hora. Reflexos estimados em 13º, férias + 1/3 e FGTS sobre horas extras, DSR e adicional noturno. Insalubridade e periculosidade não são cumuláveis; o empregado opta pelo mais vantajoso. Convenção coletiva pode prever percentuais maiores.</p></div>${actions()}`;
+}
+
+/* ═════════ MÓDULO: Reajuste ═════════ */
+function formRea(){return `
+<label for="rlist">Colaboradores <small>(um por linha: Nome;Salário)</small></label>
+<textarea id="rlist" placeholder="Ana Souza;3500&#10;Carlos Lima;5200,50"></textarea>
+<div class="row2">${fld('rpct','Reajuste (%)','text','','inputmode="decimal" placeholder="5,5"')}${money('rpiso','Piso mínimo após reajuste (R$)')}</div>
+${fld('renc','Encargos + provisões sobre a folha (%)','text','70','inputmode="decimal"')}`}
+function runRea(){
+  const pct=num('rpct')/100,piso=num('rpiso'),enc=num('renc')/100;
+  const linhas=val('rlist').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const [n,s]=l.split(';');let x=(s||'').trim();if(x.includes(','))x=x.replace(/\./g,'').replace(',','.');return {n:(n||'').trim(),s:parseFloat(x)||0}}).filter(x=>x.s>0);
+  if(!linhas.length)return $('out').innerHTML=al('i','Cole a lista de colaboradores e informe o percentual.');
+  let a=0,b=0;
+  const rows=linhas.map(x=>{const n=Math.max(r2(x.s*(1+pct)),piso);a+=x.s;b+=n;return `<tr><td>${esc(x.n)}</td><td class="n">${brl(x.s)}</td><td class="n">${brl(n)}</td><td class="n">${brl(n-x.s)}</td></tr>`}).join('');
+  const dm=b-a;
+  const impacto=dm*12*(1+enc)+dm*(4/3)*(1+enc*0.6);
+  $('out').innerHTML=`
+  <div class="kpis">${kpi('Aumento mensal da folha',brl(dm),1)}${kpi('Folha atual',brl(a))}${kpi('Folha reajustada',brl(b))}${kpi('Impacto anual c/ encargos',brl(impacto))}</div>
+  <div class="card"><table><tr><th>Nome</th><th class="n">Atual</th><th class="n">Novo</th><th class="n">Diferença</th></tr>${rows}
+  <tr class="tot"><td>Total (${linhas.length})</td><td class="n">${brl(a)}</td><td class="n">${brl(b)}</td><td class="n">${brl(dm)}</td></tr></table>
+  <p class="note">Impacto anual = diferença mensal × 12 meses com encargos + reflexo no 13º e nas férias (+1/3). É uma estimativa para negociação; confira o retroativo e a data-base da convenção coletiva.</p></div>${actions()}`;
+}
+
+/* ═════════ MÓDULO: Documentos de desligamento ═════════ */
+const DOCS={
+  dispensa:'Comunicado de dispensa sem justa causa (aviso prévio)',
+  pedido:'Carta de pedido de demissão',
+  justa:'Comunicado de dispensa por justa causa',
+  exp:'Comunicado de término de contrato de experiência',
+  estagio:'Termo de rescisão de contrato de estágio',
+  decl:'Declaração de desligamento'
+};
+function formDoc(){return `
+${sel('doc','Documento',Object.entries(DOCS),'dispensa')}
+<h3>Empresa</h3>
+${fld('dempresa','Razão social')}${fld('dcnpj','CNPJ')}
+<div class="row2">${fld('dcidade','Cidade / UF')}${fld('dresp','Responsável (assinatura)')}</div>
+<h3>Colaborador</h3>
+${fld('dnome','Nome completo')}
+<div class="row2">${fld('dcpf','CPF')}${fld('dcargo','Cargo')}</div>
+<div class="row2">${fld('ddata','Data do documento','date',new Date().toISOString().slice(0,10))}${fld('ddes','Data do desligamento','date')}</div>
+<h3>Detalhes</h3>
+${sel('daviso','Aviso prévio',[['trab','Trabalhado'],['ind','Indenizado']],'trab')}
+${sel('dred','Redução da jornada no aviso trabalhado',[['2h','2 horas diárias'],['7d','7 dias corridos no final']],'2h')}
+${sel('djc','Fundamento da justa causa (art. 482 CLT)',[['a','a) ato de improbidade'],['b','b) incontinência de conduta ou mau procedimento'],['c','c) negociação habitual sem permissão / concorrência'],['d','d) condenação criminal transitada em julgado'],['e','e) desídia no desempenho das funções'],['f','f) embriaguez habitual ou em serviço'],['g','g) violação de segredo da empresa'],['h','h) ato de indisciplina ou insubordinação'],['i','i) abandono de emprego'],['j','j) ato lesivo da honra ou boa fama'],['k','k) ofensas físicas'],['l','l) prática constante de jogos de azar']],'e')}
+<label for="dfato">Descrição objetiva do fato (justa causa)</label><textarea id="dfato"></textarea>
+${fld('dinst','Instituição de ensino (estágio)')}
+${sel('dmot','Motivo (estágio)',[['term','término do prazo'],['emp','iniciativa da empresa'],['est','iniciativa do estagiário'],['conc','conclusão do curso']],'term')}`}
+function runDoc(){
+  const g=id=>val(id).trim();
+  const emp=g('dempresa')||'[EMPRESA]',cnpj=g('dcnpj')||'[CNPJ]',cid=g('dcidade')||'[CIDADE/UF]',resp=g('dresp')||'[RESPONSÁVEL]';
+  const nome=g('dnome')||'[NOME DO COLABORADOR]',cpf=g('dcpf')||'[CPF]',cargo=g('dcargo')||'[CARGO]';
+  const dd=D(val('ddata')),des=D(val('ddes'));
+  const dt=dd?fmtD(dd):'___/___/____',ds=des?fmtD(des):'___/___/____';
+  const longo=dd?dd.toLocaleDateString('pt-BR',{timeZone:'UTC',day:'numeric',month:'long',year:'numeric'}):'___ de ________ de ____';
+  const tipo=val('doc');let txt='';
+  const assin=(n,c)=>`\n\n\n_______________________________________\n${n}\n${c}`;
+  const cienci=`\n\nCiente em ____/____/______\n\n_______________________________________\n${nome}\nCPF ${cpf}`;
+  if(tipo==='dispensa'){
+    const av=val('daviso')==='trab'
+      ?`O aviso prévio será trabalhado, com início em ${dt} e término em ${ds}. Durante o período, sua jornada será reduzida em ${val('dred')==='2h'?'2 (duas) horas diárias, sem prejuízo do salário integral (art. 488 da CLT)':'7 (sete) dias corridos ao final do aviso, sem prejuízo do salário integral (art. 488, parágrafo único, da CLT)'}.`
+      :`O aviso prévio será indenizado, com desligamento em ${ds}, sendo o valor correspondente pago junto às verbas rescisórias.`;
+    txt=`${cid}, ${longo}.\n\nA\n${nome}\nCPF ${cpf} — Cargo: ${cargo}\n\nAssunto: COMUNICADO DE DISPENSA SEM JUSTA CAUSA\n\nPrezado(a) ${nome},\n\nComunicamos que a ${emp}, inscrita no CNPJ ${cnpj}, decidiu rescindir seu contrato de trabalho, sem justa causa, a partir da data abaixo.\n\n${av}\n\nO pagamento das verbas rescisórias será realizado em até 10 (dez) dias corridos contados do término do contrato, e os documentos para saque do FGTS e requerimento do seguro-desemprego serão entregues na mesma data. Será agendado exame médico demissional, quando exigível.\n\nAgradecemos pelos serviços prestados.\n\nAtenciosamente,${assin(resp,emp)}${cienci}`;
+  }else if(tipo==='pedido'){
+    const av=val('daviso')==='trab'?'Cumprirei o aviso prévio de 30 (trinta) dias, com término em '+ds+'.':'Solicito a dispensa do cumprimento do aviso prévio, ciente de que a empresa poderá aceitar ou descontar o período, conforme o art. 487, §2º, da CLT.';
+    txt=`${cid}, ${longo}.\n\nÀ\n${emp}\nCNPJ ${cnpj}\nA/C: ${resp}\n\nAssunto: PEDIDO DE DEMISSÃO\n\nEu, ${nome}, CPF ${cpf}, ocupante do cargo de ${cargo}, venho por meio desta comunicar meu pedido de demissão do emprego que ocupo nesta empresa, por livre e espontânea vontade.\n\n${av}\n\nDeclaro que estou ciente de que, por se tratar de pedido de demissão, não terei direito à multa do FGTS, ao saque do saldo do FGTS nem ao seguro-desemprego.\n\nAgradeço a oportunidade e coloco-me à disposição para a passagem das atividades.\n\nAtenciosamente,${assin(nome,'CPF '+cpf)}\n\nRecebido em ____/____/______ por: ______________________ (${emp})`;
+  }else if(tipo==='justa'){
+    const art={a:'a) ato de improbidade',b:'b) incontinência de conduta ou mau procedimento',c:'c) negociação habitual sem permissão do empregador / concorrência',d:'d) condenação criminal',e:'e) desídia no desempenho das respectivas funções',f:'f) embriaguez habitual ou em serviço',g:'g) violação de segredo da empresa',h:'h) ato de indisciplina ou de insubordinação',i:'i) abandono de emprego',j:'j) ato lesivo da honra ou da boa fama',k:'k) ofensas físicas',l:'l) prática constante de jogos de azar'}[val('djc')];
+    txt=`${cid}, ${longo}.\n\nA\n${nome}\nCPF ${cpf} — Cargo: ${cargo}\n\nAssunto: COMUNICADO DE DISPENSA POR JUSTA CAUSA\n\nPrezado(a) ${nome},\n\nComunicamos que, a partir de ${ds}, seu contrato de trabalho com a ${emp}, CNPJ ${cnpj}, está rescindido por justa causa, com fundamento no art. 482, alínea "${art}", da CLT.\n\nFato que motivou a medida:\n${g('dfato')||'[Descreva de forma objetiva: data, local, conduta, testemunhas e advertências anteriores, se houver.]'}\n\nO pagamento das verbas devidas será feito em até 10 (dez) dias corridos. Será agendado o exame demissional, quando exigível.${assin(resp,emp)}\n\nRecebi uma via desta comunicação em ____/____/______.\n\n_______________________________________\n${nome}\n\nTestemunha 1: ____________________    Testemunha 2: ____________________`;
+  }else if(tipo==='exp'){
+    txt=`${cid}, ${longo}.\n\nA\n${nome}\nCPF ${cpf} — Cargo: ${cargo}\n\nAssunto: COMUNICADO DE TÉRMINO DE CONTRATO DE EXPERIÊNCIA\n\nPrezado(a) ${nome},\n\nComunicamos que seu contrato de experiência com a ${emp}, CNPJ ${cnpj}, chegará ao término em ${ds}, não sendo prorrogado nem convertido em contrato por prazo indeterminado.\n\nSerão pagos, até 10 (dez) dias corridos após o término: saldo de salário, 13º salário proporcional e férias proporcionais acrescidas de 1/3. O FGTS do período será depositado normalmente, sem a multa rescisória, por tratar-se de término de contrato por prazo determinado. Será realizado o exame médico demissional, quando exigível.\n\nAgradecemos a dedicação durante o período.\n\nAtenciosamente,${assin(resp,emp)}${cienci}`;
+  }else if(tipo==='estagio'){
+    const m={term:'o término do prazo previsto no Termo de Compromisso de Estágio',emp:'iniciativa da empresa concedente',est:'iniciativa do estagiário',conc:'a conclusão, trancamento ou abandono do curso'}[val('dmot')];
+    txt=`TERMO DE RESCISÃO DO CONTRATO DE ESTÁGIO\n\nPelo presente instrumento, a ${emp}, CNPJ ${cnpj} (CONCEDENTE), e ${nome}, CPF ${cpf} (ESTAGIÁRIO), com interveniência de ${g('dinst')||'[INSTITUIÇÃO DE ENSINO]'} (INSTITUIÇÃO DE ENSINO), resolvem rescindir o Termo de Compromisso de Estágio, com efeitos a partir de ${ds}, em razão de ${m}, nos termos da Lei nº 11.788/2008.\n\nAs partes declaram que:\n1. foi pago ao ESTAGIÁRIO o saldo da bolsa-auxílio e o recesso remunerado proporcional (art. 13, §2º), em dinheiro, quando devidos;\n2. foi entregue ao ESTAGIÁRIO o TERMO DE REALIZAÇÃO DO ESTÁGIO, com indicação resumida das atividades desenvolvidas e da avaliação de desempenho (art. 17, VII);\n3. o seguro contra acidentes pessoais cobre o estágio até a data de término;\n4. a rescisão do estágio não gera vínculo empregatício, 13º salário, férias, aviso prévio, multa de FGTS ou seguro-desemprego.\n\n${cid}, ${longo}.${assin(resp,emp+' (CONCEDENTE)')}${assin(nome,'ESTAGIÁRIO')}${assin('Responsável da instituição de ensino',g('dinst')||'INSTITUIÇÃO DE ENSINO')}`;
+  }else{
+    txt=`${cid}, ${longo}.\n\nDECLARAÇÃO\n\nDeclaramos, para os devidos fins, que ${nome}, CPF ${cpf}, exerceu o cargo de ${cargo} na ${emp}, CNPJ ${cnpj}, tendo sido desligado(a) em ${ds}.\n\nPor ser verdade, firmamos a presente.${assin(resp,emp)}`;
+  }
+  $('out').innerHTML=`<div class="doc">${esc(txt)}</div>${actions('<button class="btn sec" id="cpy">Copiar texto</button>')}`;
+  $('cpy').onclick=()=>{navigator.clipboard.writeText(txt).then(()=>{$('cpy').textContent='Copiado!'}).catch(()=>{})};
+}
+
+/* ═════════ MÓDULO: Checklist ═════════ */
+const CHK={
+  dem:['Demissional (dispensa pela empresa)',[
+    ['Definir o motivo e o tipo de desligamento','sem justa causa, justa causa ou acordo 484-A'],
+    ['Entregar o comunicado de dispensa e colher a ciência','gere o documento na aba Documentos'],
+    ['Definir aviso prévio trabalhado ou indenizado','30 dias + 3 por ano completo, até 90'],
+    ['Agendar o exame médico demissional (ASO)','dispensável se o último ASO tiver menos de 135 dias (risco 1 e 2) ou 90 dias (risco 3 e 4)'],
+    ['Conferir ponto, banco de horas, férias e adiantamentos',''],
+    ['Calcular as verbas rescisórias','aba Rescisão CLT'],
+    ['Pagar as verbas em até 10 dias corridos','por transferência bancária, com comprovante'],
+    ['Enviar o eSocial S-2299 (desligamento)','até 10 dias após o desligamento'],
+    ['Recolher o FGTS rescisório e a multa (GRRF)','40% sem justa causa, 20% no acordo'],
+    ['Entregar TRCT, chave de saque do FGTS e guias do seguro-desemprego','CD/SD, quando houver direito'],
+    ['Dar baixa na CTPS digital',''],
+    ['Entregar o PPP e demais documentos exigidos','quando houver exposição a agentes nocivos'],
+    ['Recolher crachá, equipamentos, acessos e acervo','encerrar sistemas no último dia'],
+    ['Informar a manutenção do plano de saúde','Lei 9.656, arts. 30 e 31'],
+    ['Entrevista de desligamento','alimenta o indicador de turnover'],
+    ['Arquivar a pasta do desligamento','guarde por no mínimo 5 anos após o desligamento (30 anos para FGTS não recolhido)']]],
+  ped:['Pedido de demissão',[
+    ['Receber a carta de pedido de demissão assinada','gere o modelo na aba Documentos'],
+    ['Definir o aviso: cumprido, dispensado ou descontado','o desconto vale até 30 dias de remuneração'],
+    ['Agendar o exame médico demissional (ASO)','mesma regra de dispensa do ASO recente'],
+    ['Calcular as verbas rescisórias','sem multa de FGTS, sem aviso indenizado'],
+    ['Pagar as verbas em até 10 dias corridos',''],
+    ['Enviar o eSocial S-2299 até 10 dias após o desligamento',''],
+    ['Informar que não há saque do FGTS nem seguro-desemprego','registre a ciência na carta'],
+    ['Dar baixa na CTPS digital e entregar o TRCT',''],
+    ['Recolher equipamentos e encerrar acessos',''],
+    ['Entrevista de desligamento','pergunte os motivos para ações de retenção'],
+    ['Arquivar a documentação','']]],
+  est:['Estagiário',[
+    ['Identificar o motivo: término, rescisão antecipada ou conclusão do curso',''],
+    ['Conferir se o estágio passa de 2 anos','exceto estagiário com deficiência'],
+    ['Preparar o Termo de Rescisão do estágio','aba Documentos'],
+    ['Emitir o Termo de Realização do Estágio','atividades desenvolvidas e avaliação de desempenho (obrigatório)'],
+    ['Calcular bolsa proporcional e recesso','aba Rescisão de estágio'],
+    ['Pagar o saldo em dinheiro no desligamento',''],
+    ['Comunicar a instituição de ensino e o agente de integração',''],
+    ['Cancelar o seguro de acidentes pessoais',''],
+    ['Enviar o eSocial S-2399 (término de TSVE)',''],
+    ['Recolher crachá, equipamentos e acessos',''],
+    ['Avaliar potencial de efetivação ou banco de talentos',''],
+    ['Arquivar a documentação','']]]
+};
+function formChk(){return sel('ctipo','Tipo de desligamento',Object.entries(CHK).map(([k,v])=>[k,v[0]]),'dem')+`<p class="note">Marque os itens conforme avança. A marcação não é salva.</p>`}
+function runChk(){
+  const [titulo,itens]=CHK[val('ctipo')];
+  $('out').innerHTML=`<div class="card"><h3>${titulo}</h3>${itens.map((i,n)=>`<label class="ck" id="ck${n}" style="margin:0"><input type="checkbox" onchange="this.parentNode.classList.toggle('done',this.checked)"><span>${i[0]}${i[1]?`<small>${i[1]}</small>`:''}</span></label>`).join('')}</div>${actions()}`;
+}
+
+/* ═════════ MÓDULO: Parâmetros ═════════ */
+function formPar(){return `<label for="pjson">Tabelas e parâmetros (JSON)</label><textarea id="pjson" style="min-height:420px;font:12px monospace">${esc(JSON.stringify(P,null,1))}</textarea>
+<div class="actions"><button class="btn" onclick="salvarPar()">Salvar</button><button class="btn sec" onclick="restaurarPar()">Restaurar padrão</button></div>`}
+function runPar(){
+  $('out').innerHTML=`<div class="card"><h3>Valores em uso (${esc(P.vigencia||'')})</h3>
+  ${tabela([{d:'Salário mínimo',p:P.minimo},{d:'Teto do INSS',p:P.teto},{d:'Dedução por dependente (IRRF)',p:P.dep},{d:'Desconto simplificado (IRRF)',p:P.simpl},{d:'Isenção total do IRRF até (renda mensal)',p:P.isenta},{d:'Redução gradual do IRRF até',p:P.redAte}],['Parâmetro','','Valor',''])}
+  <h3>INSS · alíquotas progressivas</h3>${tabela(P.inss.map((f,i)=>({d:'Até '+brl(f[0]),ref:(f[1]*100).toFixed(1).replace('.',',')+'%'})),['Faixa','Alíquota','',''])}
+  <h3>IRRF · tabela mensal</h3>${tabela(P.ir.map(f=>({d:f[0]>=1e11?'Acima da faixa anterior':'Até '+brl(f[0]),ref:(f[1]*100).toFixed(1).replace('.',',')+'%',p:f[2]})),['Faixa','Alíquota','Parcela a deduzir',''])}
+  <p class="note">Confira os valores com as tabelas oficiais da Receita Federal e do INSS a cada atualização. Qualquer alteração fica salva só neste navegador.</p></div>`;
+}
+function salvarPar(){try{const o=JSON.parse(val('pjson'));P=Object.assign({},P_DEFAULT,o);try{localStorage.setItem('idl_rh_params',JSON.stringify(P))}catch(e){}runPar();alert('Parâmetros salvos neste navegador.')}catch(e){alert('JSON inválido: '+e.message)}}
+function restaurarPar(){P=JSON.parse(JSON.stringify(P_DEFAULT));try{localStorage.removeItem('idl_rh_params')}catch(e){}show('par')}
+
+/* ───────── navegação ───────── */
+const MODS=[
+  {g:'Desligamentos'},
+  {id:'resc',t:'Rescisão CLT',s:'Demissional, pedido de demissão, acordo, justa causa e contrato determinado, com prazos legais e FGTS.',f:formResc,r:runResc},
+  {id:'est',t:'Rescisão de estágio',s:'Saldo da bolsa, recesso proporcional e obrigações da Lei 11.788.',f:formEst,r:runEst},
+  {id:'doc',t:'Documentos',s:'Comunicados, cartas e termos de desligamento prontos para imprimir.',f:formDoc,r:runDoc},
+  {id:'chk',t:'Checklist',s:'Passo a passo do desligamento, sem esquecer nenhum prazo.',f:formChk,r:runChk},
+  {g:'Calculadoras'},
+  {id:'fer',t:'Férias',s:'Valor, abono pecuniário, 1/3, descontos e prazos de aviso e pagamento.',f:formFer,r:runFer},
+  {id:'dec',t:'13º salário',s:'1ª e 2ª parcelas, avos e descontos.',f:formDec,r:runDec},
+  {id:'fol',t:'Folha simplificada',s:'Do bruto ao líquido: INSS, IRRF, vale-transporte e demais descontos.',f:formFol,r:runFol},
+  {id:'he',t:'Horas extras e adicionais',s:'Horas extras, DSR, adicional noturno, insalubridade e periculosidade.',f:formHe,r:runHe},
+  {id:'cus',t:'Custo do colaborador',s:'Quanto cada contratação custa de verdade, com encargos e provisões.',f:formCus,r:runCus},
+  {id:'rea',t:'Reajuste / dissídio',s:'Simule o impacto na folha de um reajuste coletivo ou individual.',f:formRea,r:runRea},
+  {g:'Sistema'},
+  {id:'par',t:'Parâmetros',s:'Tabelas de INSS, IRRF e salário mínimo usadas nos cálculos.',f:formPar,r:runPar}
+];
+let cur=null;
+function resetForm(){show(cur)}
+function show(id){
+  cur=id;const m=MODS.find(x=>x.id===id);
+  $('ttl').textContent=m.t;$('sub').textContent=m.s;
+  $('view').innerHTML=`<div class="grid"><div class="card form" id="frm">${m.f()}</div><div id="out"></div></div>`;
+  const run=()=>{try{m.r()}catch(e){$('out').innerHTML=al('e','Erro no cálculo: '+esc(e.message))}};
+  $('frm').addEventListener('input',run);$('frm').addEventListener('change',run);
+  run();
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.id===id));
+  try{history.replaceState(null,'','#'+id)}catch(e){}
+}
+$('nav').innerHTML=`<div class="brand"><img src="logo.png" alt="" onerror="this.style.display='none'"><b>Calculadoras RH</b></div>`+
+  MODS.map(m=>m.g?`<div class="grp">${m.g}</div>`:`<button data-id="${m.id}" onclick="show('${m.id}')">${m.t}</button>`).join('');
+show(MODS.some(m=>m.id===location.hash.slice(1))?location.hash.slice(1):'resc');
+</script>
+</body>
+</html>
