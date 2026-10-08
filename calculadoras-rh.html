@@ -58,7 +58,14 @@ tr.sec td{font-weight:700;color:var(--purple);background:var(--bg);font-size:12p
 .btn{background:var(--purple);color:#fff;border:0;border-radius:8px;padding:9px 16px;font:600 13px 'DM Sans';cursor:pointer}
 .btn.sec{background:var(--soft);color:var(--purple)}
 .btn:hover{filter:brightness(1.1)}
-.doc{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:36px 44px;font:14.5px/1.7 Georgia,serif;white-space:pre-wrap;color:#111}
+.doc{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:36px 44px;font:14.5px/1.7 Georgia,serif;color:#111}
+.doc .body{white-space:pre-wrap}
+.doc .hd{text-align:center;border-bottom:2px solid var(--purple);padding-bottom:14px;margin-bottom:26px}
+.doc .hd img{max-height:72px;max-width:260px;display:block;margin:0 auto 10px}
+.doc .hd h2{font:700 17px 'DM Sans',sans-serif;letter-spacing:.05em;text-transform:uppercase;color:var(--purple-dark)}
+.logoBox{display:flex;align-items:center;gap:10px;margin-top:6px}
+.logoBox img{max-height:44px;max-width:120px;border:1px solid var(--border);border-radius:6px;padding:3px;background:#fff}
+.logoBox .btn{padding:6px 10px;font-size:12px}
 .ck{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--soft);font-size:14px}
 .ck input{width:auto;margin-top:3px}
 .ck.done span{text-decoration:line-through;opacity:.5}
@@ -81,6 +88,7 @@ tr.sec td{font-weight:700;color:var(--purple);background:var(--bg);font-size:12p
   .card,.doc{border:0;padding:0}
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
 </head>
 <body>
 <aside id="nav"></aside>
@@ -566,11 +574,33 @@ const DOCS={
   estagio:'Termo de rescisão de contrato de estágio',
   decl:'Declaração de desligamento'
 };
+let BRAND={logo:'',w:0,h:0},SAVED={};
+try{BRAND=Object.assign(BRAND,JSON.parse(localStorage.getItem('idl_rh_brand')||'{}'));SAVED=JSON.parse(localStorage.getItem('idl_rh_docfields')||'{}')}catch(e){}
+const sv=id=>esc(SAVED[id]||'');
+function saveBrand(){try{localStorage.setItem('idl_rh_brand',JSON.stringify(BRAND))}catch(e){}}
+function logoBox(){const b=$('logoBox');if(!b)return;b.innerHTML=BRAND.logo?`<img src="${BRAND.logo}" alt="logo"><button class="btn sec" type="button" onclick="removerLogo()">Remover</button>`:'<span class="note" style="margin:0">Nenhuma logo carregada. Ela fica salva só neste navegador.</span>'}
+function removerLogo(){BRAND.logo='';BRAND.w=BRAND.h=0;saveBrand();logoBox();runDoc()}
+function carregarLogo(file){
+  if(!file)return;
+  const fr=new FileReader();
+  fr.onload=()=>{const im=new Image();im.onload=()=>{
+    const k=Math.min(1,600/im.width),w=Math.round(im.width*k),h=Math.round(im.height*k);
+    const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);
+    BRAND.logo=c.toDataURL('image/png');BRAND.w=w;BRAND.h=h;saveBrand();logoBox();runDoc()};
+    im.src=fr.result};
+  fr.readAsDataURL(file);
+}
 function formDoc(){return `
 ${sel('doc','Documento',Object.entries(DOCS),'dispensa')}
+<h3>Cabeçalho e assinatura</h3>
+${fld('dtitulo','Título no topo do documento','text',sv('dtitulo'),'placeholder="Em branco = nome do documento"')}
+<label for="dlogo">Logo da empresa <small>(PNG ou JPG)</small></label>
+<input id="dlogo" type="file" accept="image/*">
+<div class="logoBox" id="logoBox"></div>
 <h3>Empresa</h3>
-${fld('dempresa','Razão social')}${fld('dcnpj','CNPJ')}
-<div class="row2">${fld('dcidade','Cidade / UF')}${fld('dresp','Responsável (assinatura)')}</div>
+${fld('dempresa','Razão social','text',sv('dempresa'))}${fld('dcnpj','CNPJ','text',sv('dcnpj'))}
+${fld('dcidade','Cidade / UF','text',sv('dcidade'))}
+<div class="row2">${fld('dresp','Nome do RH (assinatura)','text',sv('dresp'))}${fld('drhcargo','Cargo do RH','text',sv('drhcargo'),'placeholder="Recursos Humanos"')}</div>
 <h3>Colaborador</h3>
 ${fld('dnome','Nome completo')}
 <div class="row2">${fld('dcpf','CPF')}${fld('dcargo','Cargo')}</div>
@@ -584,7 +614,10 @@ ${fld('dinst','Instituição de ensino (estágio)')}
 ${sel('dmot','Motivo (estágio)',[['term','término do prazo'],['emp','iniciativa da empresa'],['est','iniciativa do estagiário'],['conc','conclusão do curso']],'term')}`}
 function runDoc(){
   const g=id=>val(id).trim();
-  const emp=g('dempresa')||'[EMPRESA]',cnpj=g('dcnpj')||'[CNPJ]',cid=g('dcidade')||'[CIDADE/UF]',resp=g('dresp')||'[RESPONSÁVEL]';
+  const emp=g('dempresa')||'[EMPRESA]',cnpj=g('dcnpj')||'[CNPJ]',cid=g('dcidade')||'[CIDADE/UF]',resp=g('dresp')||'[NOME DO RH]';
+  const rhc=(g('drhcargo')||'Recursos Humanos')+' · '+emp;
+  try{SAVED={};['dtitulo','dempresa','dcnpj','dcidade','dresp','drhcargo'].forEach(i=>SAVED[i]=val(i));localStorage.setItem('idl_rh_docfields',JSON.stringify(SAVED))}catch(e){}
+  logoBox();
   const nome=g('dnome')||'[NOME DO COLABORADOR]',cpf=g('dcpf')||'[CPF]',cargo=g('dcargo')||'[CARGO]';
   const dd=D(val('ddata')),des=D(val('ddes'));
   const dt=dd?fmtD(dd):'___/___/____',ds=des?fmtD(des):'___/___/____';
@@ -596,24 +629,52 @@ function runDoc(){
     const av=val('daviso')==='trab'
       ?`O aviso prévio será trabalhado, com início em ${dt} e término em ${ds}. Durante o período, sua jornada será reduzida em ${val('dred')==='2h'?'2 (duas) horas diárias, sem prejuízo do salário integral (art. 488 da CLT)':'7 (sete) dias corridos ao final do aviso, sem prejuízo do salário integral (art. 488, parágrafo único, da CLT)'}.`
       :`O aviso prévio será indenizado, com desligamento em ${ds}, sendo o valor correspondente pago junto às verbas rescisórias.`;
-    txt=`${cid}, ${longo}.\n\nA\n${nome}\nCPF ${cpf} — Cargo: ${cargo}\n\nAssunto: COMUNICADO DE DISPENSA SEM JUSTA CAUSA\n\nPrezado(a) ${nome},\n\nComunicamos que a ${emp}, inscrita no CNPJ ${cnpj}, decidiu rescindir seu contrato de trabalho, sem justa causa, a partir da data abaixo.\n\n${av}\n\nO pagamento das verbas rescisórias será realizado em até 10 (dez) dias corridos contados do término do contrato, e os documentos para saque do FGTS e requerimento do seguro-desemprego serão entregues na mesma data. Será agendado exame médico demissional, quando exigível.\n\nAgradecemos pelos serviços prestados.\n\nAtenciosamente,${assin(resp,emp)}${cienci}`;
+    txt=`${cid}, ${longo}.\n\nA\n${nome}\nCPF ${cpf} — Cargo: ${cargo}\n\nAssunto: COMUNICADO DE DISPENSA SEM JUSTA CAUSA\n\nPrezado(a) ${nome},\n\nComunicamos que a ${emp}, inscrita no CNPJ ${cnpj}, decidiu rescindir seu contrato de trabalho, sem justa causa, a partir da data abaixo.\n\n${av}\n\nO pagamento das verbas rescisórias será realizado em até 10 (dez) dias corridos contados do término do contrato, e os documentos para saque do FGTS e requerimento do seguro-desemprego serão entregues na mesma data. Será agendado exame médico demissional, quando exigível.\n\nAgradecemos pelos serviços prestados.\n\nAtenciosamente,${assin(resp,rhc)}${cienci}`;
   }else if(tipo==='pedido'){
     const av=val('daviso')==='trab'?'Cumprirei o aviso prévio de 30 (trinta) dias, com término em '+ds+'.':'Solicito a dispensa do cumprimento do aviso prévio, ciente de que a empresa poderá aceitar ou descontar o período, conforme o art. 487, §2º, da CLT.';
     txt=`${cid}, ${longo}.\n\nÀ\n${emp}\nCNPJ ${cnpj}\nA/C: ${resp}\n\nAssunto: PEDIDO DE DEMISSÃO\n\nEu, ${nome}, CPF ${cpf}, ocupante do cargo de ${cargo}, venho por meio desta comunicar meu pedido de demissão do emprego que ocupo nesta empresa, por livre e espontânea vontade.\n\n${av}\n\nDeclaro que estou ciente de que, por se tratar de pedido de demissão, não terei direito à multa do FGTS, ao saque do saldo do FGTS nem ao seguro-desemprego.\n\nAgradeço a oportunidade e coloco-me à disposição para a passagem das atividades.\n\nAtenciosamente,${assin(nome,'CPF '+cpf)}\n\nRecebido em ____/____/______ por: ______________________ (${emp})`;
   }else if(tipo==='justa'){
     const art={a:'a) ato de improbidade',b:'b) incontinência de conduta ou mau procedimento',c:'c) negociação habitual sem permissão do empregador / concorrência',d:'d) condenação criminal',e:'e) desídia no desempenho das respectivas funções',f:'f) embriaguez habitual ou em serviço',g:'g) violação de segredo da empresa',h:'h) ato de indisciplina ou de insubordinação',i:'i) abandono de emprego',j:'j) ato lesivo da honra ou da boa fama',k:'k) ofensas físicas',l:'l) prática constante de jogos de azar'}[val('djc')];
-    txt=`${cid}, ${longo}.\n\nA\n${nome}\nCPF ${cpf} — Cargo: ${cargo}\n\nAssunto: COMUNICADO DE DISPENSA POR JUSTA CAUSA\n\nPrezado(a) ${nome},\n\nComunicamos que, a partir de ${ds}, seu contrato de trabalho com a ${emp}, CNPJ ${cnpj}, está rescindido por justa causa, com fundamento no art. 482, alínea "${art}", da CLT.\n\nFato que motivou a medida:\n${g('dfato')||'[Descreva de forma objetiva: data, local, conduta, testemunhas e advertências anteriores, se houver.]'}\n\nO pagamento das verbas devidas será feito em até 10 (dez) dias corridos. Será agendado o exame demissional, quando exigível.${assin(resp,emp)}\n\nRecebi uma via desta comunicação em ____/____/______.\n\n_______________________________________\n${nome}\n\nTestemunha 1: ____________________    Testemunha 2: ____________________`;
+    txt=`${cid}, ${longo}.\n\nA\n${nome}\nCPF ${cpf} — Cargo: ${cargo}\n\nAssunto: COMUNICADO DE DISPENSA POR JUSTA CAUSA\n\nPrezado(a) ${nome},\n\nComunicamos que, a partir de ${ds}, seu contrato de trabalho com a ${emp}, CNPJ ${cnpj}, está rescindido por justa causa, com fundamento no art. 482, alínea "${art}", da CLT.\n\nFato que motivou a medida:\n${g('dfato')||'[Descreva de forma objetiva: data, local, conduta, testemunhas e advertências anteriores, se houver.]'}\n\nO pagamento das verbas devidas será feito em até 10 (dez) dias corridos. Será agendado o exame demissional, quando exigível.${assin(resp,rhc)}\n\nRecebi uma via desta comunicação em ____/____/______.\n\n_______________________________________\n${nome}\n\nTestemunha 1: ____________________    Testemunha 2: ____________________`;
   }else if(tipo==='exp'){
-    txt=`${cid}, ${longo}.\n\nA\n${nome}\nCPF ${cpf} — Cargo: ${cargo}\n\nAssunto: COMUNICADO DE TÉRMINO DE CONTRATO DE EXPERIÊNCIA\n\nPrezado(a) ${nome},\n\nComunicamos que seu contrato de experiência com a ${emp}, CNPJ ${cnpj}, chegará ao término em ${ds}, não sendo prorrogado nem convertido em contrato por prazo indeterminado.\n\nSerão pagos, até 10 (dez) dias corridos após o término: saldo de salário, 13º salário proporcional e férias proporcionais acrescidas de 1/3. O FGTS do período será depositado normalmente, sem a multa rescisória, por tratar-se de término de contrato por prazo determinado. Será realizado o exame médico demissional, quando exigível.\n\nAgradecemos a dedicação durante o período.\n\nAtenciosamente,${assin(resp,emp)}${cienci}`;
+    txt=`${cid}, ${longo}.\n\nA\n${nome}\nCPF ${cpf} — Cargo: ${cargo}\n\nAssunto: COMUNICADO DE TÉRMINO DE CONTRATO DE EXPERIÊNCIA\n\nPrezado(a) ${nome},\n\nComunicamos que seu contrato de experiência com a ${emp}, CNPJ ${cnpj}, chegará ao término em ${ds}, não sendo prorrogado nem convertido em contrato por prazo indeterminado.\n\nSerão pagos, até 10 (dez) dias corridos após o término: saldo de salário, 13º salário proporcional e férias proporcionais acrescidas de 1/3. O FGTS do período será depositado normalmente, sem a multa rescisória, por tratar-se de término de contrato por prazo determinado. Será realizado o exame médico demissional, quando exigível.\n\nAgradecemos a dedicação durante o período.\n\nAtenciosamente,${assin(resp,rhc)}${cienci}`;
   }else if(tipo==='estagio'){
     const m={term:'o término do prazo previsto no Termo de Compromisso de Estágio',emp:'iniciativa da empresa concedente',est:'iniciativa do estagiário',conc:'a conclusão, trancamento ou abandono do curso'}[val('dmot')];
-    txt=`TERMO DE RESCISÃO DO CONTRATO DE ESTÁGIO\n\nPelo presente instrumento, a ${emp}, CNPJ ${cnpj} (CONCEDENTE), e ${nome}, CPF ${cpf} (ESTAGIÁRIO), com interveniência de ${g('dinst')||'[INSTITUIÇÃO DE ENSINO]'} (INSTITUIÇÃO DE ENSINO), resolvem rescindir o Termo de Compromisso de Estágio, com efeitos a partir de ${ds}, em razão de ${m}, nos termos da Lei nº 11.788/2008.\n\nAs partes declaram que:\n1. foi pago ao ESTAGIÁRIO o saldo da bolsa-auxílio e o recesso remunerado proporcional (art. 13, §2º), em dinheiro, quando devidos;\n2. foi entregue ao ESTAGIÁRIO o TERMO DE REALIZAÇÃO DO ESTÁGIO, com indicação resumida das atividades desenvolvidas e da avaliação de desempenho (art. 17, VII);\n3. o seguro contra acidentes pessoais cobre o estágio até a data de término;\n4. a rescisão do estágio não gera vínculo empregatício, 13º salário, férias, aviso prévio, multa de FGTS ou seguro-desemprego.\n\n${cid}, ${longo}.${assin(resp,emp+' (CONCEDENTE)')}${assin(nome,'ESTAGIÁRIO')}${assin('Responsável da instituição de ensino',g('dinst')||'INSTITUIÇÃO DE ENSINO')}`;
+    txt=`TERMO DE RESCISÃO DO CONTRATO DE ESTÁGIO\n\nPelo presente instrumento, a ${emp}, CNPJ ${cnpj} (CONCEDENTE), e ${nome}, CPF ${cpf} (ESTAGIÁRIO), com interveniência de ${g('dinst')||'[INSTITUIÇÃO DE ENSINO]'} (INSTITUIÇÃO DE ENSINO), resolvem rescindir o Termo de Compromisso de Estágio, com efeitos a partir de ${ds}, em razão de ${m}, nos termos da Lei nº 11.788/2008.\n\nAs partes declaram que:\n1. foi pago ao ESTAGIÁRIO o saldo da bolsa-auxílio e o recesso remunerado proporcional (art. 13, §2º), em dinheiro, quando devidos;\n2. foi entregue ao ESTAGIÁRIO o TERMO DE REALIZAÇÃO DO ESTÁGIO, com indicação resumida das atividades desenvolvidas e da avaliação de desempenho (art. 17, VII);\n3. o seguro contra acidentes pessoais cobre o estágio até a data de término;\n4. a rescisão do estágio não gera vínculo empregatício, 13º salário, férias, aviso prévio, multa de FGTS ou seguro-desemprego.\n\n${cid}, ${longo}.${assin(resp,rhc+' (CONCEDENTE)')}${assin(nome,'ESTAGIÁRIO')}${assin('Responsável da instituição de ensino',g('dinst')||'INSTITUIÇÃO DE ENSINO')}`;
   }else{
-    txt=`${cid}, ${longo}.\n\nDECLARAÇÃO\n\nDeclaramos, para os devidos fins, que ${nome}, CPF ${cpf}, exerceu o cargo de ${cargo} na ${emp}, CNPJ ${cnpj}, tendo sido desligado(a) em ${ds}.\n\nPor ser verdade, firmamos a presente.${assin(resp,emp)}`;
+    txt=`${cid}, ${longo}.\n\nDECLARAÇÃO\n\nDeclaramos, para os devidos fins, que ${nome}, CPF ${cpf}, exerceu o cargo de ${cargo} na ${emp}, CNPJ ${cnpj}, tendo sido desligado(a) em ${ds}.\n\nPor ser verdade, firmamos a presente.${assin(resp,rhc)}`;
   }
-  $('out').innerHTML=`<div class="doc">${esc(txt)}</div>${actions('<button class="btn sec" id="cpy">Copiar texto</button>')}`;
+  const titulo=g('dtitulo')||DOCS[tipo];
+  CURDOC={titulo,txt,nome:g('dnome')||'colaborador'};
+  $('out').innerHTML=`<div class="doc"><div class="hd">${BRAND.logo?`<img src="${BRAND.logo}" alt="">`:''}<h2>${esc(titulo)}</h2></div><div class="body">${esc(txt)}</div></div>${actions('<button class="btn" id="wrd">Baixar em Word (.docx)</button><button class="btn sec" id="cpy">Copiar texto</button>')}`;
+  $('wrd').onclick=baixarWord;
   $('cpy').onclick=()=>{navigator.clipboard.writeText(txt).then(()=>{$('cpy').textContent='Copiado!'}).catch(()=>{})};
 }
+
+let CURDOC=null;
+function baixar(blob,nome){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+function baixarWord(){
+  if(!CURDOC)return;
+  const {titulo,txt,nome}=CURDOC;
+  const arq=(titulo+' - '+nome).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'_');
+  if(typeof docx==='undefined'){
+    /* sem a biblioteca (offline): HTML aberto pelo Word */
+    const h=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"></head><body style="font-family:Arial;font-size:11pt">${BRAND.logo?`<p style="text-align:center"><img src="${BRAND.logo}" width="${Math.round(BRAND.w/3)}"></p>`:''}<h2 style="text-align:center">${esc(titulo)}</h2><hr>${esc(txt).replace(/\n/g,'<br>')}</body></html>`;
+    return baixar(new Blob(['\ufeff',h],{type:'application/msword'}),arq+'.doc');
+  }
+  const {Document,Packer,Paragraph,TextRun,ImageRun,AlignmentType,BorderStyle}=docx;
+  const ch=[];
+  if(BRAND.logo){
+    const bin=atob(BRAND.logo.split(',')[1]),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+    const hh=Math.min(70,BRAND.h),ww=Math.round(BRAND.w*hh/BRAND.h);
+    ch.push(new Paragraph({alignment:AlignmentType.CENTER,spacing:{after:120},children:[new ImageRun({data:u,type:'png',transformation:{width:ww,height:hh}})]}));
+  }
+  ch.push(new Paragraph({alignment:AlignmentType.CENTER,spacing:{after:360},border:{bottom:{style:BorderStyle.SINGLE,size:12,color:'391694',space:8}},children:[new TextRun({text:titulo.toUpperCase(),bold:true,size:30,font:'Arial',color:'261062'})]}));
+  txt.split('\n').forEach(l=>ch.push(new Paragraph({spacing:{after:120,line:300},children:[new TextRun({text:l,font:'Arial',size:22})]})));
+  const doc=new Document({sections:[{properties:{page:{margin:{top:1134,bottom:1134,left:1304,right:1304}}},children:ch}]});
+  Packer.toBlob(doc).then(b=>baixar(b,arq+'.docx')).catch(e=>alert('Erro ao gerar o Word: '+e.message));
+}
+document.addEventListener('change',e=>{if(e.target&&e.target.id==='dlogo')carregarLogo(e.target.files[0])});
 
 /* ═════════ MÓDULO: Checklist ═════════ */
 const CHK={
