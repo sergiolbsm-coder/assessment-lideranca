@@ -55,6 +55,7 @@ tr.sec td{font-weight:700;color:var(--purple);background:var(--bg);font-size:12p
 .alert.e{background:#FEF2F2;border-color:var(--err);color:#7F1D1D}
 .alert.i{background:#F0FDFA;border-color:var(--turq);color:#134E4A}
 .actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.actions.topbar{position:sticky;top:0;z-index:5;margin:0 0 12px;padding:8px 0;background:var(--bg)}
 .btn{background:var(--purple);color:#fff;border:0;border-radius:8px;padding:9px 16px;font:600 13px 'DM Sans';cursor:pointer}
 .btn.sec{background:var(--soft);color:var(--purple)}
 .btn:hover{filter:brightness(1.1)}
@@ -859,7 +860,9 @@ function show(id){
   cur=id;const m=MODS.find(x=>x.id===id);
   $('ttl').textContent=m.t;$('sub').textContent=m.s;
   $('view').innerHTML=`<div class="grid"><div class="card form" id="frm">${m.f()}</div><div id="out"></div></div>`;
-  const run=()=>{try{m.r()}catch(e){$('out').innerHTML=al('e','Erro no cálculo: '+esc(e.message))}};
+  const run=()=>{try{m.r()}catch(e){$('out').innerHTML=al('e','Erro no cálculo: '+esc(e.message))}
+    const o=$('out');
+    if(o.querySelector('.actions')){const t=document.createElement('div');t.className='actions topbar';t.innerHTML='<button class="btn" type="button" onclick="exportar()">Baixar em Word (.docx)</button>';o.insertBefore(t,o.firstChild)}};
   window.RUN=run;
   $('frm').addEventListener('input',run);$('frm').addEventListener('change',run);
   run();
